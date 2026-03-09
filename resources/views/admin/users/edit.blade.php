@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Gestion des utilisateurs - Administration</title>
+    <title>Modifier un utilisateur - Administration</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         * { 
@@ -21,7 +21,7 @@
             display: flex;
         }
 
-        /* Sidebar Admin */
+        /* Sidebar Admin (identique à create) */
         .sidebar {
             width: 280px;
             background: white;
@@ -117,6 +117,21 @@
             background: #ffe8e6;
         }
 
+        .badge-notification {
+            background: #ef4444;
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 700;
+            min-width: 20px;
+            height: 20px;
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 5px;
+            margin-left: auto;
+        }
+
         /* Main content */
         .main-content {
             margin-left: 280px;
@@ -130,7 +145,7 @@
             border-radius: 30px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             padding: 30px;
-            max-width: 1200px;
+            max-width: 800px;
             margin: 0 auto;
         }
 
@@ -143,138 +158,105 @@
             margin-bottom: 1rem;
         }
 
-        .btn-create {
-            display: inline-block;
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-            padding: 0.8rem 1.8rem;
-            border-radius: 50px;
-            font-weight: 700;
-            text-decoration: none;
-            margin-bottom: 2rem;
-            transition: all 0.3s;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-        }
-
-        .btn-create:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
-        }
-
-        .table {
-            width: 100%;
-            border-collapse: collapse;
+        .card {
             background: white;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-        }
-
-        .table thead th {
-            background: #f8fafc;
-            color: #475569;
-            font-weight: 700;
-            padding: 1.2rem 1rem;
-            text-align: left;
-            border-bottom: 2px solid #e2e8f0;
-        }
-
-        .table tbody td {
-            padding: 1rem;
-            border-bottom: 1px solid #f1f5f9;
-        }
-
-        .table tbody tr:hover {
-            background: #f8fafc;
-        }
-
-        .badge {
-            background: #e2e8f0;
-            color: #475569;
-            padding: 0.3rem 0.8rem;
             border-radius: 20px;
-            font-size: 0.8rem;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
             font-weight: 600;
+            color: #475569;
+            margin-bottom: 0.6rem;
+            font-size: 0.95rem;
         }
 
-        .badge-admin {
-            background: #10b981;
-            color: white;
+        .form-control {
+            width: 100%;
+            padding: 0.85rem 1.1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            background: #f8fafc;
+            font-family: 'Nunito', sans-serif;
         }
 
-        .badge-agent {
-            background: #f39c12;
-            color: white;
+        .form-control:focus {
+            outline: none;
+            border-color: #10b981;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
         }
 
-        .btn-action {
+        .btn {
+            padding: 0.9rem 1.8rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
             display: inline-flex;
             align-items: center;
-            gap: 0.4rem;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            font-weight: 600;
+            gap: 0.6rem;
             text-decoration: none;
-            transition: all 0.2s;
-            border: none;
-            cursor: pointer;
         }
 
-        .btn-edit {
-            background: #f1f5f9;
-            color: #475569;
-        }
-
-        .btn-edit:hover {
-            background: #e2e8f0;
-            transform: translateY(-2px);
-        }
-
-        .btn-delete {
-            background: #fee2e2;
-            color: #dc2626;
-        }
-
-        .btn-delete:hover {
-            background: #fecaca;
-            transform: translateY(-2px);
-        }
-
-        .pagination {
-            margin-top: 2rem;
-            display: flex;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-
-        .pagination a, .pagination span {
-            padding: 0.6rem 1rem;
-            border-radius: 8px;
-            background: white;
-            color: #64748b;
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        .pagination .active {
-            background: #10b981;
+        .btn-primary {
+            background: linear-gradient(135deg, #10b981, #059669);
             color: white;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
         }
 
-        .alert-success {
-            background: #d4edda;
-            color: #155724;
-            padding: 1rem;
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35);
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+            color: #475569;
+            transform: translateY(-2px);
+        }
+
+        .alert {
+            padding: 1rem 1.5rem;
             border-radius: 12px;
             margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            background: #d4edda;
+            color: #155724;
             border-left: 4px solid #10b981;
+        }
+
+        .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #e74c3c;
         }
     </style>
 </head>
 <body>
 
-    <!-- Sidebar Admin -->
+    <!-- Sidebar Admin (identique) -->
+    @php
+        $unreadNotifications = \App\Models\Notification::where('user_id', auth()->id())->where('is_read', false)->count();
+    @endphp
     <div class="sidebar">
         <div class="sidebar-header">
             <h2><span>🇹🇬</span> e-Déclaration TG</h2>
@@ -296,53 +278,57 @@
     <!-- Main Content -->
     <div class="main-content">
         <div class="container">
-            <h1>👥 Gestion des utilisateurs</h1>
+            <h1>✏️ Modifier l'utilisateur</h1>
 
-            <a href="{{ route('admin.users.create') }}" class="btn-create">+ Nouvel utilisateur</a>
-
-            @if(session('success'))
-                <div class="alert-success">{{ session('success') }}</div>
+            @if ($errors->any())
+                <div class="alert alert-danger">
+                    <ul style="margin-left: 1.5rem;">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
             @endif
 
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Nom</th>
-                        <th>Email</th>
-                        <th>Rôle</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($users as $user)
-                    <tr>
-                        <td>#{{ $user->id }}</td>
-                        <td>{{ $user->name }}</td>
-                        <td>{{ $user->email }}</td>
-                        <td>
-                            @if($user->role === 'admin')
-                                <span class="badge badge-admin">Administrateur</span>
-                            @elseif($user->role === 'agent')
-                                <span class="badge badge-agent">Agent</span>
-                            @else
-                                <span class="badge">Utilisateur</span>
-                            @endif
-                        </td>
-                        <td>
-                            <a href="{{ route('admin.users.edit', $user) }}" class="btn-action btn-edit">✏️ Modifier</a>
-                            <form action="{{ route('admin.users.destroy', $user) }}" method="POST" style="display: inline;">
-                                @csrf @method('DELETE')
-                                <button type="submit" class="btn-action btn-delete" onclick="return confirm('Supprimer cet utilisateur ?')">🗑️ Supprimer</button>
-                            </form>
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
+            <div class="card">
+                <form method="POST" action="{{ route('admin.users.update', $user) }}">
+                    @csrf
+                    @method('PUT')
 
-            <div class="pagination">
-                {{ $users->links() }}
+                    <div class="form-group">
+                        <label class="form-label">Nom complet *</label>
+                        <input type="text" name="name" class="form-control" value="{{ old('name', $user->name) }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Email *</label>
+                        <input type="email" name="email" class="form-control" value="{{ old('email', $user->email) }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Nouveau mot de passe (laisser vide pour ne pas changer)</label>
+                        <input type="password" name="password" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Confirmer le nouveau mot de passe</label>
+                        <input type="password" name="password_confirmation" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Rôle</label>
+                        <select name="role" class="form-control">
+                            <option value="user" {{ (old('role', $user->role) == 'user') ? 'selected' : '' }}>Utilisateur</option>
+                            <option value="agent" {{ (old('role', $user->role) == 'agent') ? 'selected' : '' }}>Agent</option>
+                            <option value="admin" {{ (old('role', $user->role) == 'admin') ? 'selected' : '' }}>Administrateur</option>
+                        </select>
+                    </div>
+
+                    <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                        <button type="submit" class="btn btn-primary">Mettre à jour</button>
+                        <a href="{{ route('admin.users.index') }}" class="btn btn-secondary">Annuler</a>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

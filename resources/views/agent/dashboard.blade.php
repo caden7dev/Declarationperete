@@ -3,132 +3,137 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Dashboard Agent - e-Déclaration TG</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
             font-family: 'Nunito', sans-serif;
         }
 
-        body {
-            display: flex;
-            min-height: 100vh;
-            background: #f0f4f8;
+        body { 
+            display: flex; 
+            min-height: 100vh; 
+            background: #f5f7fa;
         }
 
         /* Sidebar */
         .sidebar {
             width: 280px;
-            background: linear-gradient(180deg, #1e3a5f 0%, #2d5a8c 100%);
-            color: white;
+            background: white;
+            box-shadow: 2px 0 15px rgba(0,0,0,0.08);
             display: flex;
             flex-direction: column;
-            box-shadow: 4px 0 15px rgba(0,0,0,0.2);
+            position: fixed;
+            height: 100vh;
+            z-index: 10;
         }
 
         .sidebar-header {
             padding: 2rem 1.5rem;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid #e8eef5;
         }
 
-        .sidebar-header h2 {
+        .sidebar-header h2 { 
             font-size: 1.3rem;
             font-weight: 800;
-            display: flex;
-            align-items: center;
+            display: flex; 
+            align-items: center; 
             gap: 0.8rem;
+            color: #1e3a5f;
         }
 
-        .sidebar-header .badge-role {
-            background: #f39c12;
+        .agent-badge {
+            background: linear-gradient(135deg, #f39c12, #f1c40f);
+            color: white;
             padding: 0.3rem 0.8rem;
             border-radius: 20px;
             font-size: 0.75rem;
             font-weight: 700;
-            letter-spacing: 0.5px;
-        }
-
-        .user-info {
-            padding: 1.5rem;
-            background: rgba(255,255,255,0.1);
-            margin: 1rem;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .user-avatar {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, #27ae60, #2ecc71);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            font-weight: 700;
-        }
-
-        .user-details h4 {
-            font-size: 1rem;
-            margin-bottom: 0.2rem;
-        }
-
-        .user-details p {
-            font-size: 0.85rem;
-            opacity: 0.8;
+            margin-top: 0.5rem;
+            display: inline-block;
         }
 
         .sidebar-nav {
             flex: 1;
-            padding: 1rem;
+            padding: 1.5rem 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
             overflow-y: auto;
         }
 
         .sidebar-nav a {
+            text-decoration: none;
+            color: #64748b;
+            font-weight: 600;
+            padding: 0.9rem 1.2rem;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             gap: 0.8rem;
-            padding: 1rem 1.2rem;
-            color: rgba(255,255,255,0.8);
-            text-decoration: none;
-            border-radius: 10px;
-            margin-bottom: 0.5rem;
-            transition: all 0.3s;
-            font-weight: 600;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+            position: relative;
         }
 
-        .sidebar-nav a:hover,
+        .sidebar-nav a:hover {
+            background: #f1f5f9;
+            color: #f39c12;
+        }
+
         .sidebar-nav a.active {
-            background: rgba(255,255,255,0.15);
-            color: white;
-            transform: translateX(5px);
+            background: linear-gradient(135deg, rgba(243, 156, 18, 0.1), rgba(241, 196, 15, 0.05));
+            color: #f39c12;
+            font-weight: 700;
+            border: 2px solid #f39c12;
         }
 
-        .sidebar-nav svg {
+        .sidebar-nav a svg {
             width: 20px;
             height: 20px;
         }
 
+        /* Badge de notification dans sidebar */
+        .nav-badge {
+            margin-left: auto;
+            background: #e74c3c;
+            color: white;
+            padding: 0.2rem 0.6rem;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            animation: pulse 2s infinite;
+        }
+
+        .nav-badge.orange {
+            background: #f39c12;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
         .sidebar-footer {
-            padding: 1.5rem;
-            border-top: 1px solid rgba(255,255,255,0.1);
+            padding: 1.5rem 1rem;
+            border-top: 1px solid #e8eef5;
         }
 
         .btn-logout {
             width: 100%;
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
-            color: white;
-            padding: 1rem;
+            background: #fff1f0;
+            color: #e74c3c;
+            padding: 0.9rem;
             border: none;
             border-radius: 10px;
+            font-size: 0.95rem;
             font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -136,39 +141,112 @@
         }
 
         .btn-logout:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
+            background: #ffe8e6;
         }
 
-        /* Main Content */
-        .main-content {
+        /* Main */
+        .main {
+            margin-left: 280px;
             flex: 1;
-            padding: 2rem;
-            overflow-y: auto;
+            background: #f5f7fa;
         }
 
-        /* Header */
-        .page-header {
-            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
-            padding: 2rem;
-            border-radius: 20px;
-            margin-bottom: 2rem;
-            color: white;
-            box-shadow: 0 8px 25px rgba(39, 174, 96, 0.3);
+        /* Top Bar */
+        .top-bar {
+            background: white;
+            padding: 1.5rem 2.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 5;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .page-header h1 {
-            font-size: 2rem;
+        .top-bar-left h1 {
+            font-size: 1.75rem;
             font-weight: 800;
-            margin-bottom: 0.5rem;
+            color: #1e3a5f;
+            margin-bottom: 0.3rem;
         }
 
-        .page-header p {
-            font-size: 1.1rem;
-            opacity: 0.95;
+        .top-bar-left p {
+            color: #64748b;
+            font-size: 0.95rem;
         }
 
-        /* Stats Cards */
+        .top-bar-right {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .notification-badge {
+            position: relative;
+            background: #f8f9fa;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .notification-badge:hover {
+            background: #e9ecef;
+            transform: scale(1.05);
+        }
+
+        .notification-count {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #e74c3c;
+            color: white;
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 10px;
+            font-weight: 700;
+            animation: pulse 2s infinite;
+        }
+
+        /* Content */
+        .content {
+            padding: 2.5rem;
+        }
+
+        /* Alert */
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            animation: slideDown 0.3s;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #27ae60;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #e74c3c;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Stats Grid */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -179,306 +257,336 @@
         .stat-card {
             background: white;
             padding: 1.8rem;
-            border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 2px solid transparent;
             transition: all 0.3s;
-            border-left: 4px solid;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
         }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+        }
+
+        .stat-card.total::before { background: #3498db; }
+        .stat-card.pending::before { background: #f39c12; }
+        .stat-card.approved::before { background: #27ae60; }
+        .stat-card.rejected::before { background: #e74c3c; }
+        .stat-card.mine::before { background: #9b59b6; }
+        .stat-card.found::before { background: #16a085; }
 
         .stat-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
         }
 
-        .stat-card.pending {
-            border-color: #f39c12;
-        }
-
-        .stat-card.validated {
-            border-color: #27ae60;
-        }
-
-        .stat-card.rejected {
-            border-color: #e74c3c;
-        }
-
-        .stat-card.total {
-            border-color: #3498db;
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
         }
 
         .stat-icon {
-            font-size: 2.5rem;
-            margin-bottom: 0.8rem;
-        }
-
-        .stat-card h3 {
-            font-size: 0.9rem;
-            color: #666;
-            margin-bottom: 0.5rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .stat-card p {
-            font-size: 2.5rem;
-            font-weight: 800;
-            color: #1e3a5f;
-        }
-
-        /* Alerts */
-        .alert {
-            padding: 1.2rem 1.5rem;
+            width: 50px;
+            height: 50px;
             border-radius: 12px;
-            margin-bottom: 2rem;
             display: flex;
             align-items: center;
-            gap: 1rem;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .stat-card.total .stat-icon { background: rgba(52, 152, 219, 0.1); }
+        .stat-card.pending .stat-icon { background: rgba(243, 156, 18, 0.1); }
+        .stat-card.approved .stat-icon { background: rgba(39, 174, 96, 0.1); }
+        .stat-card.rejected .stat-icon { background: rgba(231, 76, 60, 0.1); }
+        .stat-card.mine .stat-icon { background: rgba(155, 89, 182, 0.1); }
+        .stat-card.found .stat-icon { background: rgba(22, 160, 133, 0.1); }
+
+        .stat-value {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #1e3a5f;
+            margin-bottom: 0.3rem;
+        }
+
+        .stat-label {
+            color: #64748b;
+            font-size: 0.9rem;
             font-weight: 600;
         }
 
-        .alert-success {
-            background: #d4edda;
-            color: #155724;
-            border-left: 4px solid #27ae60;
+        /* Section Headers */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
         }
 
-        .alert svg {
-            width: 24px;
-            height: 24px;
+        .section-title {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #1e3a5f;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
         }
 
-        /* Filters */
-        .filters {
+        .section-action {
+            background: linear-gradient(135deg, #f39c12, #f1c40f);
+            color: white;
+            padding: 0.7rem 1.5rem;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 700;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+            display: inline-block;
+        }
+
+        .section-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(243, 156, 18, 0.3);
+        }
+
+        .section-action.blue {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+        }
+
+        .section-action.green {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+        }
+
+        .section-action.red {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+
+        /* Documents Trouvés Card */
+        .found-docs-card {
             background: white;
-            padding: 1.5rem;
-            border-radius: 15px;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             margin-bottom: 2rem;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
         }
 
-        .filters-row {
+        .found-doc-item {
+            display: flex;
+            gap: 1.5rem;
+            padding: 1.2rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            background: #f8f9fa;
+            border-left: 4px solid #16a085;
+            transition: all 0.2s;
+        }
+
+        .found-doc-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .found-doc-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #16a085, #1abc9c);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            flex-shrink: 0;
+        }
+
+        .found-doc-info {
+            flex: 1;
+        }
+
+        .found-doc-type {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1e3a5f;
+            margin-bottom: 0.3rem;
+        }
+
+        .found-doc-details {
+            font-size: 0.9rem;
+            color: #64748b;
+            margin-bottom: 0.5rem;
+        }
+
+        .found-doc-meta {
             display: flex;
             gap: 1rem;
-            align-items: center;
+            font-size: 0.85rem;
+            color: #94a3b8;
             flex-wrap: wrap;
         }
 
-        .filter-group {
-            flex: 1;
-            min-width: 200px;
-        }
-
-        .filter-group label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: #555;
-            font-size: 0.9rem;
-        }
-
-        .filter-group select {
-            width: 100%;
-            padding: 0.8rem;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 0.95rem;
-            transition: all 0.3s;
-        }
-
-        .filter-group select:focus {
-            outline: none;
-            border-color: #27ae60;
-        }
-
-        /* Table Section */
-        .table-section {
-            background: white;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
-        }
-
-        .table-header {
-            padding: 1.5rem 2rem;
-            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-            border-bottom: 2px solid #dee2e6;
-        }
-
-        .table-header h2 {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: #1e3a5f;
+        .found-doc-actions {
             display: flex;
-            align-items: center;
+            flex-direction: column;
             gap: 0.5rem;
+            justify-content: center;
+            min-width: 120px;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th, td {
-            padding: 1.2rem 1.5rem;
-            text-align: left;
-        }
-
-        th {
-            background: #f8f9fa;
-            font-weight: 700;
-            color: #1e3a5f;
-            text-transform: uppercase;
+        .btn-found {
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
             font-size: 0.85rem;
-            letter-spacing: 0.5px;
+            transition: all 0.2s;
+            text-align: center;
+            white-space: nowrap;
         }
 
-        tr {
-            border-bottom: 1px solid #f0f0f0;
-            transition: all 0.3s;
+        .btn-found-primary {
+            background: #16a085;
+            color: white;
         }
 
-        tr:hover {
-            background: #f8fcff;
+        .btn-found-primary:hover {
+            background: #138d75;
+            transform: translateY(-2px);
         }
 
-        /* Status Badges */
-        .status-badge {
+        .btn-found-warning {
+            background: #f39c12;
+            color: white;
+        }
+
+        .btn-found-warning:hover {
+            background: #e67e22;
+            transform: translateY(-2px);
+        }
+
+        .btn-found-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-found-success:hover {
+            background: #229954;
+            transform: translateY(-2px);
+        }
+
+        .match-badge {
+            background: #27ae60;
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
             display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 700;
+            justify-content: center;
+            gap: 0.4rem;
         }
 
-        .status-badge.pending {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .status-badge.validated {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .status-badge.rejected {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-        }
-
-        .status-pending { background: #f39c12; }
-        .status-validated { background: #27ae60; }
-        .status-rejected { background: #e74c3c; }
-
-        /* Action Buttons */
-        .actions {
+        /* Filter Tabs */
+        .filter-tabs {
             display: flex;
             gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
         }
 
-        .btn-action {
+        .filter-tab {
             padding: 0.6rem 1.2rem;
-            border: none;
-            border-radius: 8px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
             font-size: 0.85rem;
+            transition: all 0.2s;
+            background: white;
+            color: #64748b;
+            border: 1px solid #e2e8f0;
         }
 
-        .btn-validate {
-            background: linear-gradient(135deg, #27ae60, #2ecc71);
+        .filter-tab:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+
+        .filter-tab.active {
+            background: #f39c12;
             color: white;
-        }
-
-        .btn-validate:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(39, 174, 96, 0.3);
-        }
-
-        .btn-reject {
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
-            color: white;
-        }
-
-        .btn-reject:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(231, 76, 60, 0.3);
-        }
-
-        .btn-view {
-            background: linear-gradient(135deg, #3498db, #2980b9);
-            color: white;
-        }
-
-        .btn-view:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(52, 152, 219, 0.3);
+            border-color: #f39c12;
         }
 
         /* Empty State */
         .empty-state {
             text-align: center;
-            padding: 4rem 2rem;
-            color: #999;
+            padding: 3rem 2rem;
+            color: #94a3b8;
         }
 
         .empty-state-icon {
-            font-size: 5rem;
+            font-size: 3.5rem;
             margin-bottom: 1rem;
             opacity: 0.3;
         }
 
-        .empty-state h3 {
-            font-size: 1.3rem;
-            margin-bottom: 0.5rem;
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 2rem;
         }
 
-        .empty-state p {
-            font-size: 1rem;
+        .pagination a, .pagination span {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            background: white;
+            color: #64748b;
+            text-decoration: none;
+            border: 1px solid #e2e8f0;
+        }
+
+        .pagination a:hover {
+            background: #f1f5f9;
+        }
+
+        .pagination .active span {
+            background: #f39c12;
+            color: white;
+            border-color: #f39c12;
         }
 
         /* Responsive */
         @media (max-width: 1024px) {
-            body {
-                flex-direction: column;
-            }
-
             .sidebar {
                 width: 100%;
+                position: relative;
+                height: auto;
             }
 
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
+            .main {
+                margin-left: 0;
             }
-        }
 
-        @media (max-width: 768px) {
             .stats-grid {
                 grid-template-columns: 1fr;
             }
 
-            .filters-row {
+            .found-doc-item {
                 flex-direction: column;
             }
 
-            table {
-                font-size: 0.85rem;
-            }
-
-            th, td {
-                padding: 0.8rem;
-            }
-
-            .actions {
-                flex-direction: column;
+            .found-doc-actions {
+                flex-direction: row;
             }
         }
     </style>
@@ -489,53 +597,60 @@
     <div class="sidebar">
         <div class="sidebar-header">
             <h2>
-                🇹🇬 e-Déclaration TG
-                <span class="badge-role">AGENT</span>
+                <span>🇹🇬</span> 
+                e-Déclaration TG
             </h2>
-        </div>
-
-        <div class="user-info">
-            <div class="user-avatar">
-                {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
-            </div>
-            <div class="user-details">
-                <h4>{{ auth()->user()->name }}</h4>
-                <p>Agent Administratif</p>
-            </div>
+            <div class="agent-badge">👮 AGENT</div>
         </div>
 
         <nav class="sidebar-nav">
-            <a href="{{ route('agent.dashboard') }}" class="active">
+            <a href="{{ route('agent.dashboard') }}" class="{{ request()->routeIs('agent.dashboard') && !request('statut') ? 'active' : '' }}">
                 <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
                 </svg>
                 Dashboard
             </a>
-            <a href="#">
+
+            <a href="{{ route('agent.dashboard', ['statut' => 'en_attente']) }}" class="{{ request('statut') == 'en_attente' ? 'active' : '' }}">
                 <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
-                Toutes les déclarations
+                Déclarations Perte
+                @if($stats['en_attente'] > 0)
+                    <span class="nav-badge">{{ $stats['en_attente'] }}</span>
+                @endif
             </a>
-            <a href="#">
+
+            <a href="{{ route('agent.documents-trouves.index') }}" class="{{ request()->routeIs('agent.documents-trouves.*') ? 'active' : '' }}">
                 <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>
-                Statistiques
+                Documents Trouvés
+                @if($statsDocumentsTrouves['en_attente'] > 0)
+                    <span class="nav-badge orange">{{ $statsDocumentsTrouves['en_attente'] }}</span>
+                @endif
             </a>
-            <a href="#">
+
+            <a href="{{ route('agent.dashboard', ['statut' => 'validee']) }}" class="{{ request('statut') == 'validee' ? 'active' : '' }}">
                 <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
-                Mon Profil
+                Validées
+            </a>
+
+            <a href="{{ route('agent.dashboard', ['statut' => 'rejetee']) }}" class="{{ request('statut') == 'rejetee' ? 'active' : '' }}">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Rejetées
             </a>
         </nav>
 
         <div class="sidebar-footer">
-            <form method="POST" action="{{ route('logout') }}">
+            <form method="POST" action="{{ route('logout') }}" onsubmit="return confirm('Êtes-vous sûr de vouloir vous déconnecter ?')">
                 @csrf
                 <button type="submit" class="btn-logout">
-                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:20px;height:20px;">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:18px;height:18px;">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                     </svg>
                     Se déconnecter
@@ -544,198 +659,281 @@
         </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="main-content">
-        <!-- Page Header -->
-        <div class="page-header">
-            <h1>Gestion des Déclarations de Perte</h1>
-            <p>Validez et gérez les déclarations soumises par les citoyens</p>
-        </div>
-
-        <!-- Success Alert -->
-        @if(session('success'))
-            <div class="alert alert-success">
-                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                <span>{{ session('success') }}</span>
+    <!-- Main -->
+    <div class="main">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div class="top-bar-left">
+                <h1>🎯 Dashboard Agent</h1>
+                <p>Gérez les déclarations et documents trouvés</p>
             </div>
-        @endif
-
-        <!-- Stats Grid -->
-        <div class="stats-grid">
-            <div class="stat-card total">
-                <div class="stat-icon">📊</div>
-                <h3>Total</h3>
-                <p>{{ $pertes->count() }}</p>
-            </div>
-            <div class="stat-card pending">
-                <div class="stat-icon">⏳</div>
-                <h3>En attente</h3>
-                <p>{{ $pertes->where('statut', 'en attente')->count() }}</p>
-            </div>
-            <div class="stat-card validated">
-                <div class="stat-icon">✅</div>
-                <h3>Validées</h3>
-                <p>{{ $pertes->where('statut', 'validée')->count() }}</p>
-            </div>
-            <div class="stat-card rejected">
-                <div class="stat-icon">❌</div>
-                <h3>Rejetées</h3>
-                <p>{{ $pertes->where('statut', 'rejetée')->count() }}</p>
-            </div>
-        </div>
-
-        <!-- Filters -->
-        <div class="filters">
-            <div class="filters-row">
-                <div class="filter-group">
-                    <label>Statut</label>
-                    <select id="filterStatus">
-                        <option value="">Tous les statuts</option>
-                        <option value="en attente">En attente</option>
-                        <option value="validée">Validée</option>
-                        <option value="rejetée">Rejetée</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label>Type de pièce</label>
-                    <select id="filterType">
-                        <option value="">Tous les types</option>
-                        <option value="CNI">CNI</option>
-                        <option value="Passeport">Passeport</option>
-                        <option value="Permis">Permis de conduire</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label>Date</label>
-                    <select id="filterDate">
-                        <option value="">Toutes les dates</option>
-                        <option value="today">Aujourd'hui</option>
-                        <option value="week">Cette semaine</option>
-                        <option value="month">Ce mois</option>
-                    </select>
+            <div class="top-bar-right">
+                <div class="notification-badge" onclick="window.location.href='{{ route('agent.dashboard', ['statut' => 'en_attente']) }}'">
+                    🔔
+                    @php
+                        $totalNotif = $stats['en_attente'] + $statsDocumentsTrouves['en_attente'];
+                    @endphp
+                    @if($totalNotif > 0)
+                        <span class="notification-count">{{ $totalNotif }}</span>
+                    @endif
                 </div>
             </div>
         </div>
 
-        <!-- Table Section -->
-        <div class="table-section">
-            <div class="table-header">
-                <h2>
-                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:24px;height:24px;">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                    </svg>
-                    Déclarations récentes
-                </h2>
-            </div>
-
-            @if($pertes->count() > 0)
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID Dossier</th>
-                            <th>Type de Pièce</th>
-                            <th>Nom du Déclarant</th>
-                            <th>Date de Soumission</th>
-                            <th>Statut</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($pertes as $perte)
-                            <tr>
-                                <td><strong>#{{ str_pad($perte->id, 5, '0', STR_PAD_LEFT) }}</strong></td>
-                                <td>{{ $perte->type_piece }}</td>
-                                <td>{{ $perte->first_name }} {{ $perte->last_name }}</td>
-                                <td>{{ $perte->created_at->format('d/m/Y à H:i') }}</td>
-                                <td>
-                                    @if($perte->statut === 'en attente')
-                                        <span class="status-badge pending">
-                                            <span class="status-dot status-pending"></span>
-                                            En attente
-                                        </span>
-                                    @elseif($perte->statut === 'validée')
-                                        <span class="status-badge validated">
-                                            <span class="status-dot status-validated"></span>
-                                            Validée
-                                        </span>
-                                    @else
-                                        <span class="status-badge rejected">
-                                            <span class="status-dot status-rejected"></span>
-                                            Rejetée
-                                        </span>
-                                    @endif
-                                </td>
-                                <td>
-                                    <div class="actions">
-                                        @if($perte->statut === 'en attente')
-                                            <form method="POST" action="{{ route('agent.perte.valider', $perte) }}" style="display:inline;">
-                                                @csrf
-                                                <button type="submit" class="btn-action btn-validate">
-                                                    ✓ Valider
-                                                </button>
-                                            </form>
-                                            <form method="POST" action="{{ route('agent.perte.rejeter', $perte) }}" style="display:inline;">
-                                                @csrf
-                                                <button type="submit" class="btn-action btn-reject">
-                                                    ✗ Rejeter
-                                                </button>
-                                            </form>
-                                        @else
-                                            <button class="btn-action btn-view">
-                                                👁 Voir
-                                            </button>
-                                        @endif
-                                    </div>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            @else
-                <div class="empty-state">
-                    <div class="empty-state-icon">📭</div>
-                    <h3>Aucune déclaration trouvée</h3>
-                    <p>Il n'y a actuellement aucune déclaration à traiter</p>
+        <!-- Content -->
+        <div class="content">
+            <!-- Alerts -->
+            @if(session('success'))
+                <div class="alert alert-success">
+                    <span>✅</span>
+                    <span>{{ session('success') }}</span>
                 </div>
             @endif
+
+            @if(session('error'))
+                <div class="alert alert-error">
+                    <span>❌</span>
+                    <span>{{ session('error') }}</span>
+                </div>
+            @endif
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card total" onclick="window.location.href='{{ route('agent.dashboard') }}'">
+                    <div class="stat-header">
+                        <div class="stat-icon">📊</div>
+                    </div>
+                    <div class="stat-value">{{ $stats['total'] }}</div>
+                    <div class="stat-label">Déclarations Perte</div>
+                </div>
+
+                <div class="stat-card pending" onclick="window.location.href='{{ route('agent.dashboard', ['statut' => 'en_attente']) }}'">
+                    <div class="stat-header">
+                        <div class="stat-icon">⏳</div>
+                    </div>
+                    <div class="stat-value">{{ $stats['en_attente'] }}</div>
+                    <div class="stat-label">Perte en attente</div>
+                </div>
+
+                <div class="stat-card found" onclick="window.location.href='{{ route('agent.documents-trouves.index') }}'">
+                    <div class="stat-header">
+                        <div class="stat-icon">📦</div>
+                    </div>
+                    <div class="stat-value">{{ $statsDocumentsTrouves['total'] }}</div>
+                    <div class="stat-label">Documents Trouvés</div>
+                </div>
+
+                <div class="stat-card approved" onclick="window.location.href='{{ route('agent.dashboard', ['statut' => 'validee']) }}'">
+                    <div class="stat-header">
+                        <div class="stat-icon">✅</div>
+                    </div>
+                    <div class="stat-value">{{ $stats['validees'] }}</div>
+                    <div class="stat-label">Validées</div>
+                </div>
+
+                <div class="stat-card rejected" onclick="window.location.href='{{ route('agent.dashboard', ['statut' => 'rejetee']) }}'">
+                    <div class="stat-header">
+                        <div class="stat-icon">❌</div>
+                    </div>
+                    <div class="stat-value">{{ $stats['rejetees'] }}</div>
+                    <div class="stat-label">Rejetées</div>
+                </div>
+
+                <div class="stat-card mine">
+                    <div class="stat-header">
+                        <div class="stat-icon">👤</div>
+                    </div>
+                    <div class="stat-value">{{ $stats['traitees_par_moi'] }}</div>
+                    <div class="stat-label">Traitées par moi</div>
+                </div>
+            </div>
+
+            <!-- 🔥 FILTER TABS -->
+            <div class="filter-tabs">
+                <a href="{{ route('agent.dashboard') }}" class="filter-tab {{ !request('statut') ? 'active' : '' }}">Toutes</a>
+                <a href="{{ route('agent.dashboard', ['statut' => 'en_attente']) }}" class="filter-tab {{ request('statut') == 'en_attente' ? 'active' : '' }}">⏳ En attente</a>
+                <a href="{{ route('agent.dashboard', ['statut' => 'validee']) }}" class="filter-tab {{ request('statut') == 'validee' ? 'active' : '' }}">✅ Validées</a>
+                <a href="{{ route('agent.dashboard', ['statut' => 'rejetee']) }}" class="filter-tab {{ request('statut') == 'rejetee' ? 'active' : '' }}">❌ Rejetées</a>
+            </div>
+
+            <!-- 🔥 SECTION DÉCLARATIONS DE PERTE -->
+            <div class="section-header">
+                <div class="section-title">
+                    📋 Déclarations de Perte
+                    @if($stats['en_attente'] > 0 && !request('statut'))
+                        <span class="match-badge" style="background: #f39c12;">{{ $stats['en_attente'] }} en attente</span>
+                    @endif
+                </div>
+            </div>
+
+            <div class="found-docs-card">
+                @if($pertes->count() > 0)
+                    @foreach($pertes as $perte)
+                        @php
+                            $statusColor = '#f39c12';
+                            $statusIcon = '⏳';
+                            $statusText = 'En attente';
+                            
+                            if($perte->statut == 'validee') {
+                                $statusColor = '#27ae60';
+                                $statusIcon = '✅';
+                                $statusText = 'Validée';
+                            } elseif($perte->statut == 'rejetee') {
+                                $statusColor = '#e74c3c';
+                                $statusIcon = '❌';
+                                $statusText = 'Rejetée';
+                            }
+                            
+                            $docIcon = '📄';
+                            if($perte->type_piece == 'CNI') $docIcon = '🪪';
+                            elseif($perte->type_piece == 'Passeport') $docIcon = '🛂';
+                            elseif($perte->type_piece == 'Permis de conduire') $docIcon = '🚗';
+                        @endphp
+                        
+                        <div class="found-doc-item" style="border-left-color: {{ $statusColor }};">
+                            <div class="found-doc-icon" style="background: linear-gradient(135deg, {{ $statusColor }}, {{ $statusColor }}dd);">
+                                {{ $docIcon }}
+                            </div>
+                            <div class="found-doc-info">
+                                <div class="found-doc-type">
+                                    {{ $perte->type_piece }}
+                                    @if($perte->numero_piece)
+                                        <small style="color: #64748b;">N°{{ $perte->numero_piece }}</small>
+                                    @endif
+                                </div>
+                                <div class="found-doc-details">
+                                    <strong>{{ $perte->first_name }} {{ $perte->last_name }}</strong>
+                                </div>
+                                <div class="found-doc-meta">
+                                    <span>📍 {{ $perte->lieu_perte }}</span>
+                                    <span>📅 Perte le {{ \Carbon\Carbon::parse($perte->date_perte)->format('d/m/Y') }}</span>
+                                    <span>📞 {{ $perte->contact }}</span>
+                                    @if($perte->numero_declaration)
+                                        <span>🔢 {{ $perte->numero_declaration }}</span>
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="found-doc-actions">
+                                <a href="{{ route('agent.perte.show', $perte->id) }}" class="btn-found btn-found-primary">
+                                    👁️ Voir détails
+                                </a>
+                                <span class="match-badge" style="background: {{ $statusColor }};">
+                                    {{ $statusIcon }} {{ $statusText }}
+                                </span>
+                            </div>
+                        </div>
+                    @endforeach
+
+                    <!-- Pagination -->
+                    @if(method_exists($pertes, 'links'))
+                        <div class="pagination">
+                            {{ $pertes->links() }}
+                        </div>
+                    @endif
+                @else
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <p><strong>Aucune déclaration de perte trouvée</strong></p>
+                        <p style="font-size: 0.9rem; margin-top: 0.5rem;">
+                            @if(request('statut'))
+                                Aucune déclaration avec le statut "{{ request('statut') }}"
+                            @else
+                                Les nouvelles déclarations apparaîtront ici
+                            @endif
+                        </p>
+                    </div>
+                @endif
+            </div>
+
+            <!-- 🔥 SECTION DOCUMENTS TROUVÉS -->
+            <div class="section-header" style="margin-top: 2rem;">
+                <div class="section-title">
+                    📦 Documents Trouvés Récents
+                    @if($statsDocumentsTrouves['en_attente'] > 0)
+                        <span class="match-badge" style="background: #16a085;">{{ $statsDocumentsTrouves['en_attente'] }} nouveau(x)</span>
+                    @endif
+                </div>
+                <a href="{{ route('agent.documents-trouves.index') }}" class="section-action blue">
+                    Voir tout →
+                </a>
+            </div>
+
+            <div class="found-docs-card">
+                @if($derniersTrouves->count() > 0)
+                    @foreach($derniersTrouves as $docTrouve)
+                        @php
+                            $docStatusColor = '#16a085';
+                            $docStatusText = 'En attente';
+                            $docStatusIcon = '⏳';
+                            
+                            if($docTrouve->statut == 'matche') {
+                                $docStatusColor = '#f39c12';
+                                $docStatusText = 'Matché';
+                                $docStatusIcon = '🔗';
+                            } elseif($docTrouve->statut == 'restitue') {
+                                $docStatusColor = '#27ae60';
+                                $docStatusText = 'Restitué';
+                                $docStatusIcon = '✅';
+                            }
+                        @endphp
+                        
+                        <div class="found-doc-item" style="border-left-color: {{ $docStatusColor }};">
+                            <div class="found-doc-icon" style="background: linear-gradient(135deg, {{ $docStatusColor }}, {{ $docStatusColor }}dd);">
+                                📄
+                            </div>
+                            <div class="found-doc-info">
+                                <div class="found-doc-type">
+                                    {{ $docTrouve->type_document }}
+                                    @if($docTrouve->numero_document)
+                                        - N°{{ $docTrouve->numero_document }}
+                                    @endif
+                                </div>
+                                <div class="found-doc-details">
+                                    @if($docTrouve->nom_sur_document || $docTrouve->prenom_sur_document)
+                                        <strong>{{ $docTrouve->prenom_sur_document }} {{ $docTrouve->nom_sur_document }}</strong>
+                                    @endif
+                                </div>
+                                <div class="found-doc-meta">
+                                    <span>📍 {{ $docTrouve->lieu_decouverte }}</span>
+                                    <span>📅 Trouvé le {{ \Carbon\Carbon::parse($docTrouve->date_decouverte)->format('d/m/Y') }}</span>
+                                    <span>👤 {{ $docTrouve->nom_declarant }}</span>
+                                </div>
+                            </div>
+                            <div class="found-doc-actions">
+                                <a href="{{ route('agent.documents-trouves.show', $docTrouve->id) }}" class="btn-found btn-found-primary">
+                                    👁️ Voir & Matcher
+                                </a>
+                                <span class="match-badge" style="background: {{ $docStatusColor }};">
+                                    {{ $docStatusIcon }} {{ $docStatusText }}
+                                </span>
+                            </div>
+                        </div>
+                    @endforeach
+                @else
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <p><strong>Aucun document trouvé récemment</strong></p>
+                        <p style="font-size: 0.9rem; margin-top: 0.5rem;">
+                            Les citoyens peuvent déclarer les documents qu'ils trouvent sur la plateforme
+                        </p>
+                    </div>
+                @endif
+            </div>
         </div>
     </div>
 
     <script>
-        // Filtres interactifs
-        document.getElementById('filterStatus').addEventListener('change', filterTable);
-        document.getElementById('filterType').addEventListener('change', filterTable);
-        document.getElementById('filterDate').addEventListener('change', filterTable);
-
-        function filterTable() {
-            const statusFilter = document.getElementById('filterStatus').value.toLowerCase();
-            const typeFilter = document.getElementById('filterType').value.toLowerCase();
-            const rows = document.querySelectorAll('tbody tr');
-
-            rows.forEach(row => {
-                const status = row.cells[4].textContent.toLowerCase();
-                const type = row.cells[1].textContent.toLowerCase();
-
-                const statusMatch = !statusFilter || status.includes(statusFilter);
-                const typeMatch = !typeFilter || type.includes(typeFilter);
-
-                row.style.display = (statusMatch && typeMatch) ? '' : 'none';
+        // Auto-hide alerts
+        setTimeout(() => {
+            document.querySelectorAll('.alert').forEach(alert => {
+                alert.style.transition = 'opacity 0.3s';
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 300);
             });
-        }
+        }, 5000);
 
-        // Confirmation avant validation/rejet
-        document.querySelectorAll('form').forEach(form => {
-            form.addEventListener('submit', function(e) {
-                const button = this.querySelector('button[type="submit"]');
-                const action = button.textContent.includes('Valider') ? 'valider' : 'rejeter';
-                
-                if (!confirm(`Êtes-vous sûr de vouloir ${action} cette déclaration ?`)) {
-                    e.preventDefault();
-                }
-            });
-        });
+        // Log activité
+        console.log('✅ Dashboard Agent avec Documents Trouvés et Pertes chargé');
     </script>
 
 </body>

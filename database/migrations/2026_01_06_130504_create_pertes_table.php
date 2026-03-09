@@ -30,6 +30,8 @@ class CreatePertesTable extends Migration
             $table->string('lieu_perte');
             $table->text('circonstances')->nullable();
 
+            
+
             // Statut et dates
             $table->string('statut')->default('en attente');
             $table->dateTime('date_declaration')->nullable();

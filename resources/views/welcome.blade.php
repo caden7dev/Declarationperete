@@ -6,11 +6,7 @@
     <title>e-Déclaration 🇹🇬</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: 'Nunito', sans-serif;
@@ -19,7 +15,7 @@
             position: relative;
         }
 
-        /* Arrière-plan avec image fixe - NETTE */
+        /* Arrière-plan avec image fixe - NETTE - 100% VISIBLE */
         body::before {
             content: '';
             position: fixed;
@@ -33,14 +29,11 @@
             background-attachment: fixed;
             background-repeat: no-repeat;
             z-index: -2;
-            /* Amélioration de la netteté */
             image-rendering: -webkit-optimize-contrast;
             image-rendering: crisp-edges;
             transform: translateZ(0);
             backface-visibility: hidden;
         }
-
-        /* Pas d'overlay - Image 100% visible */
 
         /* Header */
         header {
@@ -165,6 +158,7 @@
         .hero-buttons {
             display: flex;
             gap: 1rem;
+            flex-wrap: wrap;
         }
 
         .btn-primary {
@@ -198,6 +192,26 @@
         .btn-secondary:hover {
             background-color: #2d5a8c;
             color: white;
+        }
+
+        /* Bouton "J'ai trouvé un document" - NOUVEAU */
+        .btn-found {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+            padding: 0.9rem 2rem;
+            border-radius: 8px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-found:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(243, 156, 18, 0.4);
         }
 
         /* Features Section */
@@ -330,6 +344,10 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        html {
+            scroll-behavior: smooth;
+        }
     </style>
 </head>
 <body>
@@ -343,14 +361,14 @@
             <nav>
                 <a href="#accueil">Accueil</a>
                 <a href="#declarations">Mes Déclarations</a>
-                <a href="#aide">Aide</a>
+                <a href="{{ route('help.public') }}">Aide</a>
                 <a href="{{ route('login') }}" class="btn-connect">Se Connecter</a>
             </nav>
         </div>
     </header>
 
     <!-- Hero Section -->
-    <section class="hero">
+    <section class="hero" id="accueil">
         <div class="hero-container">
             <div class="hero-image"></div>
             <div class="hero-content">
@@ -358,14 +376,17 @@
                 <p>Déclarations en ligne, Suivi et impression des attestations</p>
                 <div class="hero-buttons">
                     <a href="{{ route('register') }}" class="btn-primary">Commencer sa déclaration</a>
-                    <a href="#savoir-plus" class="btn-secondary">En savoir plus</a>
+                    <a href="{{ route('documents-trouves.create') }}" class="btn-found">
+                        📦 J'ai trouvé un document
+                    </a>
+                    <a href="#declarations" class="btn-secondary">En savoir plus</a>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Features Section -->
-    <section class="features">
+    <section class="features" id="declarations">
         <div class="features-grid">
             <div class="feature-card">
                 <div class="icon-wrapper">
@@ -397,6 +418,20 @@
                 <h3>Attestation Numérique</h3>
                 <p>Téléchargez vos attestations certifiées au format numérique</p>
             </div>
+
+            <!-- NOUVELLE CARD -->
+            <div class="feature-card" style="background: linear-gradient(135deg, rgba(243, 156, 18, 0.1), rgba(230, 126, 34, 0.05));">
+                <div class="icon-wrapper" style="background: linear-gradient(135deg, #f39c12, #e67e22);">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                </div>
+                <h3>Document Trouvé ?</h3>
+                <p>Aidez quelqu'un à retrouver son document perdu en le déclarant ici</p>
+                <a href="{{ route('documents-trouves.create') }}" style="display: inline-block; margin-top: 1rem; color: #f39c12; font-weight: 700; text-decoration: none;">
+                    Déclarer un document trouvé →
+                </a>
+            </div>
         </div>
     </section>
 
@@ -412,17 +447,17 @@
                 <ul>
                     <li><a href="#accueil">Accueil</a></li>
                     <li><a href="#declarations">Mes Déclarations</a></li>
-                    <li><a href="#aide">Aide</a></li>
-                    <li><a href="#contact">Contact</a></li>
+                    <li><a href="{{ route('help.public') }}">Aide</a></li>
+                    <li><a href="{{ route('register') }}">Inscription</a></li>
                 </ul>
             </div>
             <div class="footer-section">
                 <h4>Services</h4>
                 <ul>
-                    <li><a href="#">Déclaration de Perte</a></li>
-                    <li><a href="#">Suivi des Démarches</a></li>
-                    <li><a href="#">Attestation Numérique</a></li>
-                    <li><a href="#">FAQ</a></li>
+                    <li><a href="{{ route('register') }}">Déclaration de Perte</a></li>
+                    <li><a href="{{ route('documents-trouves.create') }}">Document Trouvé</a></li>
+                    <li><a href="{{ route('login') }}">Suivi des Démarches</a></li>
+                    <li><a href="{{ route('help.public') }}">FAQ</a></li>
                 </ul>
             </div>
             <div class="footer-section">
@@ -438,5 +473,9 @@
             <p>&copy; 2026 e-Déclaration. Tous droits réservés.</p>
         </div>
     </footer>
+
+    <script>
+        console.log('✨ e-Déclaration TG - Avec fonctionnalité documents trouvés !');
+    </script>
 </body>
 </html>

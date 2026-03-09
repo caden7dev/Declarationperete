@@ -41,8 +41,6 @@
             backface-visibility: hidden;
         }
 
-        /* Pas d'overlay - Image 100% visible */
-
         /* Header */
         .header {
             background-color: rgba(30, 58, 95, 0.95);
@@ -89,13 +87,27 @@
             z-index: 1;
         }
 
-        /* Login Card */
+        /* ========================================
+           🎯 CADRE DU FORMULAIRE - MODIFIEZ ICI
+           ======================================== */
         .login-card {
             background: rgba(255, 255, 255, 0.98);
             border-radius: 20px;
-            padding: 5rem;
+            
+            /* 📏 ESPACEMENT INTÉRIEUR (padding) 
+               Avant: 5rem | Maintenant: 2.5rem
+               Plus petit = cadre plus compact
+               Augmentez pour agrandir, diminuez pour réduire */
+            padding: 2.5rem;
+            
             width: 100%;
-            max-width: 550px;
+            
+            /* 📐 LARGEUR MAXIMALE du cadre
+               Avant: 550px | Maintenant: 450px
+               Plus petit = cadre plus étroit
+               Exemples: 400px (très petit), 500px (moyen), 600px (large) */
+            max-width: 450px;
+            
             box-shadow: 0 20px 60px rgba(0,0,0,0.4);
             animation: slideUp 0.5s ease-out;
             backdrop-filter: blur(15px);
@@ -106,17 +118,21 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* 📝 TITRE "Se connecter"
+           Taille réduite de 2.5rem à 2rem */
         .login-card h2 {
             color: #1e3a5f;
-            font-size: 2.5rem;
+            font-size: 2rem;
             font-weight: 700;
             text-align: center;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
         }
 
         /* Form Styles */
         .form-group {
-            margin-bottom: 1.5rem;
+            /* 📏 ESPACEMENT entre les champs
+               Réduit de 1.5rem à 1.2rem */
+            margin-bottom: 1.2rem;
         }
 
         .form-group label {
@@ -124,15 +140,19 @@
             color: #555;
             font-weight: 600;
             margin-bottom: 0.5rem;
-            font-size: 1.5rem;
+            /* 📝 Taille des labels réduite */
+            font-size: 1rem;
         }
 
         .form-input {
             width: 100%;
-            padding: 1rem;
+            /* 📏 Hauteur des champs de saisie
+               Réduit de 1rem à 0.9rem */
+            padding: 0.9rem;
             border: 2px solid #e0e0e0;
             border-radius: 10px;
-            font-size: 1.6rem;
+            /* 📝 Taille du texte dans les champs */
+            font-size: 1rem;
             font-family: 'Nunito', sans-serif;
             transition: all 0.3s;
             background: white;
@@ -146,7 +166,7 @@
 
         .form-input::placeholder {
             color: #999;
-            font-size: 1.2rem;
+            font-size: 0.95rem;
         }
 
         /* Remember & Forgot */
@@ -154,7 +174,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.2rem;
         }
 
         .remember-me {
@@ -171,7 +191,7 @@
 
         .remember-me label {
             color: #666;
-            font-size: 1rem;
+            font-size: 0.9rem;
             cursor: pointer;
             margin: 0;
         }
@@ -179,7 +199,7 @@
         .forgot-link {
             color: #666;
             text-decoration: none;
-            font-size: 1rem;
+            font-size: 0.9rem;
             transition: color 0.3s;
         }
 
@@ -193,10 +213,11 @@
             width: 100%;
             background-color: #27ae60;
             color: white;
-            padding: 1rem;
+            /* 📏 Hauteur du bouton réduite */
+            padding: 0.9rem;
             border: none;
             border-radius: 10px;
-            font-size: 1.3rem;
+            font-size: 1.1rem;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.3s;
@@ -215,15 +236,15 @@
 
         /* Register Link */
         .register-section {
-            margin-top: 2rem;
+            margin-top: 1.5rem;
             text-align: center;
-            padding-top: 1.5rem;
+            padding-top: 1.2rem;
             border-top: 1px solid #e0e0e0;
         }
 
         .register-section p {
             color: #666;
-            font-size: 1rem;
+            font-size: 0.9rem;
             margin-bottom: 0.5rem;
         }
 
@@ -231,7 +252,7 @@
             color: #27ae60;
             text-decoration: none;
             font-weight: 700;
-            font-size: 1.2rem;
+            font-size: 1rem;
             transition: all 0.3s;
         }
 
@@ -242,9 +263,9 @@
 
         /* Alert Messages */
         .alert {
-            padding: 1rem;
+            padding: 0.9rem;
             border-radius: 10px;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.2rem;
             font-size: 0.9rem;
         }
 
@@ -264,8 +285,7 @@
         @media (max-width: 768px) {
             .login-card {
                 padding: 2rem 1.5rem;
-                margin: 3rem;
-                font-size: 1.7rem
+                margin: 1rem;
             }
 
             .login-card h2 {
@@ -316,7 +336,7 @@
                 @csrf
                 <!-- Email or Phone -->
                 <div class="form-group">
-                    <label for="email"> Email</label>
+                    <label for="email">Email</label> 
                     <input 
                         type="text" 
                         id="email" 

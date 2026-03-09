@@ -87,9 +87,9 @@
         .register-card {
             background: white;
             border-radius: 20px;
-            padding: 2.5rem;
+            padding: 2rem;
             width: 100%;
-            max-width: 850px;
+            max-width: 600px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             animation: slideUp 0.5s ease-out;
         }
