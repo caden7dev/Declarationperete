@@ -12,6 +12,8 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AgentDashboardController;
 use App\Http\Controllers\Admin\UserController; 
 use App\Http\Controllers\Admin\TypePieceController;
+use App\Http\Controllers\Admin\StatisticsController;
+use App\Http\Controllers\Admin\PerteController as AdminPerteController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\HelpController;
 use App\Http\Controllers\NotificationController;
@@ -128,8 +130,6 @@ Route::middleware(['auth'])->group(function () {
     // ===== ROUTES POUR LES DOCUMENTS TROUVÉS (utilisateur connecté) =====
     Route::get('/mes-documents-trouves/{id}', [DocumentTrouveController::class, 'show'])
         ->name('documents-trouves.show');
-   
-       
 });
 
 /*
@@ -148,7 +148,7 @@ Route::prefix('agent')->name('agent.')->middleware(['auth', 'agent'])->group(fun
     Route::post('/perte/{perte}/annuler', [AgentDashboardController::class, 'annuler'])->name('perte.annuler');
     Route::post('/send-message', [AgentDashboardController::class, 'sendMessage'])->name('send-message');
 
-    // ===== NOUVEAU : Gestion des documents trouvés (agent) =====
+    // ===== Gestion des documents trouvés (agent) =====
     Route::get('/documents-trouves', [AgentDashboardController::class, 'documentsTrouves'])->name('documents-trouves.index');
     Route::get('/documents-trouves/{id}', [AgentDashboardController::class, 'showDocumentTrouve'])->name('documents-trouves.show');
     Route::post('/documents-trouves/{id}/matcher', [AgentDashboardController::class, 'matcherDocumentTrouve'])->name('documents-trouves.matcher');
@@ -168,7 +168,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     // Dashboard admin
     Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
     
-    // Gestion des utilisateurs
+    // Gestion des utilisateurs - COMPLÈTE
+    Route::resource('users', UserController::class);
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
     Route::post('/users', [UserController::class, 'store'])->name('users.store');
@@ -176,12 +177,14 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
     
-    // Gestion des types de pièces
+    // Types de pièces
+    Route::resource('types-pieces', TypePieceController::class);
     Route::get('/types-pieces', [TypePieceController::class, 'index'])->name('types-pieces.index');
-    Route::get('/types-pieces/create', [TypePieceController::class, 'create'])->name('types-pieces.create');
-    Route::post('/types-pieces', [TypePieceController::class, 'store'])->name('types-pieces.store');
+
+    // Statistiques
+    Route::get('/statistiques', [StatisticsController::class, 'index'])->name('stats.index');
     
-    // Gestion des rôles (temporaire)
+    // Rôles
     Route::get('/roles', function () {
         return view('admin.roles.index');
     })->name('roles.index');

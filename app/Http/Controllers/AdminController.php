@@ -14,13 +14,27 @@ class AdminController extends Controller
      */
     public function index()
     {
+        // Vérifier si la table pertes existe et a des données
+        try {
+            $pertesCount = Perte::count();
+            $cniCount = Perte::where('type_piece', 'CNI')->count();
+            $passeportCount = Perte::where('type_piece', 'Passeport')->count();
+            $acteCount = Perte::where('type_piece', 'Acte')->count();
+        } catch (\Exception $e) {
+            // Si erreur, mettre des valeurs par défaut
+            $pertesCount = 0;
+            $cniCount = 0;
+            $passeportCount = 0;
+            $acteCount = 0;
+        }
+
         return view('admin.dashboard', [
             // 🔢 Statistiques globales
             'stats' => [
                 'users' => User::count(),
                 'types_pieces' => TypePiece::count(),
                 'roles' => 3, // admin | agent | citoyen
-                'pertes' => Perte::count(),
+                'pertes' => $pertesCount,
             ],
 
             // 👥 Derniers utilisateurs
@@ -32,11 +46,7 @@ class AdminController extends Controller
             // 📊 Données statistiques (exemple)
             'chart' => [
                 'labels' => ['CNI', 'Passeport', 'Acte de naissance'],
-                'data' => [
-                    Perte::where('type_piece', 'CNI')->count(),
-                    Perte::where('type_piece', 'Passeport')->count(),
-                    Perte::where('type_piece', 'Acte')->count(),
-                ]
+                'data' => [$cniCount, $passeportCount, $acteCount]
             ]
         ]);
     }

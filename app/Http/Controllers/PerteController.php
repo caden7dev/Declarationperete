@@ -63,9 +63,7 @@ class PerteController extends Controller
      */
     public function store(Request $request)
     {
-
-    
-        // Validation
+        // Validation avec les règles combinées
         $validated = $request->validate([
             'last_name' => 'required|string|max:255',
             'first_name' => 'required|string|max:255',
@@ -76,7 +74,7 @@ class PerteController extends Controller
             'date_delivrance' => 'nullable|date',
             'autorite_delivrance' => 'nullable|string|max:255',
             'date_perte' => 'required|date|before_or_equal:today',
-            'lieu_perte' => 'required|string|max:255',
+            'lieu_perte' => 'required|string|max:255', // Gardé required car c'est important
             'circonstances' => 'nullable|string',
             'copie_piece' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
             'declaration_vol' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',

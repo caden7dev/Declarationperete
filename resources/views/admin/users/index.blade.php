@@ -1,351 +1,486 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Gestion des utilisateurs - Administration</title>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        * { 
-            box-sizing: border-box; 
-            margin: 0; 
-            padding: 0; 
-            font-family: 'Nunito', sans-serif;
-        }
+@extends('layouts.app')
 
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-            display: flex;
-        }
+@section('title', 'Gestion des Utilisateurs - Administration')
 
-        /* Sidebar Admin */
-        .sidebar {
-            width: 280px;
-            background: white;
-            box-shadow: 2px 0 15px rgba(0,0,0,0.08);
-            display: flex;
-            flex-direction: column;
-            position: fixed;
-            height: 100vh;
-            z-index: 10;
-            border-right: 1px solid rgba(16, 185, 129, 0.1);
-        }
+@section('content')
+<style>
+    /* Styles personnalisés supplémentaires (de la version locale) */
+    .btn-create {
+        display: inline-block;
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        padding: 0.8rem 1.8rem;
+        border-radius: 50px;
+        font-weight: 700;
+        text-decoration: none;
+        transition: all 0.3s;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        border: none;
+    }
 
-        .sidebar-header {
-            padding: 2rem 1.5rem;
-            border-bottom: 1px solid #e8eef5;
-            background: linear-gradient(135deg, #10b981, #059669);
-        }
+    .btn-create:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+        color: white;
+    }
 
-        .sidebar-header h2 { 
-            font-size: 1.3rem;
-            font-weight: 800;
-            display: flex; 
-            align-items: center; 
-            gap: 0.8rem;
-            color: white;
-        }
+    /* Badges améliorés */
+    .badge-admin {
+        background: #10b981 !important;
+        color: white;
+    }
 
-        .sidebar-header span { 
-            font-size: 1.8rem;
-        }
+    .badge-agent {
+        background: #f39c12 !important;
+        color: white;
+    }
 
-        .sidebar-nav {
-            flex: 1;
-            padding: 1.5rem 1rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.3rem;
-            overflow-y: auto;
-        }
+    .badge-user {
+        background: #3498db !important;
+        color: white;
+    }
 
-        .sidebar-nav a {
-            text-decoration: none;
-            color: #64748b;
-            font-weight: 600;
-            padding: 0.9rem 1.2rem;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-            transition: all 0.2s;
-            font-size: 0.95rem;
-        }
+    /* Animation pour les cartes */
+    .user-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        border-left: 4px solid transparent;
+    }
 
-        .sidebar-nav a:hover {
-            background: #f1f5f9;
-            color: #10b981;
-        }
+    .user-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+    }
 
-        .sidebar-nav a.active {
-            background: #e8f5e9;
-            color: #10b981;
-            font-weight: 700;
-        }
+    /* Style pour la sidebar fixe (version locale améliorée) */
+    .sidebar {
+        width: 280px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        position: fixed;
+        height: 100vh;
+        z-index: 10;
+        color: white;
+    }
 
-        .sidebar-nav a svg {
-            width: 20px;
-            height: 20px;
-        }
+    .sidebar-header {
+        padding: 2rem 1.5rem;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
 
-        .sidebar-footer {
-            padding: 1.5rem 1rem;
-            border-top: 1px solid #e8eef5;
-        }
+    .sidebar-header h2 {
+        font-size: 1.3rem;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        color: white;
+    }
 
-        .btn-logout {
-            width: 100%;
-            background: #fff1f0;
-            color: #e74c3c;
-            padding: 0.9rem;
-            border: none;
-            border-radius: 10px;
-            font-size: 0.95rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
+    .sidebar-nav {
+        flex: 1;
+        padding: 1.5rem 1rem;
+        overflow-y: auto;
+    }
 
-        .btn-logout:hover {
-            background: #ffe8e6;
-        }
+    .sidebar-nav a {
+        text-decoration: none;
+        color: rgba(255,255,255,0.8);
+        font-weight: 600;
+        padding: 0.9rem 1.2rem;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        transition: all 0.2s;
+        margin-bottom: 0.3rem;
+    }
 
-        /* Main content */
-        .main-content {
-            margin-left: 280px;
-            flex: 1;
-            padding: 2rem;
-        }
+    .sidebar-nav a:hover {
+        background: rgba(255,255,255,0.15);
+        color: white;
+    }
 
-        .container {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 30px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 30px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+    .sidebar-nav a.active {
+        background: rgba(255,255,255,0.2);
+        color: white;
+    }
 
-        h1 {
-            font-size: 2.2rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, #1e3a5f 0%, #10b981 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 1rem;
-        }
+    .main-content {
+        margin-left: 280px;
+        flex: 1;
+        padding: 2rem;
+        background: #f8f9fa;
+        min-height: 100vh;
+    }
 
-        .btn-create {
-            display: inline-block;
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-            padding: 0.8rem 1.8rem;
-            border-radius: 50px;
-            font-weight: 700;
-            text-decoration: none;
-            margin-bottom: 2rem;
-            transition: all 0.3s;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-        }
+    .logout-section {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        padding: 1.5rem 1rem;
+        border-top: 1px solid rgba(255,255,255,0.1);
+    }
 
-        .btn-create:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
-        }
+    .btn-logout {
+        width: 100%;
+        background: rgba(231, 76, 60, 0.8);
+        color: white;
+        padding: 0.9rem;
+        border: none;
+        border-radius: 10px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
 
-        .table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-        }
+    .btn-logout:hover {
+        background: #e74c3c;
+        transform: translateY(-2px);
+    }
 
-        .table thead th {
-            background: #f8fafc;
-            color: #475569;
-            font-weight: 700;
-            padding: 1.2rem 1rem;
-            text-align: left;
-            border-bottom: 2px solid #e2e8f0;
-        }
+    /* Style pour les en-têtes */
+    .page-header {
+        background: white;
+        padding: 1.5rem 2rem;
+        border-radius: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
 
-        .table tbody td {
-            padding: 1rem;
-            border-bottom: 1px solid #f1f5f9;
-        }
+    .page-header h1 {
+        font-size: 2rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #1e3a5f 0%, #10b981 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin: 0;
+    }
 
-        .table tbody tr:hover {
-            background: #f8fafc;
-        }
+    .alert-success {
+        background: #d4edda;
+        color: #155724;
+        padding: 1rem;
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
+        border-left: 4px solid #10b981;
+    }
 
-        .badge {
-            background: #e2e8f0;
-            color: #475569;
-            padding: 0.3rem 0.8rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
+    /* Pagination style */
+    .pagination {
+        margin-top: 2rem;
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+    }
 
-        .badge-admin {
-            background: #10b981;
-            color: white;
-        }
+    .pagination a, .pagination span {
+        padding: 0.6rem 1rem;
+        border-radius: 8px;
+        background: white;
+        color: #64748b;
+        text-decoration: none;
+        font-weight: 600;
+    }
 
-        .badge-agent {
-            background: #f39c12;
-            color: white;
-        }
+    .pagination .active {
+        background: #10b981;
+        color: white;
+    }
+</style>
 
-        .btn-action {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            text-decoration: none;
-            transition: all 0.2s;
-            border: none;
-            cursor: pointer;
-        }
-
-        .btn-edit {
-            background: #f1f5f9;
-            color: #475569;
-        }
-
-        .btn-edit:hover {
-            background: #e2e8f0;
-            transform: translateY(-2px);
-        }
-
-        .btn-delete {
-            background: #fee2e2;
-            color: #dc2626;
-        }
-
-        .btn-delete:hover {
-            background: #fecaca;
-            transform: translateY(-2px);
-        }
-
-        .pagination {
-            margin-top: 2rem;
-            display: flex;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-
-        .pagination a, .pagination span {
-            padding: 0.6rem 1rem;
-            border-radius: 8px;
-            background: white;
-            color: #64748b;
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        .pagination .active {
-            background: #10b981;
-            color: white;
-        }
-
-        .alert-success {
-            background: #d4edda;
-            color: #155724;
-            padding: 1rem;
-            border-radius: 12px;
-            margin-bottom: 1.5rem;
-            border-left: 4px solid #10b981;
-        }
-    </style>
-</head>
-<body>
-
-    <!-- Sidebar Admin -->
+<div class="d-flex">
+    {{-- SIDEBAR AMÉLIORÉE (version locale avec couleurs) --}}
     <div class="sidebar">
         <div class="sidebar-header">
             <h2><span>🇹🇬</span> e-Déclaration TG</h2>
         </div>
         <nav class="sidebar-nav">
-            <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">Dashboard</a>
-            <a href="{{ route('admin.users.index') }}" class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}">Utilisateurs</a>
-            <a href="{{ route('admin.types-pieces.index') }}" class="{{ request()->routeIs('admin.types-pieces.*') ? 'active' : '' }}">Types de pièces</a>
-            <a href="{{ route('admin.roles.index') }}" class="{{ request()->routeIs('admin.roles.*') ? 'active' : '' }}">Rôles</a>
+            <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+                📊 Tableau de bord
+            </a>
+            <a href="{{ route('admin.users.index') }}" class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+                👤 Gestion des Utilisateurs
+            </a>
+            <a href="{{ route('admin.types-pieces.index') }}" class="{{ request()->routeIs('admin.types-pieces.*') ? 'active' : '' }}">
+                🪪 Types de Pièces
+            </a>
+            <a href="{{ route('admin.roles.index') }}" class="{{ request()->routeIs('admin.roles.*') ? 'active' : '' }}">
+                🔐 Rôles & Droits
+            </a>
+            <a href="#" class="{{ request()->routeIs('admin.stats') ? 'active' : '' }}">
+                📈 Statistiques & Rapports
+            </a>
         </nav>
-        <div class="sidebar-footer">
+        
+        <div class="logout-section">
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
-                <button type="submit" class="btn-logout">Se déconnecter</button>
+                <button type="submit" class="btn-logout">
+                    🚪 Se déconnecter
+                </button>
             </form>
         </div>
     </div>
 
-    <!-- Main Content -->
+    {{-- CONTENU PRINCIPAL --}}
     <div class="main-content">
-        <div class="container">
+        {{-- En-tête de page élégant --}}
+        <div class="page-header">
             <h1>👥 Gestion des utilisateurs</h1>
+            <button class="btn-create" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                + Nouvel utilisateur
+            </button>
+        </div>
 
-            <a href="{{ route('admin.users.create') }}" class="btn-create">+ Nouvel utilisateur</a>
+        {{-- Messages de succès/erreur --}}
+        @if(session('success'))
+            <div class="alert-success">{{ session('success') }}</div>
+        @endif
 
-            @if(session('success'))
-                <div class="alert-success">{{ session('success') }}</div>
-            @endif
+        @if(session('error'))
+            <div class="alert alert-danger">{{ session('error') }}</div>
+        @endif
 
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Nom</th>
-                        <th>Email</th>
-                        <th>Rôle</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($users as $user)
-                    <tr>
-                        <td>#{{ $user->id }}</td>
-                        <td>{{ $user->name }}</td>
-                        <td>{{ $user->email }}</td>
-                        <td>
-                            @if($user->role === 'admin')
-                                <span class="badge badge-admin">Administrateur</span>
-                            @elseif($user->role === 'agent')
-                                <span class="badge badge-agent">Agent</span>
-                            @else
-                                <span class="badge">Utilisateur</span>
-                            @endif
-                        </td>
-                        <td>
-                            <a href="{{ route('admin.users.edit', $user) }}" class="btn-action btn-edit">✏️ Modifier</a>
-                            <form action="{{ route('admin.users.destroy', $user) }}" method="POST" style="display: inline;">
-                                @csrf @method('DELETE')
-                                <button type="submit" class="btn-action btn-delete" onclick="return confirm('Supprimer cet utilisateur ?')">🗑️ Supprimer</button>
-                            </form>
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-
-            <div class="pagination">
-                {{ $users->links() }}
+        {{-- Statistiques rapides (de la version distante) --}}
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <div class="card shadow-sm border-start border-primary border-4 h-100">
+                    <div class="card-body">
+                        <h6 class="text-muted mb-2">Total Utilisateurs</h6>
+                        <h3 class="mb-0">{{ $users->total() }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card shadow-sm border-start border-danger border-4 h-100">
+                    <div class="card-body">
+                        <h6 class="text-muted mb-2">Administrateurs</h6>
+                        <h3 class="mb-0">{{ $users->where('role', 'admin')->count() }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card shadow-sm border-start border-warning border-4 h-100">
+                    <div class="card-body">
+                        <h6 class="text-muted mb-2">Agents</h6>
+                        <h3 class="mb-0">{{ $users->where('role', 'agent')->count() }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card shadow-sm border-start border-info border-4 h-100">
+                    <div class="card-body">
+                        <h6 class="text-muted mb-2">Citoyens</h6>
+                        <h3 class="mb-0">{{ $users->where('role', 'user')->count() }}</h3>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
 
-</body>
-</html>
+        {{-- Filtres (de la version distante) --}}
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <form method="GET" action="{{ route('admin.users.index') }}" class="row g-3">
+                    <div class="col-md-4">
+                        <input type="text" name="search" class="form-control" placeholder="🔍 Rechercher (nom, email)" value="{{ request('search') }}">
+                    </div>
+                    <div class="col-md-3">
+                        <select name="role" class="form-select">
+                            <option value="">Tous les rôles</option>
+                            <option value="admin" {{ request('role') == 'admin' ? 'selected' : '' }}>Admin</option>
+                            <option value="agent" {{ request('role') == 'agent' ? 'selected' : '' }}>Agent</option>
+                            <option value="user" {{ request('role') == 'user' ? 'selected' : '' }}>Citoyen</option>
+                        </select>
+                    </div>
+                    <div class="col-md-5">
+                        <button type="submit" class="btn btn-primary">Filtrer</button>
+                        <a href="{{ route('admin.users.index') }}" class="btn btn-secondary">Réinitialiser</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {{-- Tableau des utilisateurs (version locale simplifiée) ou cartes (version distante) ? 
+             Je garde le tableau car c'est plus adapté pour l'admin --}}
+        <div class="card shadow">
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="px-4">ID</th>
+                            <th>Nom</th>
+                            <th>Email</th>
+                            <th>Contact</th>
+                            <th>Rôle</th>
+                            <th>Inscrit le</th>
+                            <th class="text-end px-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($users as $user)
+                        <tr>
+                            <td class="px-4 fw-bold">#{{ $user->id }}</td>
+                            <td>{{ $user->name }}</td>
+                            <td>{{ $user->email }}</td>
+                            <td>{{ $user->contact ?? '—' }}</td>
+                            <td>
+                                @if($user->role === 'admin')
+                                    <span class="badge badge-admin">Administrateur</span>
+                                @elseif($user->role === 'agent')
+                                    <span class="badge badge-agent">Agent</span>
+                                @else
+                                    <span class="badge badge-user">Citoyen</span>
+                                @endif
+                            </td>
+                            <td>{{ $user->created_at->format('d/m/Y') }}</td>
+                            <td class="text-end px-4">
+                                <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editUserModal{{ $user->id }}">
+                                    ✏️
+                                </button>
+                                @if($user->id !== auth()->id())
+                                <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteUserModal{{ $user->id }}">
+                                    🗑️
+                                </button>
+                                @endif
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="7" class="text-center py-4">Aucun utilisateur trouvé</td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {{-- Pagination --}}
+        <div class="pagination">
+            {{ $users->links() }}
+        </div>
+    </div>
+</div>
+
+{{-- Modal Ajouter Utilisateur --}}
+<div class="modal fade" id="addUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ route('admin.users.store') }}">
+                @csrf
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">➕ Ajouter un utilisateur</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Nom complet *</label>
+                        <input type="text" name="name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email *</label>
+                        <input type="email" name="email" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Téléphone</label>
+                        <input type="text" name="contact" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mot de passe *</label>
+                        <input type="password" name="password" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Rôle *</label>
+                        <select name="role" class="form-select" required>
+                            <option value="user">Citoyen</option>
+                            <option value="agent">Agent</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-success">Créer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{{-- Modals Modifier pour chaque utilisateur --}}
+@foreach($users as $user)
+<div class="modal fade" id="editUserModal{{ $user->id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ route('admin.users.update', $user->id) }}">
+                @csrf
+                @method('PUT')
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title">✏️ Modifier {{ $user->name }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Nom complet</label>
+                        <input type="text" name="name" class="form-control" value="{{ $user->name }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" class="form-control" value="{{ $user->email }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Téléphone</label>
+                        <input type="text" name="contact" class="form-control" value="{{ $user->contact }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Rôle</label>
+                        <select name="role" class="form-select" required>
+                            <option value="user" {{ $user->role === 'user' ? 'selected' : '' }}>Citoyen</option>
+                            <option value="agent" {{ $user->role === 'agent' ? 'selected' : '' }}>Agent</option>
+                            <option value="admin" {{ $user->role === 'admin' ? 'selected' : '' }}>Admin</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Nouveau mot de passe (optionnel)</label>
+                        <input type="password" name="password" class="form-control" placeholder="Laisser vide pour ne pas changer">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteUserModal{{ $user->id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ route('admin.users.destroy', $user->id) }}">
+                @csrf
+                @method('DELETE')
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">⚠️ Confirmer la suppression</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Êtes-vous sûr de vouloir supprimer l'utilisateur <strong>{{ $user->name }}</strong> ?</p>
+                    <p class="text-danger"><small>⚠️ Cette action est irréversible !</small></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-danger">Supprimer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endforeach
+
+@endsection

@@ -613,6 +613,7 @@
                 </button>
             </div>
 
+<<<<<<< HEAD
             <!-- ===== ZONE NAVIGATION : Back + Bouton Document Trouvé ===== -->
             <div class="top-nav-zone">
                 <a href="{{ route('dashboard') }}" class="back-link">
@@ -624,12 +625,65 @@
                     </svg>
                     Déclarer un document trouvé
                 </a>
+=======
+        <!-- 2. Informations sur la pièce perdue -->
+        <div class="section">
+            <div class="section-title">2. Informations sur la pièce perdue</div>
+
+            <div class="grid">
+                <div>
+                    <label>Type de pièce</label>
+                    <select name="type_piece" required>
+                        <option value="">-- Sélectionner --</option>
+                        <option value="CNI">Carte Nationale d’Identité</option>
+                        <option value="Passeport">Passeport</option>
+                        <option value="Permis">Permis de conduire</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label>Numéro de la pièce(Optionnel)</label>
+                    <input type="text" name="numero_piece">
+                </div>
+
+                <div>
+                    <label>Date de délivrance</label>
+                    <input type="date" name="date_delivrance">
+                </div>
+
+                <div>
+                    <label>Autorité de délivrance(Optionnel)</label>
+                    <input type="text" name="autorite_delivrance">
+                </div>
+>>>>>>> d13410fa3626f4bc66fcc2ff303971e471ba4dc8
             </div>
 
+<<<<<<< HEAD
             <!-- Header -->
             <div class="form-header">
                 <h1>📝 Nouvelle Déclaration de Perte</h1>
                 <p class="form-subtitle">Veuillez remplir tous les champs requis avec attention</p>
+=======
+        <!-- 3. Date et circonstances -->
+        <div class="section">
+            <div class="section-title">3. Détails de la perte</div>
+
+            <div class="grid">
+                <div>
+                    <label>Date de la perte</label>
+                    <input type="date" name="date_perte" required>
+                </div>
+
+                <div>
+                    <label>Lieu de la perte(Optionnel)</label>
+                    <input type="text" name="lieu_perte">
+                </div>
+
+                <div class="full">
+                    <label>Circonstances de la perte</label>
+                    <textarea name="circonstances" rows="3"></textarea>
+                </div>
+>>>>>>> d13410fa3626f4bc66fcc2ff303971e471ba4dc8
             </div>
 
             @if ($errors->any())

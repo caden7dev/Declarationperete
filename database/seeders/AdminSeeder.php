@@ -15,28 +15,51 @@ class AdminSeeder extends Seeder
      */
     public function run()
     {
-        $user = User::firstOrCreate(
-            ['email' => 'ahadzicaden@gmail.com'], // condition pour éviter les doublons
+        $admins = [
             [
+                'email' => 'ahadzicaden@gmail.com',
                 'first_name' => 'Admin',
                 'last_name' => 'Principal',
                 'name' => 'Admin Principal',
-                'password' => Hash::make('admin123'),
-                'role' => 'admin',
-            ]
-        );
-
-        $adminuser = User::firstOrCreate(
-            ['email' => 'enochkoukpaki@gmail.com'], // condition pour éviter les doublons
+            ],
             [
-                'first_name' => 'Koukpaki',
-                'last_name' => 'Enoch',
+                'email' => 'enochkoukpaki@gmail.com',
+                'first_name' => 'Enoch',
+                'last_name' => 'Koukpaki',
                 'name' => 'Koukpaki Enoch',
-                'password' => Hash::make('admin123'),
-                'role' => 'admin',
-            ]
-        );
+            ],
+            // Ajout des 3 nouveaux administrateurs
+            [
+                'email' => 'konlaniblaise@gmail.com',
+                'first_name' => 'Blaise',
+                'last_name' => 'Konlani',
+                'name' => 'konlani blaise',
+            ],
+            [
+                'email' => 'amegnranmartin@gmail.com',
+                'first_name' => 'Martin',
+                'last_name' => 'Amegnran',
+                'name' => 'Amegnran Martin',
+            ],
+            [
+                'email' => 'tamakamarcel@gmail.com',
+                'first_name' => 'Marcel',
+                'last_name' => 'Tamaka',
+                'name' => 'Tamaka Marcel',
+            ],
+        ];
 
+        foreach ($admins as $adminData) {
+            User::firstOrCreate(
+                ['email' => $adminData['email']], // Condition d'unicité
+                [
+                    'first_name' => $adminData['first_name'],
+                    'last_name'  => $adminData['last_name'],
+                    'name'       => $adminData['name'],
+                    'password'   => Hash::make('admin123'), // Mot de passe commun
+                    'role'       => 'admin',
+                ]
+            );
+        }
     }
-    // echo $user->id;
 }
