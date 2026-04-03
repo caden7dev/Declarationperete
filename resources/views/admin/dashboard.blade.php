@@ -10,8 +10,8 @@
         top: 0;
         left: 0;
         height: 100vh;
-        width: 280px; /* Largeur fixe comme version distante */
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); /* Dégradé de la version locale des users */
+        width: 280px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         z-index: 1000;
         padding: 1rem;
@@ -83,6 +83,162 @@
         box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
     }
     
+    /* ========== STYLES PROFESSIONNELS POUR LE HEADER ========== */
+    .admin-header {
+        background: white;
+        border-radius: 16px;
+        padding: 1rem 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .welcome-text h2 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin: 0;
+    }
+
+    .welcome-text p {
+        color: #6c757d;
+        margin: 0.25rem 0 0;
+        font-size: 0.9rem;
+    }
+
+    /* Menu profil professionnel */
+    .profile-dropdown {
+        position: relative;
+        cursor: pointer;
+    }
+
+    .profile-trigger {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.5rem 1rem;
+        background: #f8f9fa;
+        border-radius: 50px;
+        transition: all 0.3s;
+        border: 1px solid #e9ecef;
+    }
+
+    .profile-trigger:hover {
+        background: #f1f5f9;
+        border-color: #667eea;
+    }
+
+    .profile-avatar {
+        width: 45px;
+        height: 45px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        font-size: 1.2rem;
+    }
+
+    .profile-info {
+        text-align: right;
+    }
+
+    .profile-name {
+        font-weight: 700;
+        color: #2c3e50;
+        font-size: 0.95rem;
+    }
+
+    .profile-role {
+        font-size: 0.75rem;
+        color: #6c757d;
+    }
+
+    .dropdown-icon {
+        color: #6c757d;
+        transition: transform 0.3s;
+    }
+
+    .profile-dropdown.active .dropdown-icon {
+        transform: rotate(180deg);
+    }
+
+    .dropdown-menu-custom {
+        position: absolute;
+        top: calc(100% + 10px);
+        right: 0;
+        width: 280px;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        transition: all 0.3s;
+        z-index: 1000;
+    }
+
+    .profile-dropdown.active .dropdown-menu-custom {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    .dropdown-header {
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 16px 16px 0 0;
+        color: white;
+        text-align: center;
+    }
+
+    .dropdown-header .avatar-large {
+        width: 60px;
+        height: 60px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 0.75rem;
+        font-size: 1.8rem;
+        font-weight: 700;
+    }
+
+    .dropdown-header .user-email {
+        font-size: 0.8rem;
+        opacity: 0.9;
+    }
+
+    .dropdown-divider {
+        height: 1px;
+        background: #e9ecef;
+        margin: 0.5rem 0;
+    }
+
+    .dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1.5rem;
+        color: #2c3e50;
+        text-decoration: none;
+        transition: all 0.2s;
+        font-size: 0.9rem;
+    }
+
+    .dropdown-item:hover {
+        background: #f8f9fa;
+    }
+
+    .dropdown-item.text-danger:hover {
+        background: #fee2e2;
+    }
+
     /* Adaptation mobile */
     @media (max-width: 768px) {
         .admin-sidebar {
@@ -92,6 +248,18 @@
         }
         .main-content {
             margin-left: 0;
+        }
+        .admin-header {
+            flex-direction: column;
+            gap: 1rem;
+            text-align: center;
+        }
+        .profile-trigger {
+            justify-content: center;
+        }
+        .dropdown-menu-custom {
+            right: auto;
+            left: 0;
         }
     }
     
@@ -257,9 +425,64 @@
 
 <!-- Contenu principal -->
 <div class="main-content">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold" style="color: #2c3e50;">Tableau de bord Administrateur</h2>
-        <div class="text-muted">{{ now()->format('d F Y') }}</div>
+    {{-- HEADER PROFESSIONNEL AVEC PROFIL ADMIN --}}
+    <div class="admin-header">
+        <div class="welcome-text">
+            <h2>Bonjour, {{ Auth::user()->name }} 👋</h2>
+            <p>Bienvenue sur votre tableau de bord d'administration générale</p>
+        </div>
+
+        {{-- Dropdown profil --}}
+        <div class="profile-dropdown" id="profileDropdown">
+            <div class="profile-trigger" onclick="toggleDropdown()">
+                <div class="profile-avatar">
+                    {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                </div>
+                <div class="profile-info">
+                    <div class="profile-name">{{ Auth::user()->name }}</div>
+                    <div class="profile-role">Administrateur Général</div>
+                </div>
+                <svg class="dropdown-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </div>
+
+            <div class="dropdown-menu-custom">
+                <div class="dropdown-header">
+                    <div class="avatar-large">
+                        {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                    </div>
+                    <div class="fw-bold">{{ Auth::user()->name }}</div>
+                    <div class="user-email">{{ Auth::user()->email }}</div>
+                </div>
+                
+                <div class="dropdown-divider"></div>
+                
+                {{-- Lien Mon Profil - redirige vers la page profil admin --}}
+                <a href="{{ route('admin.profile') }}" class="dropdown-item">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    Mon profil
+                </a>
+                
+                <div class="dropdown-divider"></div>
+                
+                {{-- Seulement le bouton de déconnexion --}}
+                <form method="POST" action="{{ route('logout') }}" id="logoutForm">
+                    @csrf
+                    <button type="submit" class="dropdown-item text-danger" style="width: 100%; text-align: left; background: none; border: none;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                        Se déconnecter
+                    </button>
+                </form>
+            </div>
+        </div>
     </div>
 
     {{-- STAT CARDS --}}
@@ -401,6 +624,24 @@
         </div>
     </div>
 </div>
+
+<script>
+    // Toggle dropdown menu
+    function toggleDropdown() {
+        const dropdown = document.getElementById('profileDropdown');
+        dropdown.classList.toggle('active');
+    }
+
+    // Fermer le dropdown quand on clique ailleurs
+    document.addEventListener('click', function(event) {
+        const dropdown = document.getElementById('profileDropdown');
+        const isClickInside = dropdown.contains(event.target);
+        
+        if (!isClickInside) {
+            dropdown.classList.remove('active');
+        }
+    });
+</script>
 
 {{-- Chart JS --}}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

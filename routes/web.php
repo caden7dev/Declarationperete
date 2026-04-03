@@ -161,6 +161,8 @@ Route::prefix('agent')->name('agent.')->middleware(['auth', 'agent'])->group(fun
 
 /*
 |--------------------------------------------------------------------------
+| /*
+|--------------------------------------------------------------------------
 | Routes Admin
 |--------------------------------------------------------------------------
 */
@@ -177,6 +179,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
     
+    // Profil Admin
+    Route::get('/profile', [App\Http\Controllers\Admin\ProfileController::class, 'index'])->name('profile');
+    Route::put('/profile', [App\Http\Controllers\Admin\ProfileController::class, 'update'])->name('profile.update');
+    
     // Types de pièces
     Route::resource('types-pieces', TypePieceController::class);
     Route::get('/types-pieces', [TypePieceController::class, 'index'])->name('types-pieces.index');
@@ -184,10 +190,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     // Statistiques
     Route::get('/statistiques', [StatisticsController::class, 'index'])->name('stats.index');
     
+    Route::get('/roles', [App\Http\Controllers\Admin\RoleController::class, 'index'])->name('roles.index');
+Route::put('/roles/{user}/update', [App\Http\Controllers\Admin\RoleController::class, 'update'])->name('roles.update');
     // Rôles
-    Route::get('/roles', function () {
-        return view('admin.roles.index');
-    })->name('roles.index');
+   
 });
 
 // Routes d'authentification (login, register, logout)

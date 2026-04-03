@@ -211,7 +211,7 @@
             padding: 0 5px;
         }
 
-        /* ===== ZONE NAVIGATION HAUT (back + btn document trouvé) ===== */
+        /* Zone de navigation */
         .top-nav-zone {
             display: flex;
             align-items: center;
@@ -236,7 +236,6 @@
             color: #1e8449;
         }
 
-        /* ===== BOUTON DOCUMENT TROUVÉ ===== */
         .btn-doc-trouve {
             display: inline-flex;
             align-items: center;
@@ -484,6 +483,17 @@
 
         .submit-btn:active { transform: translateY(-2px); }
 
+        /* Styles pour les erreurs de validation */
+        .is-invalid {
+            border-color: #dc3545 !important;
+        }
+        
+        .text-danger {
+            color: #dc3545;
+            font-size: 0.85rem;
+            margin-top: 0.3rem;
+        }
+
         /* Dark mode */
         body.dark-mode .sidebar { background: #2d2d2d; border-color: #404040; }
         body.dark-mode .sidebar-nav a { color: #9ca3af; }
@@ -497,17 +507,6 @@
         body.dark-mode .icon-btn svg { stroke: #9ca3af; }
         body.dark-mode .icon-btn:hover { border-color: #27ae60; }
         body.dark-mode .icon-btn:hover svg { stroke: #27ae60; }
-
-        /* Styles pour les erreurs de validation */
-        .is-invalid {
-            border-color: #dc3545 !important;
-        }
-        
-        .text-danger {
-            color: #dc3545;
-            font-size: 0.85rem;
-            margin-top: 0.3rem;
-        }
 
         @media (max-width: 1024px) {
             body { flex-direction: column; padding: 1rem; }
@@ -613,11 +612,10 @@
                 </button>
             </div>
 
-<<<<<<< HEAD
-            <!-- ===== ZONE NAVIGATION : Back + Bouton Document Trouvé ===== -->
+            <!-- Zone de navigation -->
             <div class="top-nav-zone">
                 <a href="{{ route('dashboard') }}" class="back-link">
-                    ← Retour au dashboard
+                    ← Retour au tableau de bord
                 </a>
                 <a href="{{ route('documents-trouves.create') }}" class="btn-doc-trouve">
                     <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -625,65 +623,12 @@
                     </svg>
                     Déclarer un document trouvé
                 </a>
-=======
-        <!-- 2. Informations sur la pièce perdue -->
-        <div class="section">
-            <div class="section-title">2. Informations sur la pièce perdue</div>
-
-            <div class="grid">
-                <div>
-                    <label>Type de pièce</label>
-                    <select name="type_piece" required>
-                        <option value="">-- Sélectionner --</option>
-                        <option value="CNI">Carte Nationale d’Identité</option>
-                        <option value="Passeport">Passeport</option>
-                        <option value="Permis">Permis de conduire</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label>Numéro de la pièce(Optionnel)</label>
-                    <input type="text" name="numero_piece">
-                </div>
-
-                <div>
-                    <label>Date de délivrance</label>
-                    <input type="date" name="date_delivrance">
-                </div>
-
-                <div>
-                    <label>Autorité de délivrance(Optionnel)</label>
-                    <input type="text" name="autorite_delivrance">
-                </div>
->>>>>>> d13410fa3626f4bc66fcc2ff303971e471ba4dc8
             </div>
 
-<<<<<<< HEAD
             <!-- Header -->
             <div class="form-header">
                 <h1>📝 Nouvelle Déclaration de Perte</h1>
                 <p class="form-subtitle">Veuillez remplir tous les champs requis avec attention</p>
-=======
-        <!-- 3. Date et circonstances -->
-        <div class="section">
-            <div class="section-title">3. Détails de la perte</div>
-
-            <div class="grid">
-                <div>
-                    <label>Date de la perte</label>
-                    <input type="date" name="date_perte" required>
-                </div>
-
-                <div>
-                    <label>Lieu de la perte(Optionnel)</label>
-                    <input type="text" name="lieu_perte">
-                </div>
-
-                <div class="full">
-                    <label>Circonstances de la perte</label>
-                    <textarea name="circonstances" rows="3"></textarea>
-                </div>
->>>>>>> d13410fa3626f4bc66fcc2ff303971e471ba4dc8
             </div>
 
             @if ($errors->any())
@@ -699,6 +644,7 @@
             <form method="POST" action="{{ route('perte.store') }}" enctype="multipart/form-data">
                 @csrf
 
+                <!-- Section 1 : Informations du déclarant -->
                 <div class="section">
                     <div class="section-title">
                         <span class="section-number">1</span>
@@ -728,13 +674,13 @@
                     </div>
                 </div>
 
+                <!-- Section 2 : Informations sur la pièce perdue -->
                 <div class="section">
                     <div class="section-title">
                         <span class="section-number">2</span>
                         Informations sur la pièce perdue
                     </div>
                     <div class="grid">
-                        <!-- ===== SOLUTION 3 : Utilisation de la table type_pieces ===== -->
                         <div class="form-group">
                             <label>Type de pièce <span class="required">*</span></label>
                             <select name="type_piece" required class="form-control @error('type_piece') is-invalid @enderror">
@@ -777,6 +723,7 @@
                     </div>
                 </div>
 
+                <!-- Section 3 : Détails de la perte -->
                 <div class="section">
                     <div class="section-title">
                         <span class="section-number">3</span>
@@ -812,6 +759,7 @@
                     </div>
                 </div>
 
+                <!-- Section 4 : Justificatifs -->
                 <div class="section">
                     <div class="section-title">
                         <span class="section-number">4</span>
@@ -847,6 +795,7 @@
                     </div>
                 </div>
 
+                <!-- Case à cocher de certification -->
                 <div class="checkbox-group">
                     <input type="checkbox" id="certify" required>
                     <label for="certify">
@@ -854,6 +803,7 @@
                     </label>
                 </div>
 
+                <!-- Bouton de soumission -->
                 <div class="submit-section">
                     <button type="submit" class="submit-btn">
                         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:24px;height:24px;">
