@@ -98,21 +98,22 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/perte/{id}/edit', [PerteController::class, 'edit'])->name('perte.edit');
     Route::put('/perte/{id}', [PerteController::class, 'update'])->name('perte.update');
     Route::delete('/perte/{id}', [PerteController::class, 'destroy'])->name('perte.destroy');
+    Route::get('/perte/{id}/download', [App\Http\Controllers\PerteController::class, 'download'])->name('perte.download');
     
     // Route alternative
     Route::get('/pertes', [PerteController::class, 'index'])->name('pertes.index');
     
     // ===== ROUTES PROFIL/PARAMÈTRES =====
     Route::prefix('profile')->name('profile.')->group(function () {
-        Route::get('/', [ProfileController::class, 'index'])->name('index');
-        Route::put('/update', [ProfileController::class, 'update'])->name('update');
-        Route::put('/password', [ProfileController::class, 'updatePassword'])->name('password');
-        Route::put('/email', [ProfileController::class, 'updateEmail'])->name('email');
-        Route::delete('/delete', [ProfileController::class, 'destroy'])->name('delete');
-        Route::post('/preferences', [ProfileController::class, 'updatePreferences'])->name('preferences');
-        Route::post('/toggle-dark-mode', [ProfileController::class, 'toggleDarkMode'])->name('toggle-dark-mode');
-    });
-
+    Route::get('/', [ProfileController::class, 'index'])->name('index');
+    Route::put('/update', [ProfileController::class, 'update'])->name('update');
+    Route::put('/password', [ProfileController::class, 'updatePassword'])->name('password');
+    Route::put('/email', [ProfileController::class, 'updateEmail'])->name('email');
+    Route::delete('/delete', [ProfileController::class, 'destroy'])->name('delete');
+    Route::post('/preferences', [ProfileController::class, 'updatePreferences'])->name('preferences');  // ← corrigé
+    Route::post('/toggle-dark-mode', [ProfileController::class, 'toggleDarkMode'])->name('toggle-dark-mode');
+    Route::post('/change-language', [ProfileController::class, 'changeLanguage'])->name('change-language');
+});
     // ===== ROUTES NOTIFICATIONS =====
     Route::prefix('notifications')->name('notifications.')->group(function () {
         Route::get('/', [NotificationController::class, 'index'])->name('index');
@@ -121,6 +122,12 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/latest', [NotificationController::class, 'getLatest'])->name('latest');
         Route::post('/{id}/read', [NotificationController::class, 'markAsRead'])->name('read');
         Route::delete('/{id}', [NotificationController::class, 'destroy'])->name('destroy');
+
+        // Routes API pour les notifications (dans le groupe auth)
+
+    Route::get('/api/notifications/unread-count', [NotificationController::class, 'getUnreadCount'])->name('notifications.unread-count');
+    Route::post('/api/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
+
     });
 
     // ===== ROUTES AIDE =====
@@ -195,6 +202,20 @@ Route::put('/roles/{user}/update', [App\Http\Controllers\Admin\RoleController::c
     // Rôles
    
 });
+
+Route::get('/set-lang/{locale}', function($locale, Request $request) {
+    session(['locale' => $locale]);
+    App::setLocale($locale);
+    
+    if (auth()->check()) {
+        $preferences = auth()->user()->preferences ?? [];
+        $preferences['language'] = $locale;
+        auth()->user()->preferences = $preferences;
+        auth()->user()->save();
+    }
+    
+    return redirect()->back()->with('success', "Langue changée en " . $locale);
+})->name('set-lang');
 
 // Routes d'authentification (login, register, logout)
 require __DIR__.'/auth.php';

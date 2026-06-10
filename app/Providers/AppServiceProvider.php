@@ -1,9 +1,11 @@
 <?php
 
 namespace App\Providers;
-use Illuminate\Support\Facades\Schema;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\Auth;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -24,7 +26,37 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        Schema::defaultStringLength(191); // <- réduit la longueur par défaut pour les indexes
-
+        // Réduit la longueur par défaut pour les indexes (nécessaire pour MySQL)
+        Schema::defaultStringLength(191);
+        
+        // Partager les préférences de l'utilisateur avec toutes les vues
+        View::composer('*', function ($view) {
+            if (Auth::check()) {
+                $user = Auth::user();
+                $preferences = $user->preferences ?? [];
+                
+                // S'assurer que les préférences par défaut existent
+                $defaultPreferences = [
+                    'dark_mode' => $user->theme === 'dark',
+                    'email_notifications' => $preferences['email_notifications'] ?? true,
+                    'language' => $preferences['language'] ?? 'fr',
+                    'timezone' => $preferences['timezone'] ?? 'Africa/Lome',
+                ];
+                
+                // Fusionner les préférences avec les valeurs par défaut
+                $finalPreferences = array_merge($defaultPreferences, $preferences);
+                
+                $view->with('userPreferences', $finalPreferences);
+                $view->with('userTheme', $user->theme ?? 'light');
+            } else {
+                $view->with('userPreferences', [
+                    'dark_mode' => false,
+                    'email_notifications' => true,
+                    'language' => 'fr',
+                    'timezone' => 'Africa/Lome',
+                ]);
+                $view->with('userTheme', 'light');
+            }
+        });
     }
 }

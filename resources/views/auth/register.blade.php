@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Créer un compte - e-Déclaration TG</title>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -14,14 +14,14 @@
         }
 
         body {
-            font-family: 'Nunito', sans-serif;
-            background: linear-gradient(135deg, #5a8dc4 0%, #7ba8d1 100%);
+            font-family: 'Inter', sans-serif;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            position: relative;
         }
 
-         /* Arrière-plan avec image - même que welcome.blade.php */
+        /* Arrière-plan avec image - visible sans overlay */
         body::before {
             content: '';
             position: fixed;
@@ -35,118 +35,152 @@
             background-attachment: fixed;
             background-repeat: no-repeat;
             z-index: -2;
-            /* Amélioration de la netteté */
+            filter: brightness(0.85);
             image-rendering: -webkit-optimize-contrast;
             image-rendering: crisp-edges;
             transform: translateZ(0);
             backface-visibility: hidden;
         }
 
-        /* Pas d'overlay - Image 100% visible */
-
-
+        /* Header - avec devise à droite */
         .header {
-            background-color: #1e3a5f;
-            padding: 1.2rem 5%;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            background: linear-gradient(135deg, #0f2b3d 0%, #1a4a6f 100%);
+            padding: 1rem 5%;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
         .header-content {
             max-width: 1400px;
             margin: 0 auto;
             display: flex;
+            justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
             gap: 1rem;
         }
 
-        .logo-img {
-            width: 50px;
-            height: 50px;
-            background: white;
-            border-radius: 8px;
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+        }
+
+        .flag-icon {
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.25);
         }
 
-        .header h1 {
+        .flag-icon svg {
+            width: 42px;
+            height: 32px;
+        }
+
+        .logo h1 {
             color: white;
-            font-size: 1.5rem;
-            font-weight: 700;
+            font-size: 1.6rem;
+            font-weight: 800;
         }
 
+        /* Devise à droite */
+        .header-devise {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .header-devise .republic-name {
+            font-size: 0.65rem;
+            color: rgba(255,255,255,.5);
+            font-weight: 500;
+        }
+
+        .header-devise .republic-devise {
+            font-size: 0.55rem;
+            color: rgba(255,255,255,.35);
+            font-weight: 400;
+            margin-top: 2px;
+        }
+
+        /* Main Content */
         .main-content {
             flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 2rem;
+            position: relative;
+            z-index: 1;
         }
 
+        /* Cadre du formulaire */
         .register-card {
-            background: white;
-            border-radius: 20px;
-            padding: 2rem;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 24px;
+            padding: 2.5rem;
             width: 100%;
-            max-width: 600px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 650px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
             animation: slideUp 0.5s ease-out;
+            border: 1px solid rgba(0,0,0,0.05);
         }
 
         @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .register-card h2 {
-            color: #1e3a5f;
-            font-size: 2rem;
-            font-weight: 700;
+            color: #0f172a;
+            font-size: 1.8rem;
+            font-weight: 800;
             text-align: center;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
         }
 
         .form-group {
-            margin-bottom: 1.2rem;
+            margin-bottom: 1rem;
         }
 
         .form-group label {
             display: block;
-            color: #555;
+            color: #475569;
             font-weight: 600;
-            margin-bottom: 0.5rem;
-            font-size: 1.5rem;
+            margin-bottom: 0.4rem;
+            font-size: 0.85rem;
         }
 
         .form-input, .form-select {
             width: 100%;
-            padding: 0.9rem;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 1.4rem;
-            font-family: 'Nunito', sans-serif;
+            padding: 0.8rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-family: 'Inter', sans-serif;
             transition: all 0.3s;
+            background: white;
         }
 
         .form-input:focus, .form-select:focus {
             outline: none;
-            border-color: #27ae60;
-            box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.1);
+            border-color: #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
         }
 
         .form-input.error, .form-select.error {
-            border-color: #e74c3c;
+            border-color: #ef4444;
         }
 
-        .form-input::placeholder {
-            color: #999;
+        .form-input::placeholder, .form-select::placeholder {
+            color: #94a3b8;
+            font-size: 0.85rem;
         }
 
         .form-row {
@@ -168,14 +202,15 @@
         }
 
         .gender-option input[type="radio"] {
-            width: 18px;
-            height: 18px;
+            width: 16px;
+            height: 16px;
             cursor: pointer;
+            accent-color: #10b981;
         }
 
         .gender-option label {
-            color: #666;
-            font-size: 0.9rem;
+            color: #64748b;
+            font-size: 0.85rem;
             cursor: pointer;
             margin: 0;
             font-weight: 400;
@@ -185,64 +220,62 @@
             display: grid;
             grid-template-columns: auto 1fr;
             gap: 1rem;
-            align-items: end;
+            align-items: center;
         }
 
         .nationality-label {
-            padding: 0.9rem;
-            color: #555;
+            color: #475569;
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             white-space: nowrap;
         }
 
-        .contact-row {
-            display: grid;
-            grid-template-columns: auto 1fr;
+        .phone-row {
+            display: flex;
             gap: 0;
         }
 
         .phone-prefix {
             display: flex;
             align-items: center;
-            padding: 0.9rem;
-            background-color: #f5f5f5;
-            border: 2px solid #e0e0e0;
+            gap: 0.3rem;
+            padding: 0.8rem;
+            background-color: #f8fafc;
+            border: 2px solid #e2e8f0;
             border-right: none;
-            border-radius: 8px 0 0 8px;
-            color: #666;
-            font-size: 0.95rem;
+            border-radius: 12px 0 0 12px;
+            color: #64748b;
+            font-size: 0.85rem;
+            font-weight: 500;
         }
 
         .phone-prefix svg {
-            width: 18px;
-            height: 18px;
-            margin-right: 0.3rem;
+            width: 16px;
+            height: 16px;
         }
 
-        .contact-row .form-input {
-            border-radius: 0 8px 8px 0;
+        .phone-row .form-input {
+            border-radius: 0 12px 12px 0;
         }
 
         .btn-submit {
             width: 100%;
-            background-color: #27ae60;
+            background: linear-gradient(135deg, #10b981, #059669);
             color: white;
-            padding: 1rem;
+            padding: 0.9rem;
             border: none;
-            border-radius: 10px;
-            font-size: 1.3rem;
+            border-radius: 12px;
+            font-size: 1rem;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
-            margin-top: 1rem;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+            margin-top: 0.5rem;
         }
 
         .btn-submit:hover {
-            background-color: #229954;
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
         }
 
         .btn-submit:active {
@@ -252,60 +285,66 @@
         .login-section {
             margin-top: 1.5rem;
             text-align: center;
-            padding-top: 1.5rem;
-            border-top: 1px solid #e0e0e0;
+            padding-top: 1rem;
+            border-top: 1px solid #e2e8f0;
         }
 
         .login-link {
-            color: #2d5a8c;
+            color: #10b981;
             text-decoration: none;
             font-weight: 600;
-            font-size: 1rem;
+            font-size: 0.85rem;
             transition: all 0.3s;
         }
 
         .login-link:hover {
-            color: #27ae60;
+            color: #059669;
             text-decoration: underline;
         }
 
         .alert {
-            padding: 1rem;
-            border-radius: 10px;
-            margin-bottom: 1.5rem;
-            font-size: 0.9rem;
+            padding: 0.8rem 1rem;
+            border-radius: 12px;
+            margin-bottom: 1.2rem;
+            font-size: 0.85rem;
         }
 
         .alert-success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+            background-color: #ecfdf5;
+            color: #065f46;
+            border-left: 4px solid #10b981;
         }
 
         .alert-error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+            background-color: #fef2f2;
+            color: #991b1b;
+            border-left: 4px solid #ef4444;
         }
 
         .error-message {
-            color: #e74c3c;
-            font-size: 0.8rem;
+            color: #ef4444;
+            font-size: 0.75rem;
             margin-top: 0.3rem;
+        }
+
+        .alert ul {
+            margin: 0;
+            padding-left: 1.2rem;
         }
 
         @media (max-width: 768px) {
             .register-card {
-                padding: 2rem 1.5rem;
+                padding: 1.5rem;
                 margin: 1rem;
             }
 
             .register-card h2 {
-                font-size: 1.6rem;
+                font-size: 1.5rem;
             }
 
             .form-row {
                 grid-template-columns: 1fr;
+                gap: 0.8rem;
             }
 
             .nationality-row {
@@ -313,52 +352,97 @@
             }
 
             .nationality-label {
-                padding: 0.5rem 0;
+                padding: 0;
             }
 
             .gender-group {
                 flex-direction: column;
-                gap: 0.8rem;
+                gap: 0.5rem;
+            }
+
+            .phone-row {
+                flex-direction: column;
+            }
+
+            .phone-prefix {
+                border-radius: 12px 12px 0 0;
+                border-right: 2px solid #e2e8f0;
+                border-bottom: none;
+            }
+
+            .phone-row .form-input {
+                border-radius: 0 0 12px 12px;
+            }
+
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .header-devise {
+                align-items: center;
             }
         }
     </style>
 </head>
 <body>
+    <!-- Header avec devise à droite -->
     <header class="header">
         <div class="header-content">
-            <div class="logo-img">🇹🇬</div>
-            <h1>e-Déclaration TG</h1>
+            <a href="{{ route('home') }}" class="logo">
+                <div class="flag-icon">
+                    <svg viewBox="0 0 5 4" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                        <rect width="5" height=".8" y="0"   fill="#006A36"/>
+                        <rect width="5" height=".8" y=".8"  fill="#FFCB00"/>
+                        <rect width="5" height=".8" y="1.6" fill="#006A36"/>
+                        <rect width="5" height=".8" y="2.4" fill="#FFCB00"/>
+                        <rect width="5" height=".8" y="3.2" fill="#006A36"/>
+                        <rect width="1.9" height="2.4" fill="#D21034"/>
+                        <polygon points="0.95,0.38 1.07,0.76 1.47,0.76 1.16,0.99 1.28,1.37 0.95,1.14 0.62,1.37 0.74,0.99 0.43,0.76 0.83,0.76" fill="#FFFFFF"/>
+                    </svg>
+                </div>
+                <h1>e-Déclaration</h1>
+            </a>
+            <div class="header-devise">
+                <span class="republic-name">République Togolaise</span>
+                <span class="republic-devise">Travail-Liberté-Patrie</span>
+            </div>
         </div>
     </header>
 
+    <!-- Main Content -->
     <main class="main-content">
         <div class="register-card">
             <h2>Créer un compte</h2>
 
             @if (session('status'))
                 <div class="alert alert-success">
-                    {{ session('status') }}
+                    <span>✅</span> {{ session('status') }}
                 </div>
             @endif
 
             @if ($errors->any())
                 <div class="alert alert-error">
-                    Veuillez corriger les erreurs dans le formulaire.
+                    <span>❌</span>
+                    <ul>
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
                 </div>
             @endif
 
             <form method="POST" action="{{ route('register') }}">
                 @csrf
 
-                <!-- Nom de famille -->
                 <div class="form-group">
-                    <label for="last_name">Nom de famile</label>
+                    <label for="last_name">Nom de famille</label>
                     <input 
                         type="text" 
                         id="last_name" 
                         name="last_name" 
                         class="form-input @error('last_name') error @enderror" 
-                        placeholder="Nom de famile"
+                        placeholder="Votre nom de famille"
                         value="{{ old('last_name') }}"
                         required
                         autofocus
@@ -368,7 +452,6 @@
                     @enderror
                 </div>
 
-                <!-- Prénom(s) -->
                 <div class="form-group">
                     <label for="first_name">Prénom(s)</label>
                     <input 
@@ -376,7 +459,7 @@
                         id="first_name" 
                         name="first_name" 
                         class="form-input @error('first_name') error @enderror" 
-                        placeholder="Prénom(s)"
+                        placeholder="Vos prénoms"
                         value="{{ old('first_name') }}"
                         required
                     >
@@ -385,10 +468,9 @@
                     @enderror
                 </div>
 
-                <!-- Date de naissance et Genre -->
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="birth_date">Date de nacisance</label>
+                        <label for="birth_date">Date de naissance</label>
                         <input 
                             type="date" 
                             id="birth_date" 
@@ -433,10 +515,9 @@
                     </div>
                 </div>
 
-                <!-- Nationalité -->
                 <div class="form-group">
                     <div class="nationality-row">
-                        <div class="nationality-label">Nationalité</div>
+                        <span class="nationality-label">Nationalité</span>
                         <select 
                             id="nationality" 
                             name="nationality" 
@@ -453,48 +534,45 @@
                     @enderror
                 </div>
 
-               <!-- Adresse e-mail / Téléphone -->
-<div class="form-group">
-    <label for="email">Adresse e-mail</label>
-    <input 
-        type="email" 
-        id="email" 
-        name="email" 
-        class="form-input @error('email') error @enderror" 
-        placeholder="exemple@gmail.com"
-        value="{{ old('email') }}"
-        required
-    >
-    @error('email')
-        <div class="error-message">{{ $message }}</div>
-    @enderror
-</div>
+                <div class="form-group">
+                    <label for="email">Adresse e-mail</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        class="form-input @error('email') error @enderror" 
+                        placeholder="exemple@gmail.com"
+                        value="{{ old('email') }}"
+                        required
+                    >
+                    @error('email')
+                        <div class="error-message">{{ $message }}</div>
+                    @enderror
+                </div>
 
-<div class="form-group">
-    <label for="phone">Téléphone</label>
-    <div class="phone-row">
-        <div class="phone-prefix">
-            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-            </svg>
-            02
-        </div>
-        <input 
-            type="text" 
-            id="phone" 
-            name="phone" 
-            class="form-input @error('phone') error @enderror" 
-            placeholder="0087683088"
-            value="{{ old('phone') }}"
-        >
-    </div>
-    @error('phone')
-        <div class="error-message">{{ $message }}</div>
-    @enderror
-</div>
+                <div class="form-group">
+                    <label for="phone">Téléphone</label>
+                    <div class="phone-row">
+                        <div class="phone-prefix">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                            +228
+                        </div>
+                        <input 
+                            type="tel" 
+                            id="phone" 
+                            name="phone" 
+                            class="form-input @error('phone') error @enderror" 
+                            placeholder="90 00 00 00"
+                            value="{{ old('phone') }}"
+                        >
+                    </div>
+                    @error('phone')
+                        <div class="error-message">{{ $message }}</div>
+                    @enderror
+                </div>
 
-
-                <!-- Adresse de résidence -->
                 <div class="form-group">
                     <label for="address">Adresse de résidence (Ville/Quartier)</label>
                     <input 
@@ -502,7 +580,7 @@
                         id="address" 
                         name="address" 
                         class="form-input @error('address') error @enderror" 
-                        placeholder="Adresse de résidence (Ville/Quartier)"
+                        placeholder="Lomé, Quartier..."
                         value="{{ old('address') }}"
                         required
                     >
@@ -511,7 +589,6 @@
                     @enderror
                 </div>
 
-                <!-- Mot de passe -->
                 <div class="form-group">
                     <label for="password">Mot de passe</label>
                     <input 
@@ -527,7 +604,6 @@
                     @enderror
                 </div>
 
-                <!-- Confirmation mot de passe -->
                 <div class="form-group">
                     <label for="password_confirmation">Confirmer le mot de passe</label>
                     <input 
@@ -539,23 +615,13 @@
                         required
                     >
                 </div>
-                @if ($errors->any())
-    <div class="alert alert-error">
-        <ul>
-            @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
-@endif
-
 
                 <button type="submit" class="btn-submit">
                     S'inscrire
                 </button>
 
                 <div class="login-section">
-                    <a href="{{ route('login') }}" class="login-link">Déjà un compte? Se connecter</a>
+                    <a href="{{ route('login') }}" class="login-link">Déjà un compte ? Se connecter →</a>
                 </div>
             </form>
         </div>
@@ -565,16 +631,16 @@
         const inputs = document.querySelectorAll('.form-input, .form-select');
         inputs.forEach(input => {
             input.addEventListener('focus', function() {
-                this.parentElement.style.transform = 'scale(1.01)';
-                this.parentElement.style.transition = 'transform 0.3s';
+                this.style.borderColor = '#10b981';
+                this.style.boxShadow = '0 0 0 3px rgba(16, 185, 129, 0.1)';
             });
             
             input.addEventListener('blur', function() {
-                this.parentElement.style.transform = 'scale(1)';
+                this.style.borderColor = '#e2e8f0';
+                this.style.boxShadow = 'none';
             });
         });
 
-        // Validation côté client
         const form = document.querySelector('form');
         form.addEventListener('submit', function(e) {
             const password = document.getElementById('password').value;
@@ -582,7 +648,7 @@
 
             if (password !== passwordConfirm) {
                 e.preventDefault();
-                alert('Les mots de passe ne correspondent pas!');
+                alert('Les mots de passe ne correspondent pas !');
             }
         });
     </script>

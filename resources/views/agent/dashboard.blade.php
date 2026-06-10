@@ -106,7 +106,7 @@
             border-radius: 10px;
             font-size: 0.75rem;
             font-weight: 700;
-            animation: pulse 2s infinite;
+            animation: pulse 1.5s infinite;
         }
 
         .nav-badge.orange {
@@ -114,8 +114,8 @@
         }
 
         @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.9; }
         }
 
         .sidebar-footer {
@@ -210,7 +210,7 @@
             padding: 0.2rem 0.5rem;
             border-radius: 10px;
             font-weight: 700;
-            animation: pulse 2s infinite;
+            animation: pulse 1.5s infinite;
         }
 
         /* Content */
@@ -931,6 +931,30 @@
                 setTimeout(() => alert.remove(), 300);
             });
         }, 5000);
+
+        // Stocker les notifications vues dans sessionStorage
+        function markNotificationsAsViewed() {
+            const totalNotif = {{ $totalNotif ?? 0 }};
+            if (totalNotif > 0) {
+                sessionStorage.setItem('notifications_viewed_' + new Date().toDateString(), 'true');
+            }
+        }
+
+        // Vérifier si les notifications doivent être affichées
+        function shouldShowNotifications() {
+            const today = new Date().toDateString();
+            const viewed = sessionStorage.getItem('notifications_viewed_' + today);
+            return !viewed;
+        }
+
+        // Cacher le badge de notification si on a cliqué
+        document.querySelectorAll('.notification-badge, .nav-badge, .filter-tab, .stat-card').forEach(el => {
+            if (el) {
+                el.addEventListener('click', function() {
+                    markNotificationsAsViewed();
+                });
+            }
+        });
 
         // Log activité
         console.log('✅ Dashboard Agent avec Documents Trouvés et Pertes chargé');

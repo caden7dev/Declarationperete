@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\App;
 use App\Models\User;
 use App\Models\Perte;
 
@@ -14,52 +15,53 @@ class ProfileController extends Controller
     /**
      * Afficher la page de profil
      */
-   public function index()
-{
-    $user = Auth::user();
-    
-    // Statistiques
-    $totalDeclarations = Perte::where('user_id', $user->id)->count(); // ← OK
-    $enAttente = Perte::where('user_id', $user->id)->where('statut', 'en_attente')->count();
-    $validees = Perte::where('user_id', $user->id)->where('statut', 'validee')->count();
-    $rejetees = Perte::where('user_id', $user->id)->where('statut', 'rejetee')->count();
-    
-    // Dernières déclarations pour les notifications
-    $dernieresDeclarations = Perte::where('user_id', $user->id)
-        ->orderBy('created_at', 'desc')
-        ->limit(5)
-        ->get();
-    
-    // Récupérer les préférences de l'utilisateur
-    $preferences = $this->getUserPreferences($user);
-    
-    // ✅ On passe TOUTES les variables à la vue
-    return view('profile.index', compact(
-        'user', 
-        'totalDeclarations',   // ← Bien présent
-        'enAttente', 
-        'validees', 
-        'rejetees', 
-        'dernieresDeclarations',
-        'preferences'
-    ));
-}
-    
+    public function index()
+    {
+        $user = Auth::user();
+        
+        // Statistiques
+        $totalDeclarations = Perte::where('user_id', $user->id)->count();
+        $enAttente = Perte::where('user_id', $user->id)->where('statut', 'en_attente')->count();
+        $validees = Perte::where('user_id', $user->id)->where('statut', 'validee')->count();
+        $rejetees = Perte::where('user_id', $user->id)->where('statut', 'rejetee')->count();
+        
+        // Dernières déclarations pour les notifications
+        $dernieresDeclarations = Perte::where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get();
+        
+        // Récupérer les préférences de l'utilisateur
+        $preferences = $this->getUserPreferences($user);
+        
+        // 🔥 PRIORITÉ À LA SESSION PUIS AUX PRÉFÉRENCES
+        $locale = session('locale') ?? $preferences['language'] ?? 'fr';
+        App::setLocale($locale);
+        
+        return view('profile.index', compact(
+            'user', 
+            'totalDeclarations',
+            'enAttente', 
+            'validees', 
+            'rejetees', 
+            'dernieresDeclarations',
+            'preferences'
+        ));
+    }
 
     /**
      * Récupérer les préférences de l'utilisateur
      */
     private function getUserPreferences($user)
     {
-        // Utiliser le champ theme de l'utilisateur (dark/light)
-        // et d'autres préférences si elles sont stockées en base
-        // Pour l'instant, on utilise le champ theme et des valeurs par défaut pour les autres
+        $preferences = $user->preferences ?? [];
+        
         return [
-            'dark_mode' => $user->theme === 'dark', // true si dark
-            'email_notifications' => true, // à adapter si vous avez un champ
-            'sms_notifications' => false,
-            'language' => 'fr',
-            'timezone' => 'Africa/Lome',
+            'dark_mode' => $user->theme === 'dark',
+            'email_notifications' => $preferences['email_notifications'] ?? true,
+            'sms_notifications' => $preferences['sms_notifications'] ?? false,
+            'language' => $preferences['language'] ?? 'fr',
+            'timezone' => $preferences['timezone'] ?? 'Africa/Lome',
         ];
     }
 
@@ -163,34 +165,101 @@ class ProfileController extends Controller
     }
 
     /**
-     * Mettre à jour les préférences (y compris le thème)
+     * Mettre à jour les préférences (AJAX)
      */
-    public function updatePreferences(Request $request)
-    {
-        $user = Auth::user();
-
-        // Mettre à jour le thème si présent
-        if ($request->has('dark_mode')) {
-            $user->theme = $request->boolean('dark_mode') ? 'dark' : 'light';
-        }
-
-        // Vous pouvez ajouter d'autres préférences ici
-        // Par exemple, si vous avez des champs pour notifications, etc.
-        // Pour l'instant, on ne les stocke pas en base, on peut les laisser en session
-        // ou les stocker aussi dans un champ JSON.
-
-        $user->save();
-
-        // Optionnel : stocker les autres préférences en session
-        session([
-            'email_notifications' => $request->boolean('email_notifications'),
-            'sms_notifications' => $request->boolean('sms_notifications'),
-            'language' => $request->input('language', 'fr'),
-            'timezone' => $request->input('timezone', 'Africa/Lome'),
+   /**
+ * Mettre à jour les préférences (AJAX)
+ */
+public function updatePreferences(Request $request)
+{
+    try {
+        // 🔥 CORRECTION : Traiter les champs correctement
+        $darkMode = $request->input('dark_mode');
+        $emailNotif = $request->input('email_notifications');
+        
+        $request->validate([
+            'dark_mode' => 'nullable|in:0,1,true,false',
+            'email_notifications' => 'nullable|in:0,1,true,false',
+            'language' => 'nullable|string|in:fr,en',
+            'timezone' => 'nullable|string',
         ]);
 
-        return redirect()->route('profile.index')
-            ->with('success', '✅ Préférences enregistrées avec succès !');
+        $user = Auth::user();
+        $preferences = $user->preferences ?? [];
+
+        // 🔥 CORRECTION : Convertir correctement les valeurs
+        if ($request->has('dark_mode')) {
+            $isDark = filter_var($request->input('dark_mode'), FILTER_VALIDATE_BOOLEAN);
+            $preferences['dark_mode'] = $isDark;
+            $user->theme = $isDark ? 'dark' : 'light';
+        }
+        
+        if ($request->has('email_notifications')) {
+            $preferences['email_notifications'] = filter_var($request->input('email_notifications'), FILTER_VALIDATE_BOOLEAN);
+        }
+        
+        if ($request->has('language')) {
+            $language = $request->input('language');
+            $preferences['language'] = $language;
+            
+            // 🔥 FORCER LA SESSION AVANT DE RÉPONDRE
+            session(['locale' => $language]);
+            App::setLocale($language);
+        }
+        
+        if ($request->has('timezone')) {
+            $preferences['timezone'] = $request->input('timezone');
+        }
+
+        $user->preferences = $preferences;
+        $user->save();
+
+        // 🔥 SESSION USER PREFERENCES
+        session(['user_preferences' => $preferences]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Préférences mises à jour avec succès',
+            'preferences' => $preferences,
+            'language' => $preferences['language'] ?? 'fr',
+            'locale' => app()->getLocale(),
+            'session_locale' => session('locale')
+        ]);
+
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Données invalides',
+            'errors' => $e->errors()
+        ], 422);
+    } catch (\Exception $e) {
+        \Log::error('Erreur updatePreferences: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'Une erreur est survenue: ' . $e->getMessage()
+        ], 500);
+    }
+}
+    /**
+     * Changer la langue uniquement (sans AJAX - méthode alternative)
+     */
+    public function changeLanguage(Request $request)
+    {
+        $request->validate([
+            'locale' => 'required|in:fr,en'
+        ]);
+        
+        $user = Auth::user();
+        $preferences = $user->preferences ?? [];
+        $preferences['language'] = $request->locale;
+        $user->preferences = $preferences;
+        $user->save();
+        
+        // Mettre à jour la session
+        session(['locale' => $request->locale]);
+        App::setLocale($request->locale);
+        
+        return redirect()->back()->with('success', 'Langue modifiée avec succès');
     }
 
     /**
@@ -235,20 +304,35 @@ class ProfileController extends Controller
      */
     public function toggleDarkMode(Request $request)
     {
-        $user = Auth::user();
-        
-        // Bascule le thème
-        $newTheme = $user->theme === 'dark' ? 'light' : 'dark';
-        $user->theme = $newTheme;
-        $user->save();
+        try {
+            $user = Auth::user();
+            
+            $isDark = $request->boolean('dark_mode');
+            $newTheme = $isDark ? 'dark' : 'light';
+            
+            $user->theme = $newTheme;
+            
+            // Mettre à jour les préférences également
+            $preferences = $user->preferences ?? [];
+            $preferences['dark_mode'] = $isDark;
+            $user->preferences = $preferences;
+            
+            $user->save();
+            
+            session(['user_preferences' => $preferences]);
 
-        if ($request->ajax()) {
             return response()->json([
                 'success' => true,
-                'theme' => $newTheme
+                'theme' => $newTheme,
+                'dark_mode' => $isDark
             ]);
-        }
 
-        return redirect()->back();
+        } catch (\Exception $e) {
+            \Log::error('Erreur toggleDarkMode: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors du changement de thème'
+            ], 500);
+        }
     }
 }

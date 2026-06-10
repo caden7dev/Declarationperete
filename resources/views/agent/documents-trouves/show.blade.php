@@ -97,7 +97,6 @@
             height: 20px;
         }
 
-        /* Badge de notification dans sidebar */
         .nav-badge {
             margin-left: auto;
             background: #e74c3c;
@@ -217,7 +216,7 @@
         /* Content */
         .content {
             padding: 2.5rem;
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
         }
 
@@ -268,6 +267,7 @@
             display: flex;
             align-items: center;
             gap: 0.8rem;
+            flex-wrap: wrap;
         }
 
         .back-btn {
@@ -476,11 +476,6 @@
             border-color: #3b82f6;
             background: #f0f5ff;
             transform: translateX(2px);
-        }
-
-        .corr-item.selected {
-            border-color: #3b82f6;
-            background: #eff6ff;
         }
 
         .corr-name { font-weight: 700; color: #1e3a5f; font-size: 0.85rem; }
@@ -873,7 +868,8 @@
 
         /* Responsive */
         @media (max-width: 1024px) {
-            .sidebar { transform: translateX(-100%); }
+            .sidebar { transform: translateX(-100%); position: fixed; transition: transform 0.3s; }
+            .sidebar.open { transform: translateX(0); }
             .main { margin-left: 0; }
             .main-grid { grid-template-columns: 1fr; }
             .right-panel { position: static; }
@@ -882,55 +878,11 @@
         }
 
         @media (max-width: 640px) {
-            .top-bar { padding: 1rem; }
+            .top-bar { padding: 1rem; flex-direction: column; gap: 1rem; }
             .stats-row { grid-template-columns: 1fr; }
             .two-col { grid-template-columns: 1fr; }
+            .page-header { flex-direction: column; gap: 1rem; text-align: center; }
         }
-
-        /* Dark mode */
-        body.dark-mode {
-            background: #0a1220;
-            color: #e2e8f0;
-        }
-
-        body.dark-mode .sidebar { background: #101e36; border-color: #1c2d4a; }
-        body.dark-mode .sidebar-header { border-color: #1c2d4a; }
-        body.dark-mode .sidebar-header h2 { color: #e2e8f0; }
-        body.dark-mode .sidebar-nav a { color: #94a3b8; }
-        body.dark-mode .sidebar-nav a:hover { background: #1c2d4a; color: #f39c12; }
-        body.dark-mode .sidebar-nav a.active { background: rgba(243,156,18,0.1); color: #f39c12; }
-        body.dark-mode .sidebar-footer { border-color: #1c2d4a; }
-        body.dark-mode .btn-logout { background: rgba(239,68,68,0.1); color: #f87171; }
-
-        body.dark-mode .main { background: #0a1220; }
-        body.dark-mode .top-bar { background: #101e36; border-color: #1c2d4a; }
-        body.dark-mode .top-bar-left h1 { color: #e2e8f0; }
-        body.dark-mode .notification-badge { background: #1c2d4a; }
-        body.dark-mode .tb-agent-info { background: #1c2d4a; border-color: #2d4166; }
-        body.dark-mode .tb-agent-name { color: #e2e8f0; }
-
-        body.dark-mode .card { background: #101e36; border-color: #1c2d4a; }
-        body.dark-mode .card-head { background: #162038; border-color: #1c2d4a; }
-        body.dark-mode .card-title { color: #e2e8f0; }
-        body.dark-mode .info-row { border-color: #1c2d4a; }
-        body.dark-mode .ir-value { color: #e2e8f0; }
-        body.dark-mode .stat-card { background: #101e36; border-color: #1c2d4a; }
-        body.dark-mode .stat-value { color: #e2e8f0; }
-        body.dark-mode .stat-label { color: #94a3b8; }
-
-        body.dark-mode .photo-empty { background: #162038; border-color: #1c2d4a; }
-        body.dark-mode .corr-item { border-color: #1c2d4a; background: #101e36; }
-        body.dark-mode .corr-item:hover { border-color: #3b82f6; background: #162038; }
-        body.dark-mode .tl-line { background: #1c2d4a; }
-        body.dark-mode .modal { background: #101e36; }
-        body.dark-mode .modal-top { background: #101e36; border-color: #1c2d4a; }
-        body.dark-mode .modal-title { color: #e2e8f0; }
-        body.dark-mode .modal-footer { background: #162038; border-color: #1c2d4a; }
-        body.dark-mode .btn-cancel { background: #101e36; border-color: #1c2d4a; color: #94a3b8; }
-        body.dark-mode .perte-option { border-color: #1c2d4a; background: #101e36; }
-        body.dark-mode .perte-option:hover { background: #162038; }
-        body.dark-mode .po-name { color: #e2e8f0; }
-        body.dark-mode .manual-input { background: #162038; border-color: #1c2d4a; color: #e2e8f0; }
     </style>
 </head>
 <body>
@@ -947,12 +899,11 @@
     $s = $sMap[$statut] ?? $sMap['en_attente'];
     $docIcons = ['Passeport'=>'🛂',"Carte d'identité (CNI)"=>'🪪','Permis de conduire'=>'🚗',"Carte d'électeur"=>'🗳️','Acte de naissance'=>'📋','Certificat de nationalité'=>'📜'];
     $docIcon = $docIcons[$documentTrouve->type_document] ?? '📄';
-    $agentInitials = strtoupper(substr(auth()->user()->first_name ?? auth()->user()->name, 0, 1) . substr(auth()->user()->last_name ?? '', 0, 1));
-    $correspCount  = $correspondances->count();
+    $correspCount  = $pertesPotentielles->count();
 @endphp
 
 <!-- SIDEBAR -->
-<div class="sidebar">
+<div class="sidebar" id="sidebar">
     <div class="sidebar-header">
         <h2>
             <span>🇹🇬</span> 
@@ -962,14 +913,14 @@
     </div>
 
     <nav class="sidebar-nav">
-        <a href="{{ route('agent.dashboard') }}" class="{{ request()->routeIs('agent.dashboard') && !request('statut') ? 'active' : '' }}">
+        <a href="{{ route('agent.dashboard') }}">
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
             </svg>
             Dashboard
         </a>
 
-        <a href="{{ route('agent.dashboard', ['statut' => 'en_attente']) }}" class="{{ request('statut') == 'en_attente' ? 'active' : '' }}">
+        <a href="{{ route('agent.dashboard', ['statut' => 'en_attente']) }}">
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
@@ -986,14 +937,14 @@
             Documents Trouvés
         </a>
 
-        <a href="{{ route('agent.dashboard', ['statut' => 'validee']) }}" class="{{ request('statut') == 'validee' ? 'active' : '' }}">
+        <a href="{{ route('agent.dashboard', ['statut' => 'validee']) }}">
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
             Validées
         </a>
 
-        <a href="{{ route('agent.dashboard', ['statut' => 'rejetee']) }}" class="{{ request('statut') == 'rejetee' ? 'active' : '' }}">
+        <a href="{{ route('agent.dashboard', ['statut' => 'rejetee']) }}">
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
@@ -1024,11 +975,8 @@
         <div class="top-bar-right">
             <div class="notification-badge" onclick="window.location.href='{{ route('agent.dashboard', ['statut' => 'en_attente']) }}'">
                 🔔
-                @php
-                    $totalNotif = $pendingCount;
-                @endphp
-                @if($totalNotif > 0)
-                    <span class="notification-count">{{ $totalNotif }}</span>
+                @if($pendingCount > 0)
+                    <span class="notification-count">{{ $pendingCount }}</span>
                 @endif
             </div>
         </div>
@@ -1294,7 +1242,7 @@
                     </div>
                     <div class="card-body">
                         @if($correspCount > 0)
-                            @foreach($correspondances as $perte)
+                            @foreach($pertesPotentielles as $perte)
                             <div class="corr-item" id="corr-{{ $perte->id }}" onclick="preselectPerte({{ $perte->id }}, '{{ addslashes($perte->first_name) }} {{ addslashes($perte->last_name) }}')">
                                 <div style="flex:1;">
                                     <div class="corr-name">{{ $perte->first_name }} {{ $perte->last_name }}</div>
@@ -1407,10 +1355,10 @@
 
                         <hr class="ac-divider">
 
-                        {{-- ARCHIVER --}}
-                        @if(!in_array($statut, ['archive','restitue']))
+                        {{-- ARCHIVER / SUPPRIMER --}}
+                        @if($statut === 'en_attente')
                             <form method="POST" action="{{ route('agent.documents-trouves.destroy', $documentTrouve->id) }}"
-                                  onsubmit="return confirm('Archiver ce dossier ? Cette action est irréversible.')">
+                                  onsubmit="return confirm('Supprimer ce dossier ? Cette action est irréversible.')">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="ac-btn ac-btn-ghost">
@@ -1418,7 +1366,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
                                     </svg>
                                     <div class="ac-btn-label">
-                                        Archiver le dossier
+                                        Supprimer le dossier
                                         <span class="ac-btn-desc">Retirer des cas actifs</span>
                                     </div>
                                 </button>
@@ -1530,11 +1478,12 @@
 
             <form id="matchForm" method="POST" action="{{ route('agent.documents-trouves.matcher', $documentTrouve->id) }}">
                 @csrf
+                <input type="hidden" name="confirmation" value="1">
 
                 {{-- Options --}}
                 @if($correspCount > 0)
                     <div class="perte-section-label">Correspondances détectées automatiquement</div>
-                    @foreach($correspondances as $perte)
+                    @foreach($pertesPotentielles as $perte)
                     <label class="perte-option" id="modal-opt-{{ $perte->id }}">
                         <input type="radio" name="perte_id" value="{{ $perte->id }}"
                                onchange="highlightOption({{ $perte->id }})">
@@ -1640,9 +1589,16 @@
         }
 
         // Confirmation finale
-        const name = radioSelected
-            ? radioSelected.closest('.perte-option').querySelector('.po-name').textContent
-            : `ID ${manualId}`;
+        let name = '';
+        if (radioSelected) {
+            const optionLabel = radioSelected.closest('.perte-option');
+            if (optionLabel) {
+                const nameDiv = optionLabel.querySelector('.po-name');
+                if (nameDiv) name = nameDiv.textContent;
+            }
+        } else {
+            name = `ID ${manualId}`;
+        }
 
         if (!confirm(`Confirmer l'association et envoyer la notification à : ${name} ?`)) return;
 

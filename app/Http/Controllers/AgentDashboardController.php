@@ -10,6 +10,7 @@ use App\Models\TypePiece;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class AgentDashboardController extends Controller
 {
@@ -35,7 +36,9 @@ class AgentDashboardController extends Controller
                       ->orWhere('email', 'LIKE', "%{$search}%");
                 })
                 ->orWhere('numero_declaration', 'LIKE', "%{$search}%")
-                ->orWhere('type_piece', 'LIKE', "%{$search}%");
+                ->orWhere('type_piece', 'LIKE', "%{$search}%")
+                ->orWhere('first_name', 'LIKE', "%{$search}%")
+                ->orWhere('last_name', 'LIKE', "%{$search}%");
             });
         }
         
@@ -105,10 +108,11 @@ class AgentDashboardController extends Controller
         Notification::create([
             'user_id' => $perte->user_id,
             'type' => 'validation',
-            'title' => 'Déclaration validée',
-            'message' => "Votre déclaration de perte a été validée. Numéro : {$perte->numero_declaration}",
+            'title' => '✅ Déclaration validée',
+            'content' => "Votre déclaration de perte pour {$perte->type_piece} a été validée avec succès. Votre numéro de déclaration est : {$perte->numero_declaration}",
             'perte_id' => $perte->id,
-            'is_read' => false
+            'is_read' => false,
+            'action_url' => route('perte.show', $perte->id)
         ]);
         
         return redirect()->route('agent.dashboard')
@@ -146,22 +150,25 @@ class AgentDashboardController extends Controller
                     'user_id' => $perte->user_id,
                     'type' => 'document_trouve',
                     'title' => '🎉 Votre document a peut-être été trouvé !',
-                    'message' => "Un document correspondant à votre déclaration a été trouvé le " . 
+                    'content' => "Un document correspondant à votre déclaration (perte de {$perte->type_piece}) a été trouvé le " . 
                                  $docTrouve->date_decouverte->format('d/m/Y') . " à " . 
-                                 $docTrouve->lieu_decouverte . ". Connectez-vous pour plus de détails.",
+                                 $docTrouve->lieu_decouverte . ". Notre équipe va vérifier et vous contactera.",
                     'perte_id' => $perte->id,
+                    'document_trouve_id' => $docTrouve->id,
                     'is_read' => false
                 ]);
 
                 // Notification au trouveur
-                Notification::create([
-                    'user_id' => $docTrouve->user_id ?? null,
-                    'type' => 'correspondance_trouvee',
-                    'title' => '🔍 Correspondance trouvée !',
-                    'message' => "Un document correspondant à celui que vous avez trouvé a été déclaré perdu. Un agent va traiter votre déclaration.",
-                    'document_trouve_id' => $docTrouve->id,
-                    'is_read' => false
-                ]);
+                if ($docTrouve->user_id) {
+                    Notification::create([
+                        'user_id' => $docTrouve->user_id,
+                        'type' => 'correspondance_trouvee',
+                        'title' => '🔍 Correspondance trouvée !',
+                        'content' => "Un document correspondant à celui que vous avez trouvé a été déclaré perdu. Un agent va traiter votre déclaration.",
+                        'document_trouve_id' => $docTrouve->id,
+                        'is_read' => false
+                    ]);
+                }
             }
         }
     }
@@ -193,14 +200,15 @@ class AgentDashboardController extends Controller
             'motif_rejet' => $request->motif_rejet
         ]);
         
-        // Créer la notification pour l'utilisateur
+        // Créer la notification pour l'utilisateur avec content
         Notification::create([
             'user_id' => $perte->user_id,
             'type' => 'rejet',
-            'title' => 'Déclaration rejetée',
-            'message' => "Votre déclaration a été rejetée. Motif : {$request->motif_rejet}",
+            'title' => '❌ Déclaration rejetée',
+            'content' => "Votre déclaration de perte pour {$perte->type_piece} a été rejetée.\n\nMotif : {$request->motif_rejet}\n\nVous pouvez faire une nouvelle déclaration en corrigeant les informations.",
             'perte_id' => $perte->id,
-            'is_read' => false
+            'is_read' => false,
+            'action_url' => route('perte.show', $perte->id)
         ]);
         
         return redirect()->route('agent.dashboard')
@@ -236,7 +244,9 @@ class AgentDashboardController extends Controller
                   ->orWhere('nom_declarant', 'LIKE', "%{$search}%")
                   ->orWhere('prenom_declarant', 'LIKE', "%{$search}%")
                   ->orWhere('nom_sur_document', 'LIKE', "%{$search}%")
-                  ->orWhere('numero_document', 'LIKE', "%{$search}%");
+                  ->orWhere('prenom_sur_document', 'LIKE', "%{$search}%")
+                  ->orWhere('numero_document', 'LIKE', "%{$search}%")
+                  ->orWhere('type_document', 'LIKE', "%{$search}%");
             });
         }
 
@@ -259,41 +269,13 @@ class AgentDashboardController extends Controller
     {
         $documentTrouve = DocumentTrouve::with('perteMatchee')->findOrFail($id);
         
-        // Chercher les correspondances possibles
-        $correspondances = $this->findMatchingPertes($documentTrouve);
-
-        return view('agent.documents-trouves.show', compact('documentTrouve', 'correspondances'));
-    }
-
-    /**
-     * Trouver les déclarations de perte correspondantes
-     */
-    private function findMatchingPertes($documentTrouve)
-    {
-        $query = Perte::where('statut', 'validee')
-            ->where('type_piece', $documentTrouve->type_document);
-
-        // Filtrer par numéro si disponible
-        if ($documentTrouve->numero_document) {
-            $query->where('numero_piece', 'LIKE', '%' . $documentTrouve->numero_document . '%');
-        }
-
-        // Filtrer par nom/prénom si disponible
-        if ($documentTrouve->nom_sur_document) {
-            $query->where('last_name', 'LIKE', '%' . $documentTrouve->nom_sur_document . '%');
-        }
-
-        if ($documentTrouve->prenom_sur_document) {
-            $query->where('first_name', 'LIKE', '%' . $documentTrouve->prenom_sur_document . '%');
-        }
-
-        // Filtrer par date (± 60 jours)
-        $query->whereBetween('date_perte', [
-            $documentTrouve->date_decouverte->subDays(60),
-            $documentTrouve->date_decouverte->addDays(60)
-        ]);
-
-        return $query->with('user')->get();
+        // Récupérer les déclarations de perte potentielles (même type de document, non encore résolues)
+        $pertesPotentielles = Perte::where('statut', 'en_attente')
+            ->where('type_piece', $documentTrouve->type_document)
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        return view('agent.documents-trouves.show', compact('documentTrouve', 'pertesPotentielles'));
     }
 
     /**
@@ -302,55 +284,86 @@ class AgentDashboardController extends Controller
     public function matcherDocumentTrouve(Request $request, $id)
     {
         $request->validate([
-            'perte_id' => 'required|exists:pertes,id'
+            'perte_id' => 'required|exists:pertes,id',
+            'confirmation' => 'accepted'
+        ], [
+            'perte_id.required' => 'Veuillez sélectionner une déclaration de perte à associer.',
+            'perte_id.exists' => 'La déclaration de perte sélectionnée n\'existe pas.',
+            'confirmation.accepted' => 'Veuillez confirmer la correspondance.'
         ]);
 
-        $documentTrouve = DocumentTrouve::findOrFail($id);
-        $perteId = $request->input('perte_id');
+        try {
+            DB::beginTransaction();
 
-        if (!$perteId) {
-            return back()->with('error', 'Veuillez sélectionner une déclaration de perte.');
-        }
+            $documentTrouve = DocumentTrouve::findOrFail($id);
+            $perte = Perte::findOrFail($request->perte_id);
 
-        $perte = Perte::findOrFail($perteId);
+            // Vérifier que le document n'est pas déjà associé
+            if ($documentTrouve->statut !== 'en_attente') {
+                return back()->with('error', 'Ce document a déjà été traité.');
+            }
 
-        // Mettre à jour le document trouvé
-        $documentTrouve->update([
-            'perte_matchee_id' => $perteId,
-            'statut' => 'matche'
-        ]);
+            // Vérifier que la déclaration n'est pas déjà validée ou rejetée
+            if ($perte->statut !== 'en_attente') {
+                return back()->with('error', 'Cette déclaration a déjà été traitée.');
+            }
 
-        // Mettre à jour la perte
-        $perte->update([
-            'document_retrouve' => true,
-            'date_retrouvaille' => now(),
-            'document_trouve_id' => $documentTrouve->id
-        ]);
-
-        // Envoyer notification au propriétaire
-        Notification::create([
-            'user_id' => $perte->user_id,
-            'type' => 'document_retrouve',
-            'title' => '🎉 Votre document a été retrouvé !',
-            'message' => "Votre {$perte->type_piece} a été retrouvé ! Contact du trouveur : {$documentTrouve->nom_declarant} {$documentTrouve->prenom_declarant}",
-            'perte_id' => $perte->id,
-            'is_read' => false
-        ]);
-
-        // Envoyer notification au trouveur
-        if ($documentTrouve->user_id) {
-            Notification::create([
-                'user_id' => $documentTrouve->user_id,
-                'type' => 'document_matché',
-                'title' => '✅ Document matché avec succès !',
-                'message' => "Le document que vous avez trouvé correspond à une déclaration de perte. Un agent va vous contacter pour la restitution.",
-                'document_trouve_id' => $documentTrouve->id,
-                'is_read' => false
+            // Mettre à jour le document trouvé
+            $documentTrouve->update([
+                'statut' => 'matche',
+                'perte_matchee_id' => $perte->id,
+                'date_traitement' => now()
             ]);
-        }
 
-        return redirect()->route('agent.documents-trouves.show', $id)
-            ->with('success', '✅ Document matché avec succès ! Les deux parties ont été notifiées.');
+            // Mettre à jour la déclaration de perte
+            $perte->update([
+                'statut' => 'validee',
+                'validated_by' => Auth::id(),
+                'validated_at' => now(),
+                'document_retrouve' => true,
+                'date_retrouvaille' => now(),
+                'document_trouve_id' => $documentTrouve->id
+            ]);
+
+            // Générer le numéro de déclaration si nécessaire
+            if (!$perte->numero_declaration) {
+                $perte->numero_declaration = 'DL-' . strtoupper(uniqid()) . '-' . date('Y');
+                $perte->save();
+            }
+
+            // Créer une notification pour l'utilisateur (propriétaire)
+            Notification::create([
+                'user_id' => $perte->user_id,
+                'type' => 'document_retrouve',
+                'title' => '🎉 Bonne nouvelle ! Votre document a été retrouvé',
+                'content' => "Votre {$perte->type_piece} perdu(e) a été retrouvé(e) à {$documentTrouve->lieu_decouverte}. Veuillez contacter l'agent pour récupérer votre document.",
+                'perte_id' => $perte->id,
+                'document_trouve_id' => $documentTrouve->id,
+                'is_read' => false,
+                'action_url' => route('perte.show', $perte->id)
+            ]);
+
+            // Notification au trouveur
+            if ($documentTrouve->user_id) {
+                Notification::create([
+                    'user_id' => $documentTrouve->user_id,
+                    'type' => 'document_matché',
+                    'title' => '✅ Votre signalement a permis de retrouver un propriétaire !',
+                    'content' => "Le document que vous avez trouvé correspond à une déclaration de perte. Merci pour votre geste citoyen !",
+                    'document_trouve_id' => $documentTrouve->id,
+                    'is_read' => false
+                ]);
+            }
+
+            DB::commit();
+
+            return redirect()->route('agent.documents-trouves.index')
+                ->with('success', "✅ Document associé avec succès à la déclaration de {$perte->first_name} {$perte->last_name}. Les notifications ont été envoyées.");
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Une erreur est survenue : ' . $e->getMessage());
+        }
     }
 
     /**
@@ -372,14 +385,17 @@ class AgentDashboardController extends Controller
         // Notification au propriétaire
         if ($documentTrouve->perte_matchee_id) {
             $perte = $documentTrouve->perteMatchee;
-            Notification::create([
-                'user_id' => $perte->user_id,
-                'type' => 'restitution',
-                'title' => '✅ Document restitué',
-                'message' => "Votre {$perte->type_piece} a été officiellement restitué. Merci d'utiliser notre plateforme !",
-                'perte_id' => $perte->id,
-                'is_read' => false
-            ]);
+            if ($perte) {
+                Notification::create([
+                    'user_id' => $perte->user_id,
+                    'type' => 'restitution',
+                    'title' => '✅ Document restitué',
+                    'content' => "Votre {$perte->type_piece} a été officiellement restitué. Merci d'utiliser notre plateforme !",
+                    'perte_id' => $perte->id,
+                    'is_read' => false,
+                    'action_url' => route('perte.show', $perte->id)
+                ]);
+            }
         }
 
         // Notification au trouveur
@@ -388,13 +404,14 @@ class AgentDashboardController extends Controller
                 'user_id' => $documentTrouve->user_id,
                 'type' => 'restitution_completee',
                 'title' => '🎉 Restitution complétée',
-                'message' => "Merci d'avoir rapporté ce document ! La restitution a été officiellement enregistrée.",
+                'content' => "Merci d'avoir rapporté ce document ! La restitution a été officiellement enregistrée.",
                 'document_trouve_id' => $documentTrouve->id,
                 'is_read' => false
             ]);
         }
 
-        return back()->with('success', '✅ Document marqué comme restitué !');
+        return redirect()->route('agent.documents-trouves.index')
+            ->with('success', '✅ Document marqué comme restitué avec succès !');
     }
 
     /**
@@ -416,8 +433,8 @@ class AgentDashboardController extends Controller
 
         $documentTrouve->delete();
 
-        return redirect()->route('agent.documents-trouves')
-            ->with('success', '✅ Document trouvé supprimé avec succès.');
+        return redirect()->route('agent.documents-trouves.index')
+            ->with('success', '🗑️ Document trouvé supprimé avec succès.');
     }
 
     /**
@@ -440,5 +457,58 @@ class AgentDashboardController extends Controller
         ];
 
         return response()->json($stats);
+    }
+
+    /**
+     * Envoyer un message à un utilisateur
+     */
+    public function sendMessage(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'message' => 'required|string|min:3|max:1000'
+        ]);
+
+        Notification::create([
+            'user_id' => $request->user_id,
+            'type' => 'agent_message',
+            'title' => '📩 Message de l\'agent',
+            'content' => $request->message,
+            'is_read' => false
+        ]);
+
+        return back()->with('success', '✅ Message envoyé avec succès !');
+    }
+
+    /**
+     * Annuler une validation (pour admin)
+     */
+    public function annuler($id)
+    {
+        $perte = Perte::findOrFail($id);
+        
+        if ($perte->statut === 'en_attente') {
+            return back()->with('error', 'Cette déclaration est déjà en attente.');
+        }
+
+        $perte->update([
+            'statut' => 'en_attente',
+            'validated_by' => null,
+            'validated_at' => null,
+            'motif_rejet' => null
+        ]);
+
+        Notification::create([
+            'user_id' => $perte->user_id,
+            'type' => 'annulation',
+            'title' => '🔄 Annulation de traitement',
+            'content' => 'Votre déclaration a été remise en attente pour réexamen.',
+            'perte_id' => $perte->id,
+            'is_read' => false,
+            'action_url' => route('perte.show', $perte->id)
+        ]);
+
+        return redirect()->route('agent.dashboard')
+            ->with('success', '✅ La déclaration a été remise en attente.');
     }
 }

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Se connecter - e-Déclaration TG</title>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -13,14 +13,14 @@
         }
 
         body {
-            font-family: 'Nunito', sans-serif;
+            font-family: 'Inter', sans-serif;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             position: relative;
         }
 
-        /* Arrière-plan avec image - même que welcome.blade.php */
+        /* Arrière-plan avec image - visible sans overlay */
         body::before {
             content: '';
             position: fixed;
@@ -34,46 +34,78 @@
             background-attachment: fixed;
             background-repeat: no-repeat;
             z-index: -2;
-            /* Amélioration de la netteté */
+            filter: brightness(0.85);
             image-rendering: -webkit-optimize-contrast;
             image-rendering: crisp-edges;
             transform: translateZ(0);
             backface-visibility: hidden;
         }
 
-        /* Header */
+        /* Header - avec devise à droite */
         .header {
-            background-color: rgba(30, 58, 95, 0.95);
-            padding: 1.2rem 5%;
-            box-shadow: 0 2px 20px rgba(0,0,0,0.3);
-            backdrop-filter: blur(10px);
-            position: relative;
-            z-index: 10;
+            background: linear-gradient(135deg, #0f2b3d 0%, #1a4a6f 100%);
+            padding: 1rem 5%;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
         .header-content {
             max-width: 1400px;
             margin: 0 auto;
             display: flex;
+            justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
             gap: 1rem;
         }
 
-        .logo-img {
-            width: 50px;
-            height: 50px;
-            background: white;
-            border-radius: 8px;
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+        }
+
+        .flag-icon {
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.25);
         }
 
-        .header h1 {
+        .flag-icon svg {
+            width: 42px;
+            height: 32px;
+        }
+
+        .logo h1 {
             color: white;
-            font-size: 1.5rem;
-            font-weight: 700;
+            font-size: 1.6rem;
+            font-weight: 800;
+        }
+
+        /* Devise à droite */
+        .header-devise {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .header-devise .republic-name {
+            font-size: 0.65rem;
+            color: rgba(255,255,255,.5);
+            font-weight: 500;
+        }
+
+        .header-devise .republic-devise {
+            font-size: 0.55rem;
+            color: rgba(255,255,255,.35);
+            font-weight: 400;
+            margin-top: 2px;
         }
 
         /* Main Content */
@@ -87,30 +119,16 @@
             z-index: 1;
         }
 
-        /* ========================================
-           🎯 CADRE DU FORMULAIRE - MODIFIEZ ICI
-           ======================================== */
+        /* Cadre du formulaire */
         .login-card {
             background: rgba(255, 255, 255, 0.98);
-            border-radius: 20px;
-            
-            /* 📏 ESPACEMENT INTÉRIEUR (padding) 
-               Avant: 5rem | Maintenant: 2.5rem
-               Plus petit = cadre plus compact
-               Augmentez pour agrandir, diminuez pour réduire */
+            border-radius: 24px;
             padding: 2.5rem;
-            
             width: 100%;
-            
-            /* 📐 LARGEUR MAXIMALE du cadre
-               Avant: 550px | Maintenant: 450px
-               Plus petit = cadre plus étroit
-               Exemples: 400px (très petit), 500px (moyen), 600px (large) */
             max-width: 450px;
-            
-            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
             animation: slideUp 0.5s ease-out;
-            backdrop-filter: blur(15px);
+            border: 1px solid rgba(0,0,0,0.05);
         }
 
         @keyframes slideUp {
@@ -118,63 +136,53 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* 📝 TITRE "Se connecter"
-           Taille réduite de 2.5rem à 2rem */
         .login-card h2 {
-            color: #1e3a5f;
-            font-size: 2rem;
-            font-weight: 700;
+            color: #0f172a;
+            font-size: 1.8rem;
+            font-weight: 800;
             text-align: center;
             margin-bottom: 1.5rem;
         }
 
-        /* Form Styles */
         .form-group {
-            /* 📏 ESPACEMENT entre les champs
-               Réduit de 1.5rem à 1.2rem */
             margin-bottom: 1.2rem;
         }
 
         .form-group label {
             display: block;
-            color: #555;
+            color: #475569;
             font-weight: 600;
             margin-bottom: 0.5rem;
-            /* 📝 Taille des labels réduite */
-            font-size: 1rem;
+            font-size: 0.9rem;
         }
 
         .form-input {
             width: 100%;
-            /* 📏 Hauteur des champs de saisie
-               Réduit de 1rem à 0.9rem */
             padding: 0.9rem;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            /* 📝 Taille du texte dans les champs */
-            font-size: 1rem;
-            font-family: 'Nunito', sans-serif;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-family: 'Inter', sans-serif;
             transition: all 0.3s;
             background: white;
         }
 
         .form-input:focus {
             outline: none;
-            border-color: #27ae60;
-            box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.1);
+            border-color: #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
         }
 
         .form-input::placeholder {
-            color: #999;
-            font-size: 0.95rem;
+            color: #94a3b8;
+            font-size: 0.9rem;
         }
 
-        /* Remember & Forgot */
         .form-options {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.2rem;
+            margin-bottom: 1.5rem;
         }
 
         .remember-me {
@@ -184,104 +192,107 @@
         }
 
         .remember-me input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
+            width: 16px;
+            height: 16px;
             cursor: pointer;
+            accent-color: #10b981;
         }
 
         .remember-me label {
-            color: #666;
-            font-size: 0.9rem;
+            color: #64748b;
+            font-size: 0.85rem;
             cursor: pointer;
             margin: 0;
         }
 
         .forgot-link {
-            color: #666;
+            color: #64748b;
             text-decoration: none;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             transition: color 0.3s;
         }
 
         .forgot-link:hover {
-            color: #27ae60;
+            color: #10b981;
             text-decoration: underline;
         }
 
-        /* Submit Button */
         .btn-submit {
             width: 100%;
-            background-color: #27ae60;
+            background: linear-gradient(135deg, #10b981, #059669);
             color: white;
-            /* 📏 Hauteur du bouton réduite */
             padding: 0.9rem;
             border: none;
-            border-radius: 10px;
-            font-size: 1.1rem;
+            border-radius: 12px;
+            font-size: 1rem;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
         }
 
         .btn-submit:hover {
-            background-color: #229954;
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
         }
 
         .btn-submit:active {
             transform: translateY(0);
         }
 
-        /* Register Link */
         .register-section {
             margin-top: 1.5rem;
             text-align: center;
             padding-top: 1.2rem;
-            border-top: 1px solid #e0e0e0;
+            border-top: 1px solid #e2e8f0;
         }
 
         .register-section p {
-            color: #666;
-            font-size: 0.9rem;
+            color: #64748b;
+            font-size: 0.85rem;
             margin-bottom: 0.5rem;
         }
 
         .register-link {
-            color: #27ae60;
+            color: #10b981;
             text-decoration: none;
             font-weight: 700;
-            font-size: 1rem;
+            font-size: 0.9rem;
             transition: all 0.3s;
         }
 
         .register-link:hover {
-            color: #229954;
+            color: #059669;
             text-decoration: underline;
         }
 
-        /* Alert Messages */
         .alert {
-            padding: 0.9rem;
-            border-radius: 10px;
+            padding: 0.9rem 1rem;
+            border-radius: 12px;
             margin-bottom: 1.2rem;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .alert-success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+            background-color: #ecfdf5;
+            color: #065f46;
+            border-left: 4px solid #10b981;
         }
 
         .alert-error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+            background-color: #fef2f2;
+            color: #991b1b;
+            border-left: 4px solid #ef4444;
         }
 
-        /* Responsive */
+        .alert ul {
+            margin: 0;
+            padding-left: 1.2rem;
+        }
+
         @media (max-width: 768px) {
             .login-card {
                 padding: 2rem 1.5rem;
@@ -289,7 +300,7 @@
             }
 
             .login-card h2 {
-                font-size: 1.6rem;
+                font-size: 1.5rem;
             }
 
             .form-options {
@@ -297,15 +308,40 @@
                 gap: 1rem;
                 align-items: flex-start;
             }
+
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .header-devise {
+                align-items: center;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Header -->
+    <!-- Header avec devise à droite -->
     <header class="header">
         <div class="header-content">
-            <div class="logo-img">🇹🇬</div>
-            <h1>e-Déclaration TG</h1>
+            <a href="{{ route('home') }}" class="logo">
+                <div class="flag-icon">
+                    <svg viewBox="0 0 5 4" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                        <rect width="5" height=".8" y="0"   fill="#006A36"/>
+                        <rect width="5" height=".8" y=".8"  fill="#FFCB00"/>
+                        <rect width="5" height=".8" y="1.6" fill="#006A36"/>
+                        <rect width="5" height=".8" y="2.4" fill="#FFCB00"/>
+                        <rect width="5" height=".8" y="3.2" fill="#006A36"/>
+                        <rect width="1.9" height="2.4" fill="#D21034"/>
+                        <polygon points="0.95,0.38 1.07,0.76 1.47,0.76 1.16,0.99 1.28,1.37 0.95,1.14 0.62,1.37 0.74,0.99 0.43,0.76 0.83,0.76" fill="#FFFFFF"/>
+                    </svg>
+                </div>
+                <h1>e-Déclaration</h1>
+            </a>
+            <div class="header-devise">
+                <span class="republic-name">République Togolaise</span>
+                <span class="republic-devise">Travail-Liberté-Patrie</span>
+            </div>
         </div>
     </header>
 
@@ -314,27 +350,26 @@
         <div class="login-card">
             <h2>Se connecter</h2>
 
-            <!-- Session Status (Success Message) -->
             @if(session('success'))
                 <div class="alert alert-success">
-                    {{ session('success') }}
+                    <span>✅</span>
+                    <span>{{ session('success') }}</span>
                 </div>
             @endif
 
-            <!-- Validation Errors -->
             @if($errors->any())
                 <div class="alert alert-error">
-                    <ul style="margin:0; padding-left: 1.2rem;">
+                    <span>❌</span>
+                    <div>
                         @foreach($errors->all() as $error)
-                            <li>{{ $error }}</li>
+                            <div>{{ $error }}</div>
                         @endforeach
-                    </ul>
+                    </div>
                 </div>
             @endif
 
             <form method="POST" action="{{ route('login') }}">
                 @csrf
-                <!-- Email or Phone -->
                 <div class="form-group">
                     <label for="email">Email</label> 
                     <input 
@@ -342,14 +377,13 @@
                         id="email" 
                         name="email" 
                         class="form-input" 
-                        placeholder="Entrez votre email"
+                        placeholder="exemple@email.com"
                         value="{{ old('email') }}"
                         required 
                         autofocus
                     >
                 </div>
 
-                <!-- Password -->
                 <div class="form-group">
                     <label for="password">Mot de passe</label>
                     <input 
@@ -357,26 +391,23 @@
                         id="password" 
                         name="password" 
                         class="form-input" 
-                        placeholder="Entrez votre mot de passe"
+                        placeholder="••••••••"
                         required
                     >
                 </div>
 
-                <!-- Remember Me & Forgot Password -->
                 <div class="form-options">
                     <div class="remember-me">
                         <input type="checkbox" id="remember" name="remember" {{ old('remember') ? 'checked' : '' }}>
                         <label for="remember">Se souvenir de moi</label>
                     </div>
-                    <a href="{{ route('password.request') }}" class="forgot-link">Mot de passe oublié?</a>
+                    <a href="{{ route('password.request') }}" class="forgot-link">Mot de passe oublié ?</a>
                 </div>
 
-                <!-- Submit Button -->
                 <button type="submit" class="btn-submit">
                     Se connecter
                 </button>
 
-                <!-- Register Link -->
                 <div class="register-section">
                     <p>Vous n'avez pas encore de compte ?</p>
                     <a href="{{ route('register') }}" class="register-link">Créer un compte →</a>
@@ -386,16 +417,16 @@
     </main>
 
     <script>
-        // Add smooth animations to inputs
         const inputs = document.querySelectorAll('.form-input');
         inputs.forEach(input => {
             input.addEventListener('focus', function() {
-                this.parentElement.style.transform = 'scale(1.02)';
-                this.parentElement.style.transition = 'transform 0.3s';
+                this.style.borderColor = '#10b981';
+                this.style.boxShadow = '0 0 0 3px rgba(16, 185, 129, 0.1)';
             });
             
             input.addEventListener('blur', function() {
-                this.parentElement.style.transform = 'scale(1)';
+                this.style.borderColor = '#e2e8f0';
+                this.style.boxShadow = 'none';
             });
         });
     </script>

@@ -21,31 +21,29 @@ class LoginController extends Controller
 
     public function login(Request $request)
     {
-        // ✅ Validation souple (email OU téléphone)
         $request->validate([
-            'email' => ['required', 'string'],
+            'email'    => ['required', 'string'],
             'password' => ['required', 'string'],
         ]);
 
         $loginInput = $request->email;
 
-        // 🔍 Déterminer le type de login
         $fieldType = filter_var($loginInput, FILTER_VALIDATE_EMAIL)
             ? 'email'
-            : 'contact'; // nom du champ téléphone en DB
+            : 'contact';
 
         $credentials = [
             $fieldType => $loginInput,
             'password' => $request->password,
         ];
 
-        // 🔐 Tentative de connexion
         if (Auth::attempt($credentials, $request->filled('remember'))) {
             $request->session()->regenerate();
-            return redirect()->intended('/dashboard');
+
+            // ✅ Redirection selon le rôle
+            return redirect($this->redirectTo(Auth::user()));
         }
 
-        // ❌ Échec
         throw ValidationException::withMessages([
             'email' => ['Email ou numéro de téléphone incorrect.'],
         ]);
@@ -59,5 +57,19 @@ class LoginController extends Controller
         $request->session()->regenerateToken();
 
         return redirect('/login')->with('success', 'Vous avez été déconnecté.');
+    }
+
+    /**
+     * Retourne l'URL de redirection selon le rôle de l'utilisateur.
+     */
+    protected function redirectTo($user)
+    {
+        if ($user->role === 'admin') {
+            return route('admin.dashboard');
+        } elseif ($user->role === 'agent') {
+            return route('agent.dashboard');
+        } else {
+            return route('dashboard');
+        }
     }
 }

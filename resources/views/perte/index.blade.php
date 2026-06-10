@@ -4,156 +4,221 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Mes Déclarations de Perte</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Mes Déclarations de Perte - e-Déclaration TG</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        /* Tous les styles existants (tels que dans ton fichier) */
         * {
-            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --primary-light: #34d399;
+            --secondary: #3b82f6;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #0f172a;
+            --gray-100: #f8fafc;
+            --gray-200: #e2e8f0;
+            --gray-600: #64748b;
+            --gray-800: #1e293b;
         }
 
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Inter', sans-serif;
             min-height: 100vh;
-            padding: 20px;
+            display: flex;
+            position: relative;
+            background: #f5f7fa;
+            transition: background 0.3s, color 0.3s;
         }
 
-        .main-container {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 30px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 30px;
-            margin: 20px auto;
-            max-width: 1400px;
-            animation: slideUp 0.5s ease-out;
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url('{{ asset("images/image3.jpeg") }}');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            z-index: -2;
+            filter: brightness(0.85);
         }
 
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.88);
+            z-index: -1;
+            transition: background 0.3s;
         }
 
-        /* ===== SIDEBAR ===== (intégrée directement) */
+        body.dark-mode::after {
+            background: rgba(0, 0, 0, 0.75);
+        }
+
+        /* ===== SIDEBAR (identique au dashboard final) ===== */
         .sidebar {
             width: 280px;
-            background: white;
-            box-shadow: 2px 0 15px rgba(0,0,0,0.08);
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
             display: flex;
             flex-direction: column;
             position: fixed;
             height: 100vh;
-            z-index: 10;
-            border-right: 1px solid rgba(16, 185, 129, 0.1);
+            z-index: 100;
+            border-right: 1px solid rgba(16, 185, 129, 0.15);
+            box-shadow: 2px 0 20px rgba(0,0,0,0.05);
+            transition: background 0.3s, border-color 0.3s;
+        }
+
+        body.dark-mode .sidebar {
+            background: rgba(20, 20, 30, 0.98);
+            border-right-color: rgba(16, 185, 129, 0.3);
         }
 
         .sidebar-header {
-            padding: 2rem 1.5rem;
-            border-bottom: 1px solid #e8eef5;
-            background: linear-gradient(135deg, #27ae60, #219653);
+            padding: 2rem 1.5rem 1rem 1.5rem;
+            border-bottom: 1px solid var(--gray-200);
         }
 
-        .sidebar-header h2 { 
-            font-size: 1.3rem;
+        body.dark-mode .sidebar-header {
+            border-bottom-color: #334155;
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.4rem;
             font-weight: 800;
-            display: flex; 
-            align-items: center; 
-            gap: 0.8rem;
-            color: white;
+            color: var(--dark);
+            margin-bottom: 0.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
         }
 
-        .sidebar-header span { 
-            font-size: 1.8rem;
+        body.dark-mode .sidebar-header h2 {
+            color: #e5e7eb;
+        }
+
+        .sidebar-header .flag-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 45px;
+            height: 35px;
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            flex-shrink: 0;
+        }
+
+        .sidebar-header .flag-icon svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .sidebar-header .republic {
+            font-size: 0.7rem;
+            color: var(--gray-600);
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        body.dark-mode .sidebar-header .republic {
+            color: #94a3b8;
         }
 
         .sidebar-nav {
             flex: 1;
-            padding: 1.5rem 1rem;
+            padding: 1rem 0;
             display: flex;
             flex-direction: column;
-            gap: 0.3rem;
-            overflow-y: auto;
         }
 
         .sidebar-nav a {
             text-decoration: none;
-            color: #64748b;
-            font-weight: 600;
-            padding: 0.9rem 1.2rem;
-            border-radius: 10px;
+            color: var(--gray-600);
+            font-weight: 500;
+            padding: 0.8rem 1.5rem;
             display: flex;
             align-items: center;
             gap: 0.8rem;
             transition: all 0.2s;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
+            border-radius: 0 12px 12px 0;
         }
 
-        .sidebar-nav a:hover {
-            background: #f1f5f9;
-            color: #27ae60;
-        }
-
-        .sidebar-nav a.active {
-            background: #e8f5e9;
-            color: #27ae60;
-            font-weight: 700;
+        body.dark-mode .sidebar-nav a {
+            color: #9ca3af;
         }
 
         .sidebar-nav a svg {
             width: 20px;
             height: 20px;
+            stroke: currentColor;
+        }
+
+        .sidebar-nav a:hover {
+            background: rgba(16, 185, 129, 0.08);
+            color: var(--primary);
+        }
+
+        body.dark-mode .sidebar-nav a:hover {
+            background: rgba(16, 185, 129, 0.2);
+        }
+
+        .sidebar-nav a.active {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(34, 197, 94, 0.08));
+            color: var(--primary);
+            font-weight: 600;
+            border-right: 3px solid var(--primary);
+        }
+
+        body.dark-mode .sidebar-nav a.active {
+            background: rgba(16, 185, 129, 0.25);
         }
 
         .sidebar-footer {
-            padding: 1.5rem 1rem;
-            border-top: 1px solid #e8eef5;
+            padding: 0.8rem 1rem;
+            border-top: 1px solid var(--gray-200);
         }
 
-        .btn-logout {
-            width: 100%;
-            background: #fff1f0;
-            color: #e74c3c;
-            padding: 0.9rem;
-            border: none;
-            border-radius: 10px;
-            font-size: 0.95rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s;
+        body.dark-mode .sidebar-footer {
+            border-top-color: #334155;
+        }
+
+        .logout-link {
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
+            gap: 0.6rem;
+            text-decoration: none;
+            color: var(--danger);
+            font-weight: 500;
+            font-size: 1rem;
+            transition: all 0.2s;
+            background: none;
+            border: none;
+            width: 100%;
+            cursor: pointer;
+            padding: 0.4rem 0;
         }
 
-        .btn-logout:hover {
-            background: #ffe8e6;
+        .logout-link svg {
+            width: 16px;
+            height: 16px;
         }
 
-        .badge-notification {
-            background: #ef4444;
-            color: white;
-            font-size: 0.7rem;
-            font-weight: 700;
-            min-width: 20px;
-            height: 20px;
-            border-radius: 10px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0 5px;
-            margin-left: auto;
+        .logout-link:hover {
+            opacity: 0.8;
+            transform: translateX(3px);
         }
 
-        /* Main content */
+        /* ===== MAIN CONTENT ===== */
         .main {
             margin-left: 280px;
             flex: 1;
@@ -161,143 +226,186 @@
             overflow-y: auto;
         }
 
-        /* Header Styles */
-        .page-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 20px;
-            padding: 30px;
-            margin-bottom: 30px;
-            color: white;
+        /* Top Bar Icons */
+        .top-bar-icons {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-bottom: 1rem;
+        }
+
+        .icon-btn {
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: 10px;
+            padding: 0.45rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 34px;
+            height: 34px;
+        }
+
+        body.dark-mode .icon-btn {
+            background: #2d2d35;
+            border-color: #4b5563;
+        }
+
+        .icon-btn svg {
+            width: 18px;
+            height: 18px;
+            stroke: var(--gray-600);
+        }
+
+        body.dark-mode .icon-btn svg {
+            stroke: #9ca3af;
+        }
+
+        .icon-btn:hover {
+            border-color: var(--primary);
+            background: rgba(16, 185, 129, 0.08);
+        }
+
+        .icon-btn:hover svg {
+            stroke: var(--primary);
+        }
+
+        .notification-btn {
             position: relative;
-            overflow: hidden;
         }
 
-        .page-header::before {
-            content: '';
+        .notification-badge {
             position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-            animation: rotate 20s linear infinite;
+            top: -4px;
+            right: -4px;
+            background: var(--danger);
+            color: white;
+            font-size: 0.6rem;
+            font-weight: 700;
+            min-width: 16px;
+            height: 16px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 4px;
         }
 
-        @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+        /* Page Header */
+        .page-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
         }
 
         .page-header h1 {
-            font-size: 2.5rem;
+            font-size: 1.8rem;
             font-weight: 800;
-            margin-bottom: 10px;
-            position: relative;
-            z-index: 1;
+            margin-bottom: 0.2rem;
         }
 
         .page-header p {
-            font-size: 1.1rem;
             opacity: 0.9;
-            position: relative;
-            z-index: 1;
+            font-size: 0.9rem;
         }
 
         .btn-create {
             background: white;
-            color: #667eea;
-            border: none;
-            padding: 12px 30px;
+            color: var(--primary);
+            padding: 0.7rem 1.5rem;
             border-radius: 50px;
             font-weight: 600;
-            font-size: 1rem;
-            transition: all 0.3s;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-            position: relative;
-            z-index: 1;
+            text-decoration: none;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .btn-create:hover {
             transform: translateY(-2px);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
-            color: #667eea;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
-        /* Alert Styles */
+        body.dark-mode .btn-create {
+            background: #2d2d35;
+            color: white;
+        }
+
+        /* Alert */
         .alert-modern {
-            border: none;
-            border-radius: 15px;
-            padding: 20px 25px;
-            margin-bottom: 25px;
-            animation: slideIn 0.3s ease-out;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 1rem 1.2rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: white;
+            border-left: 4px solid var(--primary);
         }
 
-        .alert-success {
-            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
-            color: #1a4731;
+        body.dark-mode .alert-modern {
+            background: #2d2d35;
+            color: #e5e7eb;
         }
 
-        .alert-danger {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            color: #721c24;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(-30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
+        .alert-success { color: #065f46; }
+        body.dark-mode .alert-success { color: #a7f3d0; }
+        .alert-danger { color: #991b1b; border-left-color: var(--danger); }
 
         /* Filter Card */
         .filter-card {
             background: white;
             border-radius: 20px;
-            padding: 25px;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-            border: 1px solid rgba(102, 126, 234, 0.1);
-            transition: all 0.3s;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--gray-200);
         }
 
-        .filter-card:hover {
-            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.1);
+        body.dark-mode .filter-card {
+            background: #2d2d35;
+            border-color: #4b5563;
         }
 
         .filter-btn-group {
             display: flex;
-            gap: 10px;
+            gap: 0.5rem;
             flex-wrap: wrap;
         }
 
         .filter-btn {
-            padding: 10px 20px;
+            padding: 0.5rem 1rem;
             border-radius: 50px;
+            font-size: 0.8rem;
             font-weight: 600;
-            font-size: 0.9rem;
-            transition: all 0.3s;
-            border: 2px solid transparent;
+            text-decoration: none;
+            transition: all 0.2s;
+            background: var(--gray-100);
+            color: var(--gray-600);
+        }
+
+        body.dark-mode .filter-btn {
+            background: #404048;
+            color: #9ca3af;
         }
 
         .filter-btn.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--primary);
             color: white;
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
-        }
-
-        .filter-btn:not(.active) {
-            background: #f8f9fa;
-            color: #6c757d;
         }
 
         .filter-btn:hover:not(.active) {
-            background: #e9ecef;
-            transform: translateY(-2px);
+            background: var(--gray-200);
         }
 
         .search-box {
@@ -306,347 +414,254 @@
 
         .search-box i {
             position: absolute;
-            left: 15px;
+            left: 1rem;
             top: 50%;
             transform: translateY(-50%);
-            color: #667eea;
-            font-size: 1.1rem;
+            color: var(--gray-600);
         }
 
         .search-box input {
-            padding-left: 45px;
+            width: 100%;
+            padding: 0.6rem 1rem 0.6rem 2.5rem;
+            border: 2px solid var(--gray-200);
             border-radius: 50px;
-            border: 2px solid #e9ecef;
-            height: 50px;
-            font-size: 0.95rem;
-            transition: all 0.3s;
+            font-size: 0.85rem;
+            background: var(--gray-100);
+        }
+
+        body.dark-mode .search-box input {
+            background: #404048;
+            border-color: #4b5563;
+            color: #e5e7eb;
         }
 
         .search-box input:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            outline: none;
+            border-color: var(--primary);
         }
 
-        /* Stats Cards */
+        /* Stats */
         .stats-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
         }
 
         .stat-card {
             background: white;
-            border-radius: 20px;
-            padding: 25px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-            border: 1px solid rgba(102, 126, 234, 0.1);
-            transition: all 0.3s;
-            position: relative;
-            overflow: hidden;
+            border-radius: 16px;
+            padding: 1.2rem;
+            border: 1px solid var(--gray-200);
+            transition: all 0.2s;
         }
 
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
+        body.dark-mode .stat-card {
+            background: #2d2d35;
+            border-color: #4b5563;
         }
-
-        .stat-card.pending::before { background: linear-gradient(90deg, #f39c12, #f1c40f); }
-        .stat-card.approved::before { background: linear-gradient(90deg, #27ae60, #2ecc71); }
-        .stat-card.rejected::before { background: linear-gradient(90deg, #e74c3c, #c0392b); }
 
         .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.15);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
         }
 
         .stat-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 15px;
+            width: 45px;
+            height: 45px;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.8rem;
-            margin-bottom: 15px;
+            font-size: 1.2rem;
+            margin-bottom: 0.8rem;
+            color: var(--primary);
         }
 
         .stat-value {
-            font-size: 2.2rem;
+            font-size: 1.8rem;
             font-weight: 800;
-            color: #2c3e50;
-            margin-bottom: 5px;
+            color: var(--dark);
+        }
+
+        body.dark-mode .stat-value {
+            color: #f1f5f9;
         }
 
         .stat-label {
-            color: #7f8c8d;
-            font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 0.7rem;
+            color: var(--gray-600);
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            font-weight: 600;
         }
 
         /* Table Card */
         .table-card {
             background: white;
             border-radius: 20px;
+            border: 1px solid var(--gray-200);
             overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-            border: 1px solid rgba(102, 126, 234, 0.1);
+        }
+
+        body.dark-mode .table-card {
+            background: #2d2d35;
+            border-color: #4b5563;
         }
 
         .table-header {
-            padding: 25px;
-            border-bottom: 2px solid #f8f9fa;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--gray-200);
         }
 
         .table-header h3 {
-            font-size: 1.3rem;
+            font-size: 1.1rem;
             font-weight: 700;
-            color: #2c3e50;
-            margin: 0;
+            color: var(--dark);
+        }
+
+        body.dark-mode .table-header h3 {
+            color: #e5e7eb;
         }
 
         .table {
-            margin: 0;
+            width: 100%;
+            border-collapse: collapse;
         }
 
-        .table thead th {
-            background: #f8fafc;
-            color: #64748b;
-            font-weight: 600;
-            font-size: 0.85rem;
+        th {
+            text-align: left;
+            padding: 0.8rem 1.2rem;
+            background: var(--gray-100);
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--gray-600);
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            padding: 20px 25px;
-            border-bottom: 2px solid #e9ecef;
+            border-bottom: 1px solid var(--gray-200);
         }
 
-        .table tbody td {
-            padding: 20px 25px;
-            vertical-align: middle;
-            border-bottom: 1px solid #f1f5f9;
+        body.dark-mode th {
+            background: #404048;
+            color: #94a3b8;
+            border-bottom-color: #4b5563;
         }
 
-        .table tbody tr {
-            transition: all 0.3s;
-        }
-
-        .table tbody tr:hover {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
-            transform: scale(1.01);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-        }
-
-        /* Status Badges */
-        .badge-modern {
-            padding: 8px 15px;
-            border-radius: 50px;
-            font-weight: 600;
+        td {
+            padding: 0.9rem 1.2rem;
+            border-bottom: 1px solid var(--gray-100);
             font-size: 0.85rem;
+            color: var(--gray-800);
+        }
+
+        body.dark-mode td {
+            border-bottom-color: #404040;
+            color: #cbd5e1;
+        }
+
+        tr:last-child td { border-bottom: none; }
+
+        .badge-modern {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 0.4rem;
+            padding: 0.2rem 0.7rem;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 600;
         }
 
-        .badge-warning {
-            background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
-            color: #856404;
-        }
+        .badge-warning { background: #fef3c7; color: #b45309; }
+        .badge-success { background: #d1fae5; color: #065f46; }
+        .badge-danger { background: #fee2e2; color: #991b1b; }
 
-        .badge-success {
-            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
-            color: #155724;
-        }
+        body.dark-mode .badge-warning { background: #422d0b; color: #fbbf24; }
+        body.dark-mode .badge-success { background: #0a3b2a; color: #34d399; }
+        body.dark-mode .badge-danger { background: #3f1e1e; color: #f87171; }
 
-        .badge-danger {
-            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
-            color: #721c24;
-        }
-
-        /* Action Buttons */
         .action-buttons {
             display: flex;
-            gap: 8px;
+            gap: 0.5rem;
             justify-content: flex-end;
         }
 
         .btn-action {
-            width: 38px;
-            height: 38px;
-            border-radius: 12px;
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.3s;
             border: none;
-            color: white;
-            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
         }
 
-        .btn-view {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        .btn-edit {
-            background: linear-gradient(135deg, #f39c12 0%, #f1c40f 100%);
-            box-shadow: 0 5px 15px rgba(243, 156, 18, 0.3);
-        }
-
-        .btn-delete {
-            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
-        }
-
-        .btn-download {
-            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
-        }
+        .btn-view { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+        .btn-edit { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+        .btn-delete { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+        .btn-download { background: rgba(16, 185, 129, 0.1); color: #10b981; }
 
         .btn-action:hover {
-            transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            transform: translateY(-2px);
+            filter: brightness(0.9);
         }
 
-        /* Empty State */
-        .empty-state {
-            padding: 60px 20px;
-            text-align: center;
-        }
-
-        .empty-icon {
-            font-size: 5rem;
-            color: #dee2e6;
-            margin-bottom: 20px;
-            animation: bounce 2s infinite;
-        }
-
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
-        }
-
-        .empty-title {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #2c3e50;
-            margin-bottom: 15px;
-        }
-
-        .empty-text {
-            color: #7f8c8d;
-            margin-bottom: 30px;
-            font-size: 1.1rem;
-        }
-
-        /* Pagination */
         .pagination-modern {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 20px 25px;
-            background: #f8fafc;
-            border-top: 2px solid #e9ecef;
-        }
-
-        .pagination-info {
-            color: #64748b;
-            font-weight: 500;
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--gray-200);
+            flex-wrap: wrap;
+            gap: 1rem;
         }
 
         .pagination-links {
             display: flex;
-            gap: 8px;
+            gap: 0.3rem;
         }
 
         .pagination-links a,
         .pagination-links span {
-            width: 40px;
-            height: 40px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            padding: 0.3rem 0.7rem;
+            border-radius: 8px;
             text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s;
+            font-size: 0.8rem;
+            background: var(--gray-100);
+            color: var(--gray-600);
         }
 
-        .pagination-links a {
-            background: white;
-            color: #667eea;
-            border: 2px solid #e9ecef;
-        }
-
-        .pagination-links a:hover {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-color: transparent;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        .pagination-links .active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        /* Dark mode */
-        body.dark-mode .sidebar {
-            background: #2d2d2d;
-            border-color: #404040;
-        }
-        body.dark-mode .sidebar-nav a {
+        body.dark-mode .pagination-links a,
+        body.dark-mode .pagination-links span {
+            background: #404048;
             color: #9ca3af;
         }
-        body.dark-mode .sidebar-nav a:hover {
-            background: #404040;
-        }
-        body.dark-mode .page-header {
-            background: linear-gradient(135deg, #4a4e69, #22223b);
-        }
-        body.dark-mode .filter-card,
-        body.dark-mode .table-card,
-        body.dark-mode .stat-card,
-        body.dark-mode .alert-modern {
-            background: #2d2d2d;
-            color: #e5e7eb;
-            border-color: #404040;
-        }
-        body.dark-mode .filter-btn:not(.active) {
-            background: #404040;
-            color: #9ca3af;
-        }
-        body.dark-mode .table thead th {
-            background: #404040;
-            color: #9ca3af;
-        }
-        body.dark-mode .table tbody tr:hover {
-            background: #404040;
-        }
-        body.dark-mode .btn-create {
-            background: #404040;
+
+        .pagination-links .active span,
+        .pagination-links a.active {
+            background: var(--primary);
             color: white;
         }
-        body.dark-mode .icon-btn {
-            background: #2d2d2d;
-            border-color: #404040;
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
         }
-        body.dark-mode .icon-btn svg {
-            stroke: #9ca3af;
+
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.3;
         }
-        body.dark-mode .icon-btn:hover {
-            border-color: #27ae60;
-        }
-        body.dark-mode .icon-btn:hover svg {
-            stroke: #27ae60;
+
+        .empty-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
         }
 
         /* Responsive */
@@ -656,471 +671,355 @@
                 position: relative;
                 height: auto;
             }
-
             .main {
                 margin-left: 0;
-                padding: 1.5rem;
+                padding: 1rem;
             }
+            .stats-container {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
 
+        @media (max-width: 640px) {
             .stats-container {
                 grid-template-columns: 1fr;
             }
-
-            .page-header h1 {
-                font-size: 2rem;
+            .page-header {
+                flex-direction: column;
+                text-align: center;
             }
-
             .filter-btn-group {
                 justify-content: center;
-            }
-
-            .search-box {
-                margin-top: 1rem;
             }
         }
     </style>
 </head>
 <body>
 
-    <!-- ===== SIDEBAR (intégrée) ===== -->
-    @php
-        $unreadNotifications = \App\Models\Notification::where('user_id', auth()->id())
-            ->where('is_read', false)
-            ->count();
-    @endphp
+@php
+    $user = auth()->user();
+    $unreadNotificationsCount = \App\Models\Notification::where('user_id', $user->id)->where('is_read', false)->count();
+@endphp
 
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <h2>
-                <span>🇹🇬</span> 
-                e-Déclaration TG
-            </h2>
+<!-- Sidebar (identique au dashboard final) -->
+<div class="sidebar">
+    <div class="sidebar-header">
+        <h2>
+            <div class="flag-icon">
+                <svg viewBox="0 0 5 4" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                    <rect width="5" height=".8" y="0"   fill="#006A36"/>
+                    <rect width="5" height=".8" y=".8"  fill="#FFCB00"/>
+                    <rect width="5" height=".8" y="1.6" fill="#006A36"/>
+                    <rect width="5" height=".8" y="2.4" fill="#FFCB00"/>
+                    <rect width="5" height=".8" y="3.2" fill="#006A36"/>
+                    <rect width="1.9" height="2.4" fill="#D21034"/>
+                    <polygon points="0.95,0.38 1.07,0.76 1.47,0.76 1.16,0.99 1.28,1.37 0.95,1.14 0.62,1.37 0.74,0.99 0.43,0.76 0.83,0.76" fill="#FFFFFF"/>
+                </svg>
+            </div>
+            e-Déclaration TG
+        </h2>
+        <div class="republic">RÉPUBLIQUE TOGOLAISE</div>
+    </div>
+
+    <nav class="sidebar-nav">
+        <a href="{{ route('dashboard') }}">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+            Tableau de bord
+        </a>
+        <a href="{{ route('perte.index') }}" class="active">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Mes Déclarations
+        </a>
+        <a href="{{ route('perte.create') }}">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
+            Nouvelle Déclaration
+        </a>
+        <a href="{{ route('notifications.index') }}">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+            Notifications
+            @if($unreadNotificationsCount > 0)
+                <span style="background: #ef4444; color: white; font-size: 0.65rem; border-radius: 20px; padding: 0 0.4rem; margin-left: auto;">{{ $unreadNotificationsCount }}</span>
+            @endif
+        </a>
+        <a href="{{ route('profile.index') }}">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            Paramètres
+        </a>
+        <a href="{{ route('help.index') }}">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Aide
+        </a>
+    </nav>
+
+    <div class="sidebar-footer">
+        <form method="POST" action="{{ route('logout') }}">
+            @csrf
+            <button type="submit" class="logout-link">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                Déconnecter
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="main">
+    <div class="top-bar-icons">
+        <button class="icon-btn theme-toggle" onclick="toggleGlobalDarkMode()" title="Changer le thème">
+            <svg id="themeIcon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+            </svg>
+        </button>
+        <button class="icon-btn notification-btn" onclick="window.location.href='{{ route('notifications.index') }}'" title="Voir les notifications">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+            </svg>
+            @if($unreadNotificationsCount > 0)
+                <span class="notification-badge">{{ $unreadNotificationsCount }}</span>
+            @endif
+        </button>
+    </div>
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div>
+            <h1><i class="bi bi-card-checklist me-2"></i>Mes Déclarations</h1>
+            <p>Gérez vos déclarations de perte de pièces d'identité</p>
         </div>
+        <a href="{{ route('perte.create') }}" class="btn-create">
+            <i class="bi bi-plus-circle me-2"></i>Nouvelle Déclaration
+        </a>
+    </div>
 
-        <nav class="sidebar-nav">
-            <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">
-                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-                </svg>
-                Tableau de bord
-            </a>
-            
-            <a href="{{ route('perte.index') }}" class="{{ request()->routeIs('perte.*') && !request()->routeIs('perte.create') ? 'active' : '' }}">
-                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                </svg>
-                Mes Déclarations
-            </a>
+    <!-- Messages flash -->
+    @if(session('success'))
+        <div class="alert-modern alert-success">
+            <span>✅ {{ session('success') }}</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+    @if(session('error'))
+        <div class="alert-modern alert-danger">
+            <span>❌ {{ session('error') }}</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
 
-            <a href="{{ route('perte.create') }}" class="{{ request()->routeIs('perte.create') ? 'active' : '' }}">
-                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
-                </svg>
-                Nouvelle Déclaration
-            </a>
-
-            <a href="{{ route('notifications.index') }}" class="{{ request()->routeIs('notifications.*') ? 'active' : '' }}">
-                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                </svg>
-                Notifications
-                @if($unreadNotifications > 0)
-                    <span class="badge-notification">{{ $unreadNotifications }}</span>
-                @endif
-            </a>
-
-            <a href="{{ route('profile.index') }}" class="{{ request()->routeIs('profile.*') ? 'active' : '' }}">
-                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                </svg>
-                Paramètres
-            </a>
-
-            <a href="{{ route('help.index') }}" class="{{ request()->routeIs('help.*') ? 'active' : '' }}">
-                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                Aide
-            </a>
-        </nav>
-
-        <div class="sidebar-footer">
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button type="submit" class="btn-logout">
-                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:18px;height:18px;">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-                    </svg>
-                    Se déconnecter
-                </button>
-            </form>
+    <!-- Stats Cards -->
+    <div class="stats-container">
+        <div class="stat-card">
+            <div class="stat-icon"><i class="bi bi-files"></i></div>
+            <div class="stat-value">{{ $totalDeclarations }}</div>
+            <div class="stat-label">Total déclarations</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="bi bi-clock"></i></div>
+            <div class="stat-value">{{ $enAttenteCount }}</div>
+            <div class="stat-label">En attente</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="bi bi-check-circle"></i></div>
+            <div class="stat-value">{{ $valideeCount }}</div>
+            <div class="stat-label">Validées</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="bi bi-x-circle"></i></div>
+            <div class="stat-value">{{ $rejeteeCount }}</div>
+            <div class="stat-label">Rejetées</div>
         </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="main">
-        <!-- Top Bar Icons (Thème + Notifications) -->
-        <div class="top-bar-icons" style="display: flex; align-items: center; gap: 1.2rem; margin-bottom: 2rem; justify-content: flex-end;">
-            <!-- Bouton Mode Sombre -->
-            <button class="icon-btn theme-toggle" onclick="toggleGlobalDarkMode()" title="Changer le thème" style="background: white; border: none; width: 45px; height: 45px; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.03);">
-                <svg id="themeIcon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:22px;height:22px;">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
-                </svg>
-            </button>
-
-            <!-- Bouton Notifications -->
-            <button class="icon-btn" onclick="openNotifications()" title="Voir les notifications" style="background: white; border: none; width: 45px; height: 45px; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.03); position: relative;">
-                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:22px;height:22px;">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                </svg>
-                @php
-                    $notificationsCount = \App\Models\Perte::where('user_id', auth()->id())
-                        ->where('statut', 'en_attente')
-                        ->count();
-                @endphp
-                @if($notificationsCount > 0)
-                    <span class="notification-badge" style="position: absolute; top: -5px; right: -5px; background: linear-gradient(135deg, #ef4444, #dc2626); color: white; font-size: 0.7rem; font-weight: 700; min-width: 20px; height: 20px; border-radius: 20px; display: flex; align-items: center; justify-content: center; padding: 0 5px;">{{ $notificationsCount }}</span>
-                @endif
-            </button>
-        </div>
-
-        <!-- Page Header -->
-        <div class="page-header d-flex justify-content-between align-items-center">
-            <div>
-                <h1>
-                    <i class="bi bi-card-checklist me-2"></i>
-                    Mes Déclarations
-                </h1>
-                <p>Gérez vos déclarations de perte de pièces d'identité</p>
-            </div>
-            <a href="{{ route('perte.create') }}" class="btn-create">
-                <i class="bi bi-plus-circle me-2"></i>
-                Nouvelle Déclaration
-            </a>
-        </div>
-
-        <!-- Messages -->
-        @if(session('success'))
-            <div class="alert-modern alert-success">
-                <div class="d-flex align-items-center">
-                    <i class="bi bi-check-circle-fill fs-4 me-3"></i>
-                    <div>
-                        <strong>Succès !</strong> {{ session('success') }}
-                    </div>
-                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+    <!-- Filter Card -->
+    <div class="filter-card">
+        <div class="row g-3 align-items-center">
+            <div class="col-lg-8">
+                <div class="filter-btn-group">
+                    <a href="{{ request()->fullUrlWithQuery(['statut' => '']) }}" 
+                       class="filter-btn {{ !request('statut') ? 'active' : '' }}">
+                        Tous ({{ $totalDeclarations }})
+                    </a>
+                    <a href="{{ request()->fullUrlWithQuery(['statut' => 'en_attente']) }}" 
+                       class="filter-btn {{ request('statut') == 'en_attente' ? 'active' : '' }}">
+                        En attente ({{ $enAttenteCount }})
+                    </a>
+                    <a href="{{ request()->fullUrlWithQuery(['statut' => 'validee']) }}" 
+                       class="filter-btn {{ request('statut') == 'validee' ? 'active' : '' }}">
+                        Validées ({{ $valideeCount }})
+                    </a>
+                    <a href="{{ request()->fullUrlWithQuery(['statut' => 'rejetee']) }}" 
+                       class="filter-btn {{ request('statut') == 'rejetee' ? 'active' : '' }}">
+                        Rejetées ({{ $rejeteeCount }})
+                    </a>
                 </div>
             </div>
-        @endif
-
-        @if(session('error'))
-            <div class="alert-modern alert-danger">
-                <div class="d-flex align-items-center">
-                    <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
-                    <div>
-                        <strong>Erreur !</strong> {{ session('error') }}
-                    </div>
-                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
-                </div>
-            </div>
-        @endif
-
-        <!-- Stats Cards -->
-        <div class="stats-container">
-            <div class="stat-card">
-                <div class="stat-icon" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));">
-                    <i class="bi bi-files" style="color: #667eea;"></i>
-                </div>
-                <div class="stat-value">{{ $totalDeclarations }}</div>
-                <div class="stat-label">Total déclarations</div>
-            </div>
-
-            <div class="stat-card pending">
-                <div class="stat-icon" style="background: rgba(243, 156, 18, 0.1);">
-                    <i class="bi bi-clock" style="color: #f39c12;"></i>
-                </div>
-                <div class="stat-value">{{ $enAttenteCount }}</div>
-                <div class="stat-label">En attente</div>
-            </div>
-
-            <div class="stat-card approved">
-                <div class="stat-icon" style="background: rgba(39, 174, 96, 0.1);">
-                    <i class="bi bi-check-circle" style="color: #27ae60;"></i>
-                </div>
-                <div class="stat-value">{{ $valideeCount }}</div>
-                <div class="stat-label">Validées</div>
-            </div>
-
-            <div class="stat-card rejected">
-                <div class="stat-icon" style="background: rgba(231, 76, 60, 0.1);">
-                    <i class="bi bi-x-circle" style="color: #e74c3c;"></i>
-                </div>
-                <div class="stat-value">{{ $rejeteeCount }}</div>
-                <div class="stat-label">Rejetées</div>
-            </div>
-        </div>
-
-        <!-- Filtres -->
-        <div class="filter-card">
-            <div class="row g-4">
-                <div class="col-lg-8">
-                    <div class="filter-btn-group">
-                        <a href="{{ request()->fullUrlWithQuery(['statut' => '']) }}" 
-                           class="filter-btn {{ !request('statut') ? 'active' : '' }}">
-                            <i class="bi bi-grid-3x3-gap-fill me-2"></i>
-                            Tous ({{ $totalDeclarations }})
-                        </a>
-                        <a href="{{ request()->fullUrlWithQuery(['statut' => 'en_attente']) }}" 
-                           class="filter-btn {{ request('statut') == 'en_attente' ? 'active' : '' }}">
-                            <i class="bi bi-clock me-2"></i>
-                            En attente ({{ $enAttenteCount }})
-                        </a>
-                        <a href="{{ request()->fullUrlWithQuery(['statut' => 'validee']) }}" 
-                           class="filter-btn {{ request('statut') == 'validee' ? 'active' : '' }}">
-                            <i class="bi bi-check-circle me-2"></i>
-                            Validées ({{ $valideeCount }})
-                        </a>
-                        <a href="{{ request()->fullUrlWithQuery(['statut' => 'rejetee']) }}" 
-                           class="filter-btn {{ request('statut') == 'rejetee' ? 'active' : '' }}">
-                            <i class="bi bi-x-circle me-2"></i>
-                            Rejetées ({{ $rejeteeCount }})
-                        </a>
-                    </div>
-                </div>
-                <div class="col-lg-4">
-                    <form method="GET" class="search-box">
-                        @if(request('statut'))
-                            <input type="hidden" name="statut" value="{{ request('statut') }}">
-                        @endif
-                        <i class="bi bi-search"></i>
-                        <input type="text" name="search" class="form-control" 
-                               placeholder="Rechercher une déclaration..." 
-                               value="{{ request('search') }}">
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- Tableau -->
-        <div class="table-card">
-            <div class="table-header">
-                <h3>
-                    <i class="bi bi-list-ul me-2" style="color: #667eea;"></i>
-                    Liste des déclarations
-                </h3>
-            </div>
-
-            @if($pertes->count() > 0)
-                <div class="table-responsive">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>N° Déclaration</th>
-                                <th>Type de pièce</th>
-                                <th>N° Pièce</th>
-                                <th>Date perte</th>
-                                <th>Statut</th>
-                                <th class="text-end">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($pertes as $perte)
-                                <tr>
-                                    <td>
-                                        <strong>#{{ str_pad($perte->id, 6, '0', STR_PAD_LEFT) }}</strong>
-                                        <br>
-                                        <small class="text-muted">{{ $perte->created_at->format('d/m/Y H:i') }}</small>
-                                    </td>
-                                    <td>
-                                        <span style="font-weight: 600;">{{ $perte->typePiece->nom ?? 'N/A' }}</span>
-                                    </td>
-                                    <td>
-                                        <code>{{ $perte->numero_piece ?? 'N/A' }}</code>
-                                    </td>
-                                    <td>
-                                        {{ $perte->date_perte->format('d/m/Y') }}
-                                        <br>
-                                        <small class="text-muted">{{ $perte->date_perte->diffForHumans() }}</small>
-                                    </td>
-                                    <td>
-                                        @php
-                                            $badgeClass = [
-                                                'en_attente' => 'badge-warning',
-                                                'validee' => 'badge-success',
-                                                'rejetee' => 'badge-danger'
-                                            ][$perte->statut] ?? 'badge-secondary';
-                                            
-                                            $statutLabels = [
-                                                'en_attente' => 'En attente',
-                                                'validee' => 'Validée',
-                                                'rejetee' => 'Rejetée'
-                                            ];
-                                        @endphp
-                                        <span class="badge-modern {{ $badgeClass }}">
-                                            <i class="bi 
-                                                {{ $perte->statut == 'validee' ? 'bi-check-circle' : '' }}
-                                                {{ $perte->statut == 'rejetee' ? 'bi-x-circle' : '' }}
-                                                {{ $perte->statut == 'en_attente' ? 'bi-clock' : '' }}
-                                            "></i>
-                                            {{ $statutLabels[$perte->statut] }}
-                                        </span>
-                                        @if($perte->statut == 'rejetee' && $perte->motif_rejet)
-                                            <i class="bi bi-info-circle text-danger ms-1" 
-                                               data-bs-toggle="tooltip" 
-                                               title="{{ $perte->motif_rejet }}"></i>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        <div class="action-buttons">
-                                            <a href="{{ route('perte.show', $perte->id) }}" 
-                                               class="btn-action btn-view" 
-                                               data-bs-toggle="tooltip" 
-                                               title="Voir les détails">
-                                                <i class="bi bi-eye"></i>
-                                            </a>
-                                            
-                                            @if($perte->statut == 'en_attente')
-                                                <a href="{{ route('perte.edit', $perte->id) }}" 
-                                                   class="btn-action btn-edit" 
-                                                   data-bs-toggle="tooltip" 
-                                                   title="Modifier">
-                                                    <i class="bi bi-pencil"></i>
-                                                </a>
-                                                
-                                                <form action="{{ route('perte.destroy', $perte->id) }}" 
-                                                      method="POST" 
-                                                      class="d-inline"
-                                                      onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette déclaration ?');">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" 
-                                                            class="btn-action btn-delete" 
-                                                            data-bs-toggle="tooltip" 
-                                                            title="Supprimer">
-                                                        <i class="bi bi-trash"></i>
-                                                    </button>
-                                                </form>
-                                            @endif
-                                            
-                                            @if($perte->document_path)
-                                                <a href="{{ asset('storage/' . $perte->document_path) }}" 
-                                                   target="_blank" 
-                                                   class="btn-action btn-download" 
-                                                   data-bs-toggle="tooltip" 
-                                                   title="Télécharger">
-                                                    <i class="bi bi-download"></i>
-                                                </a>
-                                            @endif
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-
-                @if($pertes->hasPages())
-                    <div class="pagination-modern">
-                        <div class="pagination-info">
-                            <i class="bi bi-info-circle me-2"></i>
-                            Affichage de {{ $pertes->firstItem() }} à {{ $pertes->lastItem() }} sur {{ $pertes->total() }} déclarations
-                        </div>
-                        <div class="pagination-links">
-                            {{ $pertes->withQueryString()->links() }}
-                        </div>
-                    </div>
-                @endif
-
-            @else
-                <div class="empty-state">
-                    <div class="empty-icon">
-                        <i class="bi bi-inbox"></i>
-                    </div>
-                    <h3 class="empty-title">Aucune déclaration trouvée</h3>
-                    <p class="empty-text">
-                        @if(request('search') || request('statut'))
-                            Aucune déclaration ne correspond à vos critères de recherche.
-                            <br>
-                            <a href="{{ route('perte.index') }}" class="text-primary">Voir toutes les déclarations</a>
-                        @else
-                            Vous n'avez pas encore déclaré de perte de pièce d'identité.
-                        @endif
-                    </p>
-                    @if(!request('search') && !request('statut'))
-                        <a href="{{ route('perte.create') }}" class="btn-create" style="display: inline-block;">
-                            <i class="bi bi-plus-circle me-2"></i>
-                            Faire une première déclaration
-                        </a>
+            <div class="col-lg-4">
+                <form method="GET" class="search-box">
+                    @if(request('statut'))
+                        <input type="hidden" name="statut" value="{{ request('statut') }}">
                     @endif
+                    <i class="bi bi-search"></i>
+                    <input type="text" name="search" class="form-control" 
+                           placeholder="Rechercher une déclaration..." 
+                           value="{{ request('search') }}">
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table Card -->
+    <div class="table-card">
+        <div class="table-header">
+            <h3><i class="bi bi-list-ul me-2" style="color: var(--primary);"></i>Liste des déclarations</h3>
+        </div>
+
+        @if($pertes->count() > 0)
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>N° Déclaration</th>
+                            <th>Type de pièce</th>
+                            <th>N° Pièce</th>
+                            <th>Date perte</th>
+                            <th>Statut</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($pertes as $perte)
+                            <tr>
+                                <td>
+                                    <strong>#{{ str_pad($perte->id, 6, '0', STR_PAD_LEFT) }}</strong><br>
+                                    <small class="text-muted">{{ $perte->created_at->format('d/m/Y H:i') }}</small>
+                                </td>
+                                <td>{{ $perte->typePiece->nom ?? $perte->type_piece ?? 'N/A' }}</td>
+                                <td><code>{{ $perte->numero_piece ?? 'N/A' }}</code></td>
+                                <td>
+                                    {{ $perte->date_perte->format('d/m/Y') }}<br>
+                                    <small class="text-muted">{{ $perte->date_perte->diffForHumans() }}</small>
+                                </td>
+                                <td>
+                                    @php
+                                        $badgeClass = [
+                                            'en_attente' => 'badge-warning',
+                                            'validee' => 'badge-success',
+                                            'rejetee' => 'badge-danger'
+                                        ][$perte->statut] ?? 'badge-secondary';
+                                        $statutLabels = [
+                                            'en_attente' => 'En attente',
+                                            'validee' => 'Validée',
+                                            'rejetee' => 'Rejetée'
+                                        ];
+                                    @endphp
+                                    <span class="badge-modern {{ $badgeClass }}">
+                                        <i class="bi {{ $perte->statut == 'validee' ? 'bi-check-circle' : ($perte->statut == 'rejetee' ? 'bi-x-circle' : 'bi-clock') }}"></i>
+                                        {{ $statutLabels[$perte->statut] }}
+                                    </span>
+                                    @if($perte->statut == 'rejetee' && $perte->motif_rejet)
+                                        <i class="bi bi-info-circle text-danger ms-1" data-bs-toggle="tooltip" title="{{ $perte->motif_rejet }}"></i>
+                                    @endif
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <a href="{{ route('perte.show', $perte->id) }}" class="btn-action btn-view" data-bs-toggle="tooltip" title="Voir"><i class="bi bi-eye"></i></a>
+                                        @if($perte->statut == 'en_attente')
+                                            <a href="{{ route('perte.edit', $perte->id) }}" class="btn-action btn-edit" data-bs-toggle="tooltip" title="Modifier"><i class="bi bi-pencil"></i></a>
+                                            <form action="{{ route('perte.destroy', $perte->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Supprimer cette déclaration ?')">
+                                                @csrf @method('DELETE')
+                                                <button type="submit" class="btn-action btn-delete" data-bs-toggle="tooltip" title="Supprimer"><i class="bi bi-trash"></i></button>
+                                            </form>
+                                        @endif
+                                        @if($perte->document_path)
+                                            <a href="{{ asset('storage/' . $perte->document_path) }}" target="_blank" class="btn-action btn-download" data-bs-toggle="tooltip" title="Télécharger"><i class="bi bi-download"></i></a>
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            @if($pertes->hasPages())
+                <div class="pagination-modern">
+                    <div class="pagination-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Affichage de {{ $pertes->firstItem() }} à {{ $pertes->lastItem() }} sur {{ $pertes->total() }} déclarations
+                    </div>
+                    <div class="pagination-links">
+                        {{ $pertes->withQueryString()->links() }}
+                    </div>
                 </div>
             @endif
-        </div>
+        @else
+            <div class="empty-state">
+                <div class="empty-icon"><i class="bi bi-inbox"></i></div>
+                <h3 class="empty-title">Aucune déclaration trouvée</h3>
+                <p class="empty-text">
+                    @if(request('search') || request('statut'))
+                        Aucune déclaration ne correspond à vos critères.<br>
+                        <a href="{{ route('perte.index') }}" class="text-primary">Voir toutes</a>
+                    @else
+                        Vous n'avez pas encore déclaré de perte.
+                    @endif
+                </p>
+                @if(!request('search') && !request('statut'))
+                    <a href="{{ route('perte.create') }}" class="btn-create">+ Faire une première déclaration</a>
+                @endif
+            </div>
+        @endif
     </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Initialisation des tooltips
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl)
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
+
+    // Auto-dismiss alerts
+    setTimeout(() => {
+        document.querySelectorAll('.alert-modern').forEach(alert => {
+            alert.style.transition = 'opacity 0.5s';
+            alert.style.opacity = '0';
+            setTimeout(() => alert.remove(), 500);
         });
+    }, 5000);
 
-        // Auto-dismiss alerts
-        setTimeout(() => {
-            document.querySelectorAll('.alert-modern').forEach(alert => {
-                alert.style.transition = 'opacity 0.5s';
-                alert.style.opacity = '0';
-                setTimeout(() => alert.remove(), 500);
-            });
-        }, 5000);
-
-        // ============================================
-        // MODE SOMBRE GLOBAL - avec persistance serveur
-        // ============================================
-        function applyTheme(isDark) {
-            if (isDark) {
-                document.body.classList.add('dark-mode');
-                const themeIcon = document.querySelector('#themeIcon');
-                if (themeIcon) {
-                    themeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>';
-                }
-            } else {
-                document.body.classList.remove('dark-mode');
-                const themeIcon = document.querySelector('#themeIcon');
-                if (themeIcon) {
-                    themeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>';
-                }
-            }
-            localStorage.setItem('darkMode', isDark ? 'dark' : 'light');
+    // Dark mode
+    function applyTheme(isDark) {
+        if (isDark) {
+            document.body.classList.add('dark-mode');
+            const themeIcon = document.querySelector('#themeIcon');
+            if (themeIcon) themeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>';
+        } else {
+            document.body.classList.remove('dark-mode');
+            const themeIcon = document.querySelector('#themeIcon');
+            if (themeIcon) themeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>';
         }
+        localStorage.setItem('darkMode', isDark ? 'dark' : 'light');
+    }
 
-        function loadTheme() {
-            // Récupérer le thème depuis le serveur (via l'utilisateur connecté)
-            const serverTheme = '{{ auth()->user()->theme ?? 'light' }}';
-            const localTheme = localStorage.getItem('darkMode');
-            const theme = serverTheme || localTheme || 'light';
-            applyTheme(theme === 'dark');
-        }
+    function loadTheme() {
+        const serverTheme = '{{ $user->theme ?? "light" }}';
+        const localTheme = localStorage.getItem('darkMode');
+        const theme = serverTheme || localTheme || 'light';
+        applyTheme(theme === 'dark');
+    }
 
-        function toggleGlobalDarkMode() {
-            const isDark = !document.body.classList.contains('dark-mode');
-            applyTheme(isDark);
-            fetch('{{ route("profile.toggle-dark-mode") }}', {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({ dark_mode: isDark })
-            }).catch(error => console.log('Erreur synchronisation thème:', error));
-        }
+    function toggleGlobalDarkMode() {
+        const isDark = !document.body.classList.contains('dark-mode');
+        applyTheme(isDark);
+        fetch('{{ route("profile.toggle-dark-mode") }}', {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ dark_mode: isDark })
+        }).catch(console.error);
+    }
 
-        function openNotifications() {
-            window.location.href = '{{ route("notifications.index") }}';
-        }
-
-        document.addEventListener('DOMContentLoaded', loadTheme);
-    </script>
+    document.addEventListener('DOMContentLoaded', loadTheme);
+</script>
 </body>
 </html>
