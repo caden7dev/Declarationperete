@@ -5,315 +5,543 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Dossier Perte {{ $perte->numero_declaration ?? '' }} | Agent e-Déclaration TG</title>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+    <!-- ⚡ ANTI-FLASH BLANC -->
+    <script>
+        (function() {
+            try {
+                const savedTheme = localStorage.getItem('darkMode');
+                const isDark = savedTheme === 'dark';
+                if (isDark) {
+                    document.documentElement.style.backgroundColor = '#0f172a';
+                    document.body.style.backgroundColor = '#0f172a';
+                    document.documentElement.classList.add('dark-mode');
+                } else {
+                    document.documentElement.style.backgroundColor = '#f5f7fa';
+                    document.body.style.backgroundColor = '#f5f7fa';
+                }
+            } catch(e) {}
+        })();
+    </script>
+    
     <style>
-        * { 
-            box-sizing: border-box; 
-            margin: 0; 
-            padding: 0; 
-            font-family: 'Nunito', sans-serif;
+        /* ===== CONSERVER TOUS LES STYLES EXISTANTS (inchangés) ===== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --primary: #f39c12;
+            --primary-dark: #e67e22;
+            --primary-light: #f1c40f;
+            --secondary: #3498db;
+            --success: #27ae60;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --info: #3b82f6;
+            --dark: #0f172a;
+            --gray-100: #f8fafc;
+            --gray-200: #e2e8f0;
+            --gray-600: #64748b;
+            --gray-800: #1e293b;
         }
 
-        body { 
-            display: flex; 
-            min-height: 100vh; 
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            position: relative;
             background: #f5f7fa;
+            transition: background 0.2s ease;
         }
 
-        /* Sidebar */
+        body.dark-mode {
+            background: #0f172a;
+        }
+
+        /* ===== SIDEBAR ===== */
         .sidebar {
             width: 280px;
-            background: white;
-            box-shadow: 2px 0 15px rgba(0,0,0,0.08);
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
             display: flex;
             flex-direction: column;
             position: fixed;
             height: 100vh;
-            z-index: 10;
+            z-index: 100;
+            border-right: 1px solid rgba(243, 156, 18, 0.15);
+            box-shadow: 2px 0 20px rgba(0,0,0,0.05);
+            transition: background 0.2s, border-color 0.2s;
+        }
+
+        body.dark-mode .sidebar {
+            background: rgba(20, 20, 30, 0.98);
+            border-right-color: rgba(243, 156, 18, 0.3);
         }
 
         .sidebar-header {
-            padding: 2rem 1.5rem;
-            border-bottom: 1px solid #e8eef5;
+            padding: 2rem 1.5rem 1rem 1.5rem;
+            border-bottom: 1px solid var(--gray-200);
         }
 
-        .sidebar-header h2 { 
+        body.dark-mode .sidebar-header {
+            border-bottom-color: #334155;
+        }
+
+        .sidebar-header h2 {
             font-size: 1.3rem;
             font-weight: 800;
-            display: flex; 
-            align-items: center; 
-            gap: 0.8rem;
-            color: #1e3a5f;
+            color: var(--dark);
+            margin-bottom: 0.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        body.dark-mode .sidebar-header h2 {
+            color: #e5e7eb;
+        }
+
+        .flag-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 35px;
+            height: 28px;
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            flex-shrink: 0;
+        }
+
+        .flag-icon svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .republic-text {
+            font-size: 0.65rem;
+            color: var(--gray-600);
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            margin-top: 0.3rem;
+            margin-left: 0.5rem;
+        }
+
+        body.dark-mode .republic-text {
+            color: #94a3b8;
         }
 
         .agent-badge {
-            background: linear-gradient(135deg, #f39c12, #f1c40f);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: white;
-            padding: 0.3rem 0.8rem;
-            border-radius: 20px;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 700;
+            padding: 0.3rem 0.8rem;
+            border-radius: 50px;
             margin-top: 0.5rem;
-            display: inline-block;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-section {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--gray-600);
+            padding: 1rem 1.5rem 0.5rem 1.5rem;
+            margin-top: 0.5rem;
+        }
+
+        body.dark-mode .nav-section {
+            color: #64748b;
         }
 
         .sidebar-nav {
             flex: 1;
-            padding: 1.5rem 1rem;
+            padding: 0.5rem 0;
             display: flex;
             flex-direction: column;
-            gap: 0.3rem;
             overflow-y: auto;
         }
 
         .sidebar-nav a {
             text-decoration: none;
-            color: #64748b;
-            font-weight: 600;
-            padding: 0.9rem 1.2rem;
-            border-radius: 10px;
+            color: var(--gray-600);
+            font-weight: 500;
+            padding: 0.7rem 1.5rem;
             display: flex;
             align-items: center;
             gap: 0.8rem;
             transition: all 0.2s;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
+            border-radius: 0 12px 12px 0;
             position: relative;
         }
 
+        body.dark-mode .sidebar-nav a {
+            color: #9ca3af;
+        }
+
+        .sidebar-nav a i {
+            width: 20px;
+            height: 20px;
+            font-size: 1.1rem;
+        }
+
         .sidebar-nav a:hover {
-            background: #f1f5f9;
-            color: #f39c12;
+            background: rgba(243, 156, 18, 0.08);
+            color: var(--primary);
+        }
+
+        body.dark-mode .sidebar-nav a:hover {
+            background: rgba(243, 156, 18, 0.2);
         }
 
         .sidebar-nav a.active {
-            background: linear-gradient(135deg, rgba(243, 156, 18, 0.1), rgba(241, 196, 15, 0.05));
-            color: #f39c12;
-            font-weight: 700;
-            border: 2px solid #f39c12;
+            background: linear-gradient(135deg, rgba(243, 156, 18, 0.12), rgba(241, 196, 15, 0.08));
+            color: var(--primary);
+            font-weight: 600;
+            border-right: 3px solid var(--primary);
         }
 
-        .sidebar-nav a svg {
-            width: 20px;
-            height: 20px;
-        }
-
-        /* Badge de notification dans sidebar */
         .nav-badge {
             margin-left: auto;
-            background: #e74c3c;
+            background: var(--danger);
             color: white;
-            padding: 0.2rem 0.6rem;
-            border-radius: 10px;
-            font-size: 0.75rem;
+            font-size: 0.65rem;
             font-weight: 700;
-            animation: pulse 2s infinite;
-        }
-
-        .nav-badge.orange {
-            background: #f39c12;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-
-        .sidebar-footer {
-            padding: 1.5rem 1rem;
-            border-top: 1px solid #e8eef5;
-        }
-
-        .btn-logout {
-            width: 100%;
-            background: #fff1f0;
-            color: #e74c3c;
-            padding: 0.9rem;
-            border: none;
-            border-radius: 10px;
-            font-size: 0.95rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s;
+            min-width: 22px;
+            height: 22px;
+            border-radius: 11px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.5rem;
+            padding: 0 6px;
         }
 
-        .btn-logout:hover {
-            background: #ffe8e6;
+        .sidebar-footer {
+            padding: 0.8rem 1rem;
+            border-top: 1px solid var(--gray-200);
         }
 
-        /* Main */
+        body.dark-mode .sidebar-footer {
+            border-top-color: #334155;
+        }
+
+        .logout-link {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            text-decoration: none;
+            color: var(--danger);
+            font-weight: 950;
+            font-size: 1rem;
+            transition: all 0.2s;
+            background: none;
+            border: none;
+            width: 100%;
+            cursor: pointer;
+            padding: 0.4rem 0;
+        }
+
+        .logout-link svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .logout-link:hover {
+            opacity: 0.8;
+            transform: translateX(3px);
+        }
+
+        /* ===== MAIN CONTENT ===== */
         .main {
             margin-left: 280px;
             flex: 1;
-            background: #f5f7fa;
-            min-height: 100vh;
+            padding: 2rem;
+            overflow-y: auto;
         }
 
         /* Top Bar */
         .top-bar {
             background: white;
-            padding: 1.5rem 2.5rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            position: sticky;
-            top: 0;
-            z-index: 5;
+            border-radius: 20px;
+            padding: 1.2rem 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--gray-200);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            transition: background 0.2s, border-color 0.2s;
+        }
+
+        body.dark-mode .top-bar {
+            background: #1e293b;
+            border-color: #334155;
         }
 
         .top-bar-left h1 {
-            font-size: 1.75rem;
+            font-size: 1.5rem;
             font-weight: 800;
-            color: #1e3a5f;
-            margin-bottom: 0.3rem;
+            color: var(--dark);
+            margin-bottom: 0.2rem;
+        }
+
+        body.dark-mode .top-bar-left h1 {
+            color: #f1f5f9;
         }
 
         .top-bar-left p {
-            color: #64748b;
-            font-size: 0.95rem;
+            color: var(--gray-600);
+            font-size: 0.85rem;
+        }
+
+        body.dark-mode .top-bar-left p {
+            color: #94a3b8;
         }
 
         .top-bar-right {
             display: flex;
-            gap: 1rem;
             align-items: center;
+            gap: 1rem;
         }
 
-        .notification-badge {
-            position: relative;
-            background: #f8f9fa;
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
+        .date-time {
+            font-size: 0.85rem;
+            color: var(--gray-600);
+            background: var(--gray-100);
+            padding: 0.5rem 1rem;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+
+        body.dark-mode .date-time {
+            background: #334155;
+            color: #94a3b8;
+        }
+
+        .icon-btn {
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: 10px;
+            padding: 0.45rem;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             transition: all 0.2s;
+            width: 38px;
+            height: 38px;
         }
 
-        .notification-badge:hover {
-            background: #e9ecef;
-            transform: scale(1.05);
+        body.dark-mode .icon-btn {
+            background: #1e293b;
+            border-color: #4b5563;
         }
 
-        .notification-count {
+        .icon-btn svg {
+            width: 18px;
+            height: 18px;
+            stroke: var(--gray-600);
+        }
+
+        body.dark-mode .icon-btn svg {
+            stroke: #9ca3af;
+        }
+
+        .icon-btn:hover {
+            border-color: var(--primary);
+            background: rgba(243, 156, 18, 0.08);
+        }
+
+        .icon-btn:hover svg {
+            stroke: var(--primary);
+        }
+
+        .notification-btn {
+            position: relative;
+        }
+
+        .notification-badge {
             position: absolute;
-            top: -5px;
-            right: -5px;
-            background: #e74c3c;
+            top: -4px;
+            right: -4px;
+            background: var(--danger);
             color: white;
-            font-size: 0.7rem;
-            padding: 0.2rem 0.5rem;
-            border-radius: 10px;
+            font-size: 0.6rem;
             font-weight: 700;
-            animation: pulse 2s infinite;
+            min-width: 16px;
+            height: 16px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 4px;
         }
 
-        /* Content */
-        .content {
-            padding: 2.5rem;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        /* Alert */
+        /* Alertes */
         .alert {
-            padding: 1rem 1.5rem;
+            padding: 1rem 1.2rem;
             border-radius: 12px;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
             display: flex;
             align-items: center;
             gap: 0.8rem;
-            animation: slideDown 0.3s;
+            background: white;
+            border-left: 4px solid var(--success);
+            transition: background 0.2s, color 0.2s;
         }
 
-        .alert-success {
-            background: #d4edda;
-            color: #155724;
-            border-left: 4px solid #27ae60;
+        body.dark-mode .alert {
+            background: #1e293b;
+            color: #e5e7eb;
         }
 
-        .alert-error {
-            background: #f8d7da;
-            color: #721c24;
-            border-left: 4px solid #e74c3c;
-        }
-
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        .alert-success { border-left-color: var(--success); }
+        .alert-error { border-left-color: var(--danger); }
 
         /* Page Header */
         .page-header {
             background: white;
-            padding: 2rem;
-            border-radius: 16px;
+            padding: 1.5rem 2rem;
+            border-radius: 20px;
             margin-bottom: 2rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 1px solid var(--gray-200);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            transition: background 0.2s;
+        }
+
+        body.dark-mode .page-header {
+            background: #1e293b;
+            border-color: #334155;
         }
 
         .page-header h1 {
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             font-weight: 800;
-            color: #1e3a5f;
+            color: var(--dark);
             display: flex;
             align-items: center;
             gap: 0.8rem;
         }
 
+        body.dark-mode .page-header h1 {
+            color: #f1f5f9;
+        }
+
         .back-btn {
-            background: #f1f5f9;
-            color: #64748b;
-            padding: 0.8rem 1.5rem;
-            border-radius: 10px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.2s;
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
+            background: var(--gray-100);
+            color: var(--gray-600);
+            padding: 0.7rem 1.5rem;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        body.dark-mode .back-btn {
+            background: #334155;
+            color: #94a3b8;
         }
 
         .back-btn:hover {
-            background: #e2e8f0;
+            background: var(--gray-200);
+            color: var(--primary);
         }
 
         /* Status Banner */
         .status-banner {
             padding: 1.5rem 2rem;
-            border-radius: 16px;
+            border-radius: 20px;
             margin-bottom: 2rem;
             display: flex;
             align-items: center;
             gap: 1rem;
             font-weight: 600;
+            border: 1px solid transparent;
         }
 
         .status-banner.pending {
-            background: linear-gradient(135deg, #fff3cd, #ffe8a3);
-            color: #856404;
-            border-left: 4px solid #f39c12;
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            color: #92400e;
+            border-color: #f59e0b;
+        }
+
+        .status-banner.in-progress {
+            background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+            color: #1e3a8a;
+            border-color: #3b82f6;
+        }
+
+        .status-banner.matched {
+            background: linear-gradient(135deg, #c7d2fe, #a5b4fc);
+            color: #3730a3;
+            border-color: #8b5cf6;
+        }
+
+        .status-banner.returned {
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            color: #065f46;
+            border-color: #10b981;
+        }
+
+        .status-banner.not-found {
+            background: linear-gradient(135deg, #e5e7eb, #d1d5db);
+            color: #374151;
+            border-color: #6b7280;
         }
 
         .status-banner.approved {
-            background: linear-gradient(135deg, #d4edda, #b7e4c7);
-            color: #155724;
-            border-left: 4px solid #27ae60;
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            color: #065f46;
+            border-color: #10b981;
         }
 
         .status-banner.rejected {
-            background: linear-gradient(135deg, #f8d7da, #f5c2c7);
-            color: #721c24;
-            border-left: 4px solid #e74c3c;
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            color: #991b1b;
+            border-color: #ef4444;
+        }
+
+        body.dark-mode .status-banner.pending {
+            background: #422d0b;
+            color: #fbbf24;
+        }
+        body.dark-mode .status-banner.in-progress {
+            background: #1e3a5f;
+            color: #60a5fa;
+        }
+        body.dark-mode .status-banner.matched {
+            background: #2e2b5c;
+            color: #a78bfa;
+        }
+        body.dark-mode .status-banner.returned,
+        body.dark-mode .status-banner.approved {
+            background: #0a3b2a;
+            color: #34d399;
+        }
+        body.dark-mode .status-banner.not-found {
+            background: #1f2937;
+            color: #9ca3af;
+        }
+        body.dark-mode .status-banner.rejected {
+            background: #3f1e1e;
+            color: #f87171;
         }
 
         .status-icon {
@@ -331,54 +559,63 @@
         /* Card */
         .card {
             background: white;
-            padding: 2rem;
-            border-radius: 16px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            margin-bottom: 2rem;
+            border-radius: 20px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--gray-200);
+            transition: background 0.2s, border-color 0.2s;
         }
 
-        .card:last-child {
-            margin-bottom: 0;
+        body.dark-mode .card {
+            background: #1e293b;
+            border-color: #334155;
         }
 
         .card-header {
             display: flex;
             align-items: center;
             gap: 1rem;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 2px solid #f1f5f9;
+            margin-bottom: 1.2rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 2px solid var(--gray-200);
+        }
+
+        body.dark-mode .card-header {
+            border-bottom-color: #334155;
         }
 
         .card-icon {
             width: 45px;
             height: 45px;
-            background: linear-gradient(135deg, #f39c12, #f1c40f);
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 1.3rem;
+            color: white;
         }
 
         .card-title {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             font-weight: 700;
-            color: #1e3a5f;
+            color: var(--dark);
         }
 
-        /* Info Row */
+        body.dark-mode .card-title {
+            color: #e5e7eb;
+        }
+
         .info-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
-            margin-bottom: 1.5rem;
+            gap: 1.2rem;
         }
 
         .info-item {
             display: flex;
             flex-direction: column;
-            gap: 0.5rem;
+            gap: 0.3rem;
         }
 
         .info-item.full-width {
@@ -386,193 +623,287 @@
         }
 
         .info-label {
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             font-weight: 600;
-            color: #64748b;
             text-transform: uppercase;
+            color: var(--gray-600);
             letter-spacing: 0.5px;
         }
 
+        body.dark-mode .info-label {
+            color: #94a3b8;
+        }
+
         .info-value {
-            font-size: 1rem;
-            font-weight: 600;
-            color: #1e3a5f;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--dark);
+            word-break: break-word;
+        }
+
+        body.dark-mode .info-value {
+            color: #e5e7eb;
         }
 
         /* Citizen Card */
         .citizen-card {
             background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 20px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
             color: white;
-            padding: 2rem;
-            border-radius: 16px;
-            margin-bottom: 1rem;
+        }
+
+        body.dark-mode .citizen-card {
+            background: linear-gradient(135deg, #4c51bf, #6b46c1);
         }
 
         .citizen-avatar {
-            width: 80px;
-            height: 80px;
+            width: 70px;
+            height: 70px;
             border-radius: 50%;
             background: rgba(255,255,255,0.2);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2rem;
+            font-size: 1.8rem;
             font-weight: 800;
             margin: 0 auto 1rem;
             border: 3px solid rgba(255,255,255,0.3);
         }
 
         .citizen-name {
-            font-size: 1.3rem;
-            font-weight: 700;
+            font-size: 1.2rem;
+            font-weight: 800;
             text-align: center;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.3rem;
         }
 
         .citizen-email {
             text-align: center;
             opacity: 0.9;
-            font-size: 0.95rem;
+            font-size: 0.85rem;
         }
 
         .citizen-info {
-            margin-top: 1.5rem;
-            padding-top: 1.5rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
             border-top: 1px solid rgba(255,255,255,0.2);
         }
 
         .citizen-info-item {
             display: flex;
             justify-content: space-between;
-            padding: 0.8rem 0;
+            padding: 0.6rem 0;
+            font-size: 0.85rem;
         }
 
-        /* Action Buttons */
+        /* Action Section */
         .action-section {
-            background: #f8f9fa;
-            padding: 2rem;
-            border-radius: 16px;
+            background: var(--gray-100);
+            border-radius: 20px;
+            padding: 1.5rem;
+            transition: background 0.2s;
+        }
+
+        body.dark-mode .action-section {
+            background: #334155;
         }
 
         .action-title {
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 700;
-            color: #1e3a5f;
-            margin-bottom: 1.5rem;
+            color: var(--dark);
+            margin-bottom: 1.2rem;
+        }
+
+        body.dark-mode .action-title {
+            color: #e5e7eb;
         }
 
         .btn {
             width: 100%;
-            padding: 1rem 1.5rem;
-            border: none;
+            padding: 0.9rem 1.2rem;
             border-radius: 12px;
-            font-size: 1rem;
             font-weight: 700;
+            font-size: 0.9rem;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.8rem;
-            margin-bottom: 1rem;
+            gap: 0.5rem;
+            border: none;
+            margin-bottom: 0.8rem;
             text-decoration: none;
         }
 
         .btn-approve {
             background: linear-gradient(135deg, #27ae60, #2ecc71);
             color: white;
-            box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
+            box-shadow: 0 4px 12px rgba(39,174,96,0.3);
         }
 
         .btn-approve:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(39, 174, 96, 0.4);
+            box-shadow: 0 6px 16px rgba(39,174,96,0.4);
         }
 
         .btn-reject {
             background: linear-gradient(135deg, #e74c3c, #c0392b);
             color: white;
-            box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+            box-shadow: 0 4px 12px rgba(231,76,60,0.3);
         }
 
         .btn-reject:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(231, 76, 60, 0.4);
+            box-shadow: 0 6px 16px rgba(231,76,60,0.4);
+        }
+
+        .btn-notfound {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            box-shadow: 0 4px 12px rgba(245,158,11,0.3);
+        }
+
+        .btn-notfound:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(245,158,11,0.4);
         }
 
         .btn-secondary {
             background: white;
-            color: #64748b;
-            border: 2px solid #e2e8f0;
+            color: var(--gray-600);
+            border: 1px solid var(--gray-200);
+            box-shadow: none;
+        }
+
+        body.dark-mode .btn-secondary {
+            background: #1e293b;
+            border-color: #4b5563;
+            color: #94a3b8;
         }
 
         .btn-secondary:hover {
-            border-color: #94a3b8;
+            background: var(--gray-100);
+            border-color: var(--primary);
+            color: var(--primary);
         }
 
-        /* Rejection Box */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(243,156,18,0.4);
+        }
+
+        /* Rejection box */
         .rejection-box {
-            background: #fff3cd;
-            border: 2px solid #f39c12;
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
             border-radius: 12px;
-            padding: 1.5rem;
-            margin-top: 1.5rem;
+            padding: 1rem;
+            margin-top: 0.5rem;
         }
 
-        .rejection-box h4 {
-            color: #856404;
-            margin-bottom: 1rem;
-            font-weight: 700;
+        body.dark-mode .rejection-box {
+            background: #422d0b;
+            border-color: #fbbf24;
         }
 
         .rejection-box p {
-            color: #664d03;
+            color: #92400e;
+            font-size: 0.9rem;
             line-height: 1.6;
+        }
+
+        body.dark-mode .rejection-box p {
+            color: #fbbf24;
         }
 
         /* Timeline */
         .timeline {
             position: relative;
-            padding-left: 2rem;
+            padding-left: 1.8rem;
         }
 
         .timeline::before {
             content: '';
             position: absolute;
-            left: 0.5rem;
+            left: 0.4rem;
             top: 0;
             bottom: 0;
             width: 2px;
-            background: #e2e8f0;
+            background: var(--gray-200);
+        }
+
+        body.dark-mode .timeline::before {
+            background: #334155;
         }
 
         .timeline-item {
             position: relative;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.2rem;
         }
 
         .timeline-item::before {
             content: '';
             position: absolute;
-            left: -1.65rem;
-            top: 0.3rem;
+            left: -1.5rem;
+            top: 0.2rem;
             width: 12px;
             height: 12px;
             border-radius: 50%;
-            background: #f39c12;
-            border: 3px solid white;
-            box-shadow: 0 0 0 2px #f39c12;
+            background: var(--primary);
+            border: 2px solid white;
+            box-shadow: 0 0 0 2px var(--primary);
         }
 
         .timeline-date {
-            font-size: 0.85rem;
-            color: #64748b;
-            margin-bottom: 0.3rem;
+            font-size: 0.75rem;
+            color: var(--gray-600);
+            margin-bottom: 0.2rem;
         }
 
         .timeline-text {
+            font-weight: 700;
+            color: var(--dark);
+            font-size: 0.85rem;
+        }
+
+        body.dark-mode .timeline-text {
+            color: #e5e7eb;
+        }
+
+        /* File chips */
+        .file-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--gray-100);
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+            padding: 0.4rem 0.9rem;
+            font-size: 0.75rem;
             font-weight: 600;
-            color: #1e3a5f;
+            text-decoration: none;
+            color: var(--primary);
+            transition: all 0.2s;
+            margin: 0.2rem;
+        }
+
+        body.dark-mode .file-chip {
+            background: #334155;
+            border-color: #4b5563;
+            color: #fbbf24;
+        }
+
+        .file-chip:hover {
+            background: var(--gray-200);
+            transform: translateY(-2px);
         }
 
         /* Modal */
@@ -583,8 +914,8 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(5px);
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
             z-index: 1000;
             align-items: center;
             justify-content: center;
@@ -598,16 +929,19 @@
 
         .modal-content {
             background: white;
-            padding: 2.5rem;
-            border-radius: 20px;
+            border-radius: 24px;
+            padding: 2rem;
             max-width: 500px;
             width: 100%;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             animation: slideUp 0.3s;
         }
 
+        body.dark-mode .modal-content {
+            background: #1e293b;
+        }
+
         @keyframes slideUp {
-            from { opacity: 0; transform: translateY(30px); }
+            from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
@@ -615,32 +949,37 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
         }
 
         .modal-title {
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: #1e3a5f;
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--dark);
+        }
+
+        body.dark-mode .modal-title {
+            color: #e5e7eb;
         }
 
         .modal-close {
-            background: #f1f5f9;
+            background: var(--gray-100);
             border: none;
-            width: 35px;
-            height: 35px;
+            width: 34px;
+            height: 34px;
             border-radius: 8px;
-            font-size: 1.4rem;
-            color: #64748b;
+            font-size: 1.2rem;
             cursor: pointer;
+            color: var(--gray-600);
             transition: all 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
-        .modal-close:hover {
-            background: #e2e8f0;
+        body.dark-mode .modal-close {
+            background: #334155;
+            color: #94a3b8;
         }
 
         .form-group {
@@ -650,91 +989,106 @@
         .form-label {
             display: block;
             font-weight: 600;
-            color: #475569;
-            margin-bottom: 0.6rem;
+            color: var(--gray-800);
+            margin-bottom: 0.5rem;
+        }
+
+        body.dark-mode .form-label {
+            color: #cbd5e1;
         }
 
         .form-textarea {
             width: 100%;
-            padding: 1rem;
-            border: 2px solid #e2e8f0;
+            padding: 0.9rem;
+            border: 2px solid var(--gray-200);
             border-radius: 12px;
-            font-size: 1rem;
-            font-family: 'Nunito', sans-serif;
-            min-height: 150px;
+            font-size: 0.9rem;
+            font-family: inherit;
             resize: vertical;
+            background: white;
+            color: var(--dark);
+        }
+
+        body.dark-mode .form-textarea {
+            background: #334155;
+            border-color: #4b5563;
+            color: #e5e7eb;
         }
 
         .form-textarea:focus {
             outline: none;
-            border-color: #e74c3c;
-            box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(243,156,18,0.1);
         }
 
         .modal-actions {
             display: flex;
             gap: 1rem;
-            margin-top: 2rem;
+            margin-top: 1.5rem;
         }
 
         .btn-modal {
             flex: 1;
-            padding: 1rem;
-            border: none;
+            padding: 0.8rem;
             border-radius: 12px;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.2s;
+            border: none;
         }
 
         .btn-modal-danger {
-            background: #e74c3c;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
             color: white;
         }
 
         .btn-modal-secondary {
-            background: #f1f5f9;
-            color: #64748b;
+            background: var(--gray-100);
+            color: var(--gray-600);
         }
 
-        /* File chips */
-        .file-chip {
-            display: inline-flex;
+        body.dark-mode .btn-modal-secondary {
+            background: #334155;
+            color: #94a3b8;
+        }
+
+        /* Non-retrouvé banner (info pour l'agent) */
+        .info-banner {
+            background: var(--gray-100);
+            border-left: 4px solid var(--warning);
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
             align-items: center;
-            gap: 0.5rem;
-            background: #f1f5f9;
-            border: 1.5px solid #e2e8f0;
-            border-radius: 9px;
-            padding: 0.5rem 0.9rem;
-            font-size: 0.78rem;
-            font-weight: 600;
-            text-decoration: none;
-            color: #2563ff;
-            transition: all 0.18s;
-            margin: 0.25rem 0.25rem 0 0;
+            gap: 1rem;
         }
 
-        .file-chip:hover {
-            background: #eff6ff;
-            border-color: #2563ff;
+        body.dark-mode .info-banner {
+            background: #1e293b;
         }
 
-        .file-chip svg {
-            width: 14px;
-            height: 14px;
-            flex-shrink: 0;
+        .action-help {
+            background: #f0f9ff;
+            border-radius: 8px;
+            padding: 0.8rem;
+            font-size: 0.8rem;
+            color: #1e3a5f;
+            margin-top: 0.5rem;
+            border: 1px solid #bae6fd;
+        }
+
+        body.dark-mode .action-help {
+            background: #1e3a5f;
+            color: #bae6fd;
+            border-color: #0c4a6e;
         }
 
         /* Responsive */
         @media (max-width: 1024px) {
-            .content {
-                padding: 1rem;
-            }
-
             .content-grid {
                 grid-template-columns: 1fr;
             }
-
             .info-row {
                 grid-template-columns: 1fr;
             }
@@ -744,372 +1098,494 @@
 <body>
 
 @php
-    $pendingCount = \App\Models\Perte::where('statut','en_attente')->count();
+    use App\Models\Perte;
+    $pendingCount = Perte::where('statut','en_attente')->count();
     $statut = $perte->statut;
-    $sMap = [
-        'en_attente' => ['label'=>'En attente', 'class'=>'pending', 'icon'=>'⏳'],
-        'validee'    => ['label'=>'Validée',    'class'=>'approved', 'icon'=>'✅'],
-        'rejetee'    => ['label'=>'Rejetée',    'class'=>'rejected', 'icon'=>'❌'],
+    
+    // Mapping des statuts pour l'affichage
+    $statusMap = [
+        'en_attente'             => ['label'=>'En attente', 'class'=>'pending', 'icon'=>'⏳'],
+        'en_cours'               => ['label'=>'En cours', 'class'=>'in-progress', 'icon'=>'🔍'],
+        'correspondance_trouvee' => ['label'=>'Correspondance trouvée', 'class'=>'matched', 'icon'=>'🔗'],
+        'restitue'               => ['label'=>'Restitué', 'class'=>'returned', 'icon'=>'✅'],
+        'non_retrouve'           => ['label'=>'Non retrouvé', 'class'=>'not-found', 'icon'=>'❓'],
+        'validee'                => ['label'=>'Validée', 'class'=>'approved', 'icon'=>'✅'],
+        'rejetee'                => ['label'=>'Rejetée', 'class'=>'rejected', 'icon'=>'❌'],
     ];
-    $s = $sMap[$statut] ?? $sMap['en_attente'];
+    $s = $statusMap[$statut] ?? ['label'=>ucfirst($statut), 'class'=>'pending', 'icon'=>'📄'];
+    
     $docIcons = ['Passeport'=>'🛂',"Carte d'identité (CNI)"=>'🪪','Permis de conduire'=>'🚗',"Carte d'électeur"=>'🗳️','Acte de naissance'=>'📋','Certificat de nationalité'=>'📜'];
     $docIcon = $docIcons[$perte->type_piece] ?? '📄';
     $ref = $perte->numero_declaration ?? 'DL-'.str_pad($perte->id, 5, '0', STR_PAD_LEFT);
-    $initials = strtoupper(substr(auth()->user()->first_name ?? auth()->user()->name ?? 'A', 0,1) . substr(auth()->user()->last_name ?? '', 0,1));
 @endphp
 
-<!-- SIDEBAR -->
+<!-- Sidebar -->
 <div class="sidebar">
     <div class="sidebar-header">
         <h2>
-            <span>🇹🇬</span> 
+            <div class="flag-icon">
+                <svg viewBox="0 0 5 4" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                    <rect width="5" height=".8" y="0"   fill="#006A36"/>
+                    <rect width="5" height=".8" y=".8"  fill="#FFCB00"/>
+                    <rect width="5" height=".8" y="1.6" fill="#006A36"/>
+                    <rect width="5" height=".8" y="2.4" fill="#FFCB00"/>
+                    <rect width="5" height=".8" y="3.2" fill="#006A36"/>
+                    <rect width="1.9" height="2.4" fill="#D21034"/>
+                    <polygon points="0.95,0.38 1.07,0.76 1.47,0.76 1.16,0.99 1.28,1.37 0.95,1.14 0.62,1.37 0.74,0.99 0.43,0.76 0.83,0.76" fill="#FFFFFF"/>
+                </svg>
+            </div>
             e-Déclaration TG
         </h2>
-        <div class="agent-badge">👮 AGENT</div>
+        <div class="republic-text">RÉPUBLIQUE TOGOLAISE</div>
+        <div class="agent-badge">
+            <i class="bi bi-shield-check"></i> AGENT
+        </div>
     </div>
 
     <nav class="sidebar-nav">
+        <div class="nav-section">PRINCIPAL</div>
         <a href="{{ route('agent.dashboard') }}" class="{{ request()->routeIs('agent.dashboard') && !request('statut') ? 'active' : '' }}">
-            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-            </svg>
-            Dashboard
+            <i class="bi bi-speedometer2"></i> Dashboard
         </a>
-
         <a href="{{ route('agent.dashboard', ['statut' => 'en_attente']) }}" class="{{ request('statut') == 'en_attente' ? 'active' : '' }}">
-            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-            Déclarations Perte
+            <i class="bi bi-hourglass-split"></i> En attente
             @if($pendingCount > 0)
                 <span class="nav-badge">{{ $pendingCount }}</span>
             @endif
         </a>
-
-        <a href="{{ route('agent.documents-trouves.index') }}" class="{{ request()->routeIs('agent.documents-trouves.*') ? 'active' : '' }}">
-            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-            </svg>
-            Documents Trouvés
+        <a href="{{ route('agent.dashboard') }}">
+            <i class="bi bi-files"></i> Toutes les pertes
         </a>
 
-        <a href="{{ route('agent.dashboard', ['statut' => 'validee']) }}" class="{{ request('statut') == 'validee' ? 'active' : '' }}">
-            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-            Validées
+        <div class="nav-section">DOCUMENTS</div>
+        <a href="{{ route('agent.documents-trouves.index') }}">
+            <i class="bi bi-search-heart"></i> Documents trouvés
         </a>
 
-        <a href="{{ route('agent.dashboard', ['statut' => 'rejetee']) }}" class="{{ request('statut') == 'rejetee' ? 'active' : '' }}">
-            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-            Rejetées
+        <div class="nav-section">PARAMÈTRES</div>
+        <a href="{{ route('agent.profile') }}">
+            <i class="bi bi-person-gear"></i> Paramètres
         </a>
     </nav>
 
     <div class="sidebar-footer">
-        <form method="POST" action="{{ route('logout') }}" onsubmit="return confirm('Êtes-vous sûr de vouloir vous déconnecter ?')">
-            @csrf
-            <button type="submit" class="btn-logout">
-                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:18px;height:18px;">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-                </svg>
-                Se déconnecter
-            </button>
-        </form>
+       <form method="POST" action="{{ route('logout') }}" onsubmit="return confirm('Voulez-vous vraiment vous déconnecter ?')">
+    @csrf
+    <button type="submit" class="logout-link">
+        Déconnecter
+    </button>
+</form>
     </div>
 </div>
 
-<!-- MAIN -->
+<!-- Main Content -->
 <div class="main">
-    <header class="top-bar">
+    <!-- Top Bar -->
+    <div class="top-bar">
         <div class="top-bar-left">
-            <h1>📄 Détails de la déclaration</h1>
+            <h1><i class="bi bi-file-text me-2" style="color: var(--primary);"></i>Détails de la déclaration</h1>
             <p>{{ $ref }} • {{ $perte->type_piece }}</p>
         </div>
         <div class="top-bar-right">
-            <div class="notification-badge" onclick="window.location.href='{{ route('agent.dashboard', ['statut' => 'en_attente']) }}'">
-                🔔
-                @php
-                    $totalNotif = $pendingCount;
-                @endphp
-                @if($totalNotif > 0)
-                    <span class="notification-count">{{ $totalNotif }}</span>
+            <div class="date-time" id="currentDateTime">
+                {{ \Carbon\Carbon::now()->locale('fr')->isoFormat('dddd D MMMM YYYY - HH:mm') }}
+            </div>
+            <button class="icon-btn theme-toggle" id="themeToggleBtn" title="Changer le thème">
+                <svg id="themeIcon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                </svg>
+            </button>
+            <div class="icon-btn notification-btn" onclick="window.location.href='{{ route('agent.dashboard', ['statut' => 'en_attente']) }}'" title="Notifications">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                </svg>
+                @if($pendingCount > 0)
+                    <span class="notification-badge">{{ $pendingCount > 9 ? '9+' : $pendingCount }}</span>
                 @endif
             </div>
         </div>
-    </header>
+    </div>
 
-    <div class="content">
-
-        <!-- Alerts -->
-        @if(session('success'))
-            <div class="alert alert-success">
-                <span>✅</span>
-                <span>{{ session('success') }}</span>
-            </div>
-        @endif
-
-        @if(session('error'))
-            <div class="alert alert-error">
-                <span>❌</span>
-                <span>{{ session('error') }}</span>
-            </div>
-        @endif
-
-        <!-- Page Header with Back Button -->
-        <div class="page-header">
-            <h1>{{ $docIcon }} {{ $perte->type_piece }}</h1>
-            <a href="{{ route('agent.dashboard') }}" class="back-btn">
-                ← Retour
-            </a>
+    <!-- Alertes -->
+    @if(session('success'))
+        <div class="alert alert-success">
+            <i class="bi bi-check-circle-fill"></i>
+            <span>{{ session('success') }}</span>
         </div>
+    @endif
+    @if(session('error'))
+        <div class="alert alert-error">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span>{{ session('error') }}</span>
+        </div>
+    @endif
 
-        <!-- Status Banner -->
-        <div class="status-banner {{ $s['class'] }}">
-            <div class="status-icon">{{ $s['icon'] }}</div>
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1>{{ $docIcon }} {{ $perte->type_piece }}</h1>
+        <a href="{{ route('agent.dashboard') }}" class="back-btn">
+            <i class="bi bi-arrow-left"></i> Retour
+        </a>
+    </div>
+
+    <!-- Status Banner -->
+    <div class="status-banner {{ $s['class'] }}">
+        <div class="status-icon">{{ $s['icon'] }}</div>
+        <div>
+            <div style="font-size: 1.1rem; font-weight: 800;">Statut : {{ $s['label'] }}</div>
+            @if($perte->numero_declaration)
+                <div style="font-size: 0.85rem; opacity: 0.8;">N° {{ $perte->numero_declaration }}</div>
+            @endif
+        </div>
+    </div>
+
+    <!-- Info supplémentaire pour non_retrouve (message pour l'agent) -->
+    @if($perte->statut === 'non_retrouve')
+        <div class="info-banner">
+            <i class="bi bi-info-circle-fill" style="color: var(--warning); font-size: 1.5rem;"></i>
             <div>
-                <div style="font-size: 1.2rem;">
-                    Statut : {{ $s['label'] }}
-                </div>
-                @if($perte->numero_declaration)
-                    <div style="font-size: 0.9rem; opacity: 0.8;">
-                        N° {{ $perte->numero_declaration }}
-                    </div>
-                @endif
+                <strong>Document non retrouvé</strong><br>
+                Le citoyen a été informé et invité à refaire une déclaration. Aucune action supplémentaire nécessaire de votre part.
             </div>
         </div>
+    @endif
 
-        <!-- Content Grid -->
-        <div class="content-grid">
+    <!-- Content Grid -->
+    <div class="content-grid">
 
-            <!-- Left Column -->
-            <div>
+        <!-- Left Column -->
+        <div>
 
-                <!-- Déclarant -->
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-icon">👤</div>
-                        <div class="card-title">Informations du déclarant</div>
-                    </div>
-
-                    <div class="info-row">
-                        <div class="info-item">
-                            <div class="info-label">Nom</div>
-                            <div class="info-value">{{ $perte->last_name }}</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">Prénom</div>
-                            <div class="info-value">{{ $perte->first_name }}</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">Téléphone</div>
-                            <div class="info-value">{{ $perte->contact }}</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">Email</div>
-                            <div class="info-value">{{ $perte->email }}</div>
-                        </div>
-                    </div>
+            <!-- Déclarant -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon"><i class="bi bi-person"></i></div>
+                    <div class="card-title">Informations du déclarant</div>
                 </div>
-
-                <!-- Document perdu -->
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-icon">📄</div>
-                        <div class="card-title">Informations du document perdu</div>
+                <div class="info-row">
+                    <div class="info-item">
+                        <div class="info-label">Nom</div>
+                        <div class="info-value">{{ $perte->last_name }}</div>
                     </div>
-
-                    <div class="info-row">
-                        <div class="info-item">
-                            <div class="info-label">Type de pièce</div>
-                            <div class="info-value">{{ $perte->type_piece }}</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">Numéro de pièce</div>
-                            <div class="info-value">{{ $perte->numero_piece ?? 'Non renseigné' }}</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">Date de perte</div>
-                            <div class="info-value">{{ \Carbon\Carbon::parse($perte->date_perte)->format('d/m/Y') }}</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">Lieu de perte</div>
-                            <div class="info-value">{{ $perte->lieu_perte }}</div>
-                        </div>
-                        @if($perte->date_delivrance)
-                        <div class="info-item">
-                            <div class="info-label">Date de délivrance</div>
-                            <div class="info-value">{{ \Carbon\Carbon::parse($perte->date_delivrance)->format('d/m/Y') }}</div>
-                        </div>
-                        @endif
-                        @if($perte->autorite_delivrance)
-                        <div class="info-item">
-                            <div class="info-label">Autorité de délivrance</div>
-                            <div class="info-value">{{ $perte->autorite_delivrance }}</div>
-                        </div>
-                        @endif
+                    <div class="info-item">
+                        <div class="info-label">Prénom</div>
+                        <div class="info-value">{{ $perte->first_name }}</div>
                     </div>
-                </div>
-
-                <!-- Circonstances -->
-                @if($perte->circonstances)
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-icon">📝</div>
-                        <div class="card-title">Circonstances de la perte</div>
+                    <div class="info-item">
+                        <div class="info-label">Téléphone</div>
+                        <div class="info-value">{{ $perte->contact }}</div>
                     </div>
-                    <div class="info-item full-width">
-                        <div class="info-value" style="line-height: 1.6;">{{ $perte->circonstances }}</div>
-                    </div>
-                </div>
-                @endif
-
-                <!-- Pièces jointes -->
-                @if($perte->copie_piece || $perte->declaration_vol || $perte->document_complementaire)
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-icon">📎</div>
-                        <div class="card-title">Pièces jointes</div>
-                    </div>
-                    <div class="info-item full-width">
-                        <div style="display:flex;flex-wrap:wrap;gap:.5rem;">
-                            @if($perte->copie_piece)
-                            <a href="{{ Storage::url($perte->copie_piece) }}" target="_blank" class="file-chip">
-                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                                </svg>
-                                Copie de la pièce
-                            </a>
-                            @endif
-                            @if($perte->declaration_vol)
-                            <a href="{{ Storage::url($perte->declaration_vol) }}" target="_blank" class="file-chip">
-                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                                </svg>
-                                Déclaration de vol
-                            </a>
-                            @endif
-                            @if($perte->document_complementaire)
-                            <a href="{{ Storage::url($perte->document_complementaire) }}" target="_blank" class="file-chip">
-                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                                </svg>
-                                Doc. complémentaire
-                            </a>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-                @endif
-
-                <!-- Rejection Reason -->
-                @if($perte->statut === 'rejetee' && $perte->motif_rejet)
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-icon">⚠️</div>
-                            <div class="card-title">Motif du rejet</div>
-                        </div>
-                        <div class="rejection-box">
-                            <p>{{ $perte->motif_rejet }}</p>
-                        </div>
-                    </div>
-                @endif
-
-                <!-- Timeline -->
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-icon">📅</div>
-                        <div class="card-title">Chronologie</div>
-                    </div>
-
-                    <div class="timeline">
-                        <div class="timeline-item">
-                            <div class="timeline-date">{{ \Carbon\Carbon::parse($perte->created_at)->format('d/m/Y à H:i') }}</div>
-                            <div class="timeline-text">Déclaration soumise par le citoyen</div>
-                        </div>
-
-                        @if($perte->validated_at)
-                            <div class="timeline-item">
-                                <div class="timeline-date">{{ \Carbon\Carbon::parse($perte->validated_at)->format('d/m/Y à H:i') }}</div>
-                                <div class="timeline-text">
-                                    @if($perte->statut === 'validee')
-                                        ✅ Déclaration validée
-                                    @else
-                                        ❌ Déclaration rejetée
-                                    @endif
-                                    @if($perte->validator)
-                                        par {{ $perte->validator->name }}
-                                    @endif
-                                </div>
-                            </div>
-                        @endif
+                    <div class="info-item">
+                        <div class="info-label">Email</div>
+                        <div class="info-value">{{ $perte->email }}</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Right Column -->
-            <div>
-                <!-- Citizen Info -->
-                <div class="citizen-card">
-                    <div class="citizen-avatar">
-                        {{ strtoupper(substr($perte->first_name ?? $perte->user->name, 0, 1)) }}
-                    </div>
-                    <div class="citizen-name">{{ $perte->first_name }} {{ $perte->last_name }}</div>
-                    <div class="citizen-email">{{ $perte->email }}</div>
-                    
-                    <div class="citizen-info">
-                        <div class="citizen-info-item">
-                            <span>📱 Téléphone</span>
-                            <strong>{{ $perte->contact }}</strong>
-                        </div>
-                        @if($perte->user && $perte->user->address)
-                            <div class="citizen-info-item">
-                                <span>📍 Adresse</span>
-                                <strong>{{ $perte->user->address }}</strong>
-                            </div>
-                        @endif
-                    </div>
+            <!-- Document perdu -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon"><i class="bi bi-card-id"></i></div>
+                    <div class="card-title">Informations du document perdu</div>
                 </div>
+                <div class="info-row">
+                    <div class="info-item">
+                        <div class="info-label">Type de pièce</div>
+                        <div class="info-value">{{ $perte->type_piece }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Numéro de pièce</div>
+                        <div class="info-value">{{ $perte->numero_piece ?? 'Non renseigné' }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Date de perte</div>
+                        <div class="info-value">{{ \Carbon\Carbon::parse($perte->date_perte)->format('d/m/Y') }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Lieu de perte</div>
+                        <div class="info-value">{{ $perte->lieu_perte }}</div>
+                    </div>
+                    @if($perte->date_delivrance)
+                    <div class="info-item">
+                        <div class="info-label">Date de délivrance</div>
+                        <div class="info-value">{{ \Carbon\Carbon::parse($perte->date_delivrance)->format('d/m/Y') }}</div>
+                    </div>
+                    @endif
+                    @if($perte->autorite_delivrance)
+                    <div class="info-item">
+                        <div class="info-label">Autorité de délivrance</div>
+                        <div class="info-value">{{ $perte->autorite_delivrance }}</div>
+                    </div>
+                    @endif
+                </div>
+            </div>
 
-                <!-- Actions -->
-                @if($perte->statut === 'en_attente')
-                    <div class="action-section">
-                        <div class="action-title">🎯 Actions disponibles</div>
-                        
-                        <form method="POST" action="{{ route('agent.perte.valider', $perte->id) }}">
-                            @csrf
-                            <button type="submit" class="btn btn-approve" onclick="return confirm('Êtes-vous sûr de vouloir valider cette déclaration ?')">
-                                ✅ Valider la déclaration
-                            </button>
-                        </form>
+            <!-- Circonstances -->
+            @if($perte->circonstances)
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon"><i class="bi bi-journal-text"></i></div>
+                    <div class="card-title">Circonstances de la perte</div>
+                </div>
+                <div class="info-item full-width">
+                    <div class="info-value" style="line-height: 1.6;">{{ $perte->circonstances }}</div>
+                </div>
+            </div>
+            @endif
 
-                        <button class="btn btn-reject" onclick="openRejectModal()">
-                            ❌ Rejeter la déclaration
-                        </button>
-
-                        <a href="{{ route('agent.dashboard') }}" class="btn btn-secondary">
-                            ← Retour à la liste
+            <!-- Pièces jointes -->
+            @if($perte->copie_piece || $perte->declaration_vol || $perte->document_complementaire)
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon"><i class="bi bi-paperclip"></i></div>
+                    <div class="card-title">Pièces jointes</div>
+                </div>
+                <div class="info-item full-width">
+                    <div style="display:flex;flex-wrap:wrap;gap:.5rem;">
+                        @if($perte->copie_piece)
+                        <a href="{{ Storage::url($perte->copie_piece) }}" target="_blank" class="file-chip">
+                            <i class="bi bi-file-earmark-pdf"></i> Copie de la pièce
                         </a>
+                        @endif
+                        @if($perte->declaration_vol)
+                        <a href="{{ Storage::url($perte->declaration_vol) }}" target="_blank" class="file-chip">
+                            <i class="bi bi-file-text"></i> Déclaration de vol
+                        </a>
+                        @endif
+                        @if($perte->document_complementaire)
+                        <a href="{{ Storage::url($perte->document_complementaire) }}" target="_blank" class="file-chip">
+                            <i class="bi bi-file-earmark"></i> Doc. complémentaire
+                        </a>
+                        @endif
                     </div>
-                @else
-                    <div class="action-section">
-                        <div class="action-title">📊 Statut final</div>
-                        <p style="margin-bottom: 1rem; color: #64748b; line-height: 1.6;">
-                            Cette déclaration a été 
-                            @if($perte->statut === 'validee')
-                                <strong style="color: #27ae60;">validée</strong>
+                </div>
+            </div>
+            @endif
+
+            <!-- Rejection Reason -->
+            @if($perte->statut === 'rejetee' && $perte->motif_rejet)
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon"><i class="bi bi-x-octagon"></i></div>
+                        <div class="card-title">Motif du rejet</div>
+                    </div>
+                    <div class="rejection-box">
+                        <p>{{ $perte->motif_rejet }}</p>
+                    </div>
+                </div>
+            @endif
+
+            <!-- Timeline enrichie (avec toutes les étapes) -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon"><i class="bi bi-clock-history"></i></div>
+                    <div class="card-title">Chronologie</div>
+                </div>
+                <div class="timeline">
+                    <!-- Étape 1 : Soumission -->
+                    <div class="timeline-item">
+                        <div class="timeline-date">{{ \Carbon\Carbon::parse($perte->created_at)->format('d/m/Y H:i') }}</div>
+                        <div class="timeline-text">Déclaration soumise par le citoyen</div>
+                    </div>
+
+                    <!-- Étape 2 : Prise en charge (si statut >= en_cours) -->
+                    @php
+                        $taken = in_array($perte->statut, ['en_cours', 'correspondance_trouvee', 'restitue', 'non_retrouve', 'validee', 'rejetee']);
+                    @endphp
+                    <div class="timeline-item">
+                        <div class="timeline-date">
+                            @if($taken && $perte->validated_at)
+                                {{ $perte->validated_at->format('d/m/Y H:i') }}
                             @else
-                                <strong style="color: #e74c3c;">rejetée</strong>
+                                —
                             @endif
-                            le {{ \Carbon\Carbon::parse($perte->validated_at)->format('d/m/Y à H:i') }}.
-                        </p>
-                        <a href="{{ route('agent.dashboard') }}" class="btn btn-secondary">
-                            ← Retour à la liste
-                        </a>
+                        </div>
+                        <div class="timeline-text">
+                            Prise en charge par un agent
+                            @if($perte->validator)
+                                ({{ $perte->validator->name }})
+                            @endif
+                        </div>
+                    </div>
+
+                    <!-- Étape 3 : Correspondance trouvée (si correspondance_trouvee ou restitue) -->
+                    @php
+                        $found = in_array($perte->statut, ['correspondance_trouvee', 'restitue']);
+                    @endphp
+                    <div class="timeline-item">
+                        <div class="timeline-date">
+                            @if($found && $perte->updated_at)
+                                {{ $perte->updated_at->format('d/m/Y H:i') }}
+                            @else
+                                —
+                            @endif
+                        </div>
+                        <div class="timeline-text">
+                            @if($found)
+                                Correspondance trouvée
+                            @else
+                                Recherche de correspondance en cours
+                            @endif
+                        </div>
+                    </div>
+
+                    <!-- Étape 4 : Restitution (si restitue) -->
+                    <div class="timeline-item">
+                        <div class="timeline-date">
+                            @if($perte->statut === 'restitue' && $perte->date_restitution)
+                                {{ $perte->date_restitution->format('d/m/Y H:i') }}
+                            @else
+                                —
+                            @endif
+                        </div>
+                        <div class="timeline-text">
+                            @if($perte->statut === 'restitue')
+                                Document restitué
+                            @elseif($perte->statut === 'non_retrouve')
+                                Document non retrouvé – dossier clos
+                            @else
+                                En attente de restitution
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div>
+            <!-- Citizen Info -->
+            <div class="citizen-card">
+                <div class="citizen-avatar">
+                    {{ strtoupper(substr($perte->first_name ?? $perte->user->name, 0, 1)) }}
+                </div>
+                <div class="citizen-name">{{ $perte->first_name }} {{ $perte->last_name }}</div>
+                <div class="citizen-email">{{ $perte->email }}</div>
+                <div class="citizen-info">
+                    <div class="citizen-info-item">
+                        <span><i class="bi bi-telephone"></i> Téléphone</span>
+                        <strong>{{ $perte->contact }}</strong>
+                    </div>
+                    @if($perte->user && $perte->user->address)
+                    <div class="citizen-info-item">
+                        <span><i class="bi bi-geo-alt"></i> Adresse</span>
+                        <strong>{{ $perte->user->address }}</strong>
+                    </div>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Actions selon le statut -->
+            <div class="action-section">
+                <div class="action-title"><i class="bi bi-lightning-charge"></i> Actions disponibles</div>
+
+                @if($perte->statut === 'en_attente')
+                    <a href="{{ route('agent.perte.prendre', $perte->id) }}" class="btn btn-primary">
+                        <i class="bi bi-play-circle"></i> Prendre en charge
+                    </a>
+                    <button class="btn btn-reject" onclick="openRejectModal()">
+                        <i class="bi bi-x-lg"></i> Rejeter la déclaration
+                    </button>
+
+                @elseif($perte->statut === 'en_cours')
+                    <a href="{{ route('agent.perte.recherche', $perte->id) }}" class="btn btn-primary">
+                        <i class="bi bi-search-heart"></i> Rechercher des correspondances
+                    </a>
+
+                    <!-- Bouton "Non retrouvé" -->
+                    <form method="POST" action="{{ route('agent.perte.non-retrouve', $perte->id) }}" style="width:100%;" onsubmit="return confirm('⚠️ Déclarer ce document comme NON RETROUVÉ ?\n\n🔍 Cette action signifie :\n- Le document n\'a pas été retrouvé après recherche.\n- Un récépissé PDF sera généré automatiquement.\n- Le citoyen recevra une notification avec lien de téléchargement.\n- Le citoyen pourra refaire son titre auprès du service compétent.\n\n✅ Confirmez-vous cette action ?')">
+                        @csrf
+                        <button type="submit" class="btn btn-notfound">
+                            <i class="bi bi-emoji-frown"></i> Non retrouvé (lancer le renouvellement)
+                        </button>
+                    </form>
+                    <div class="action-help">
+                        <i class="bi bi-info-circle"></i> Utilisez "Non retrouvé" quand le document est perdu et doit être refait. Cela génère un récépissé PDF pour le citoyen.
+                    </div>
+
+                    <button class="btn btn-reject" onclick="openRejectModal()">
+                        <i class="bi bi-x-lg"></i> Rejeter la déclaration
+                    </button>
+                    <div class="action-help">
+                        <i class="bi bi-exclamation-triangle"></i> "Rejeter" est réservé aux déclarations frauduleuses, incomplètes ou invalides. Un motif est obligatoire.
+                    </div>
+
+                @elseif($perte->statut === 'correspondance_trouvee')
+                    <form method="POST" action="{{ route('agent.perte.restitution', $perte->id) }}" class="d-inline" style="width:100%;">
+                        @csrf
+                        <button type="submit" class="btn btn-approve" onclick="return confirm('Confirmer la restitution physique du document ?')">
+                            <i class="bi bi-check2-circle"></i> Marquer comme restitué
+                        </button>
+                    </form>
+
+                    <!-- Bouton "Non retrouvé" si finalement le document n'est pas restitué -->
+                    <form method="POST" action="{{ route('agent.perte.non-retrouve', $perte->id) }}" style="width:100%;" onsubmit="return confirm('⚠️ Déclarer ce document comme NON RETROUVÉ ?\n\nMême si une correspondance a été trouvée, vous pouvez décider de le déclarer non retrouvé si finalement le document ne peut être restitué.\n\n✅ Confirmez-vous ?')">
+                        @csrf
+                        <button type="submit" class="btn btn-notfound">
+                            <i class="bi bi-emoji-frown"></i> Non retrouvé (annuler la correspondance)
+                        </button>
+                    </form>
+                    <div class="action-help">
+                        <i class="bi bi-info-circle"></i> Si malgré la correspondance, le document ne peut pas être restitué, utilisez "Non retrouvé".
+                    </div>
+
+                    <button class="btn btn-reject" onclick="openRejectModal()">
+                        <i class="bi bi-x-lg"></i> Rejeter la déclaration
+                    </button>
+                    <div class="action-help">
+                        <i class="bi bi-exclamation-triangle"></i> "Rejeter" est réservé aux déclarations frauduleuses, incomplètes ou invalides. Un motif est obligatoire.
+                    </div>
+
+                @elseif($perte->statut === 'pret_recuperation')
+                    <!-- ✅ BOUTON RESTITUER POUR PRET_RECUPERATION -->
+                    <form method="POST" action="{{ route('agent.perte.restitution', $perte->id) }}" style="width:100%;">
+                        @csrf
+                        <button type="submit" class="btn btn-approve" onclick="return confirm('Confirmer la restitution physique du document ?')">
+                            <i class="bi bi-check2-circle"></i> Restituer
+                        </button>
+                    </form>
+                    <div class="action-help">
+                        <i class="bi bi-info-circle"></i> Le citoyen a signalé avoir récupéré son document. Validez la restitution pour finaliser le dossier.
+                    </div>
+
+                @elseif($perte->statut === 'restitue')
+                    <div class="alert alert-success" style="margin-bottom: 0;">
+                        <i class="bi bi-check-circle-fill"></i> Dossier finalisé – Document restitué le {{ $perte->date_restitution ? $perte->date_restitution->format('d/m/Y') : '—' }}
+                    </div>
+
+                @elseif($perte->statut === 'non_retrouve')
+                    <div class="alert alert-warning" style="margin-bottom: 0; background: #fef3c7; color: #92400e;">
+                        <i class="bi bi-emoji-frown"></i> Document non retrouvé – Aucune action supplémentaire.
+                    </div>
+                    <!-- Bouton de simulation (pour tester) -->
+                    <form method="POST" action="{{ route('agent.perte.simuler-pret', $perte->id) }}" style="margin-top: 1rem;" onsubmit="return confirm('Simuler la préparation du document ? Le citoyen sera notifié.')">
+                        @csrf
+                        <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                            <input type="text" name="lieu_recuperation" value="Commissariat de Lomé – Bureau 5 (SIMULATION)" class="form-control" style="flex:1; padding: 0.6rem 1rem; border: 1px solid var(--gray-200); border-radius: 8px; background: white; color: var(--dark);" required>
+                            <button type="submit" class="btn btn-primary" style="width: auto; background: #f59e0b; color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 600;">
+                                <i class="bi bi-clock-history"></i> Simuler préparation
+                            </button>
+                        </div>
+                        <div class="action-help" style="margin-top: 0.5rem;">
+                            <i class="bi bi-info-circle"></i> Utilisez ce bouton en test pour simuler la préparation du document (passage en "Prêt à récupérer").
+                        </div>
+                    </form>
+
+                @elseif($perte->statut === 'validee')
+                    <div class="alert alert-success" style="margin-bottom: 0;">
+                        <i class="bi bi-check-circle-fill"></i> Déclaration validée
+                    </div>
+
+                @elseif($perte->statut === 'rejetee')
+                    <div class="alert alert-danger" style="margin-bottom: 0;">
+                        <i class="bi bi-x-octagon"></i> Déclaration rejetée
                     </div>
                 @endif
+
+                <hr style="margin: 1rem 0; border-color: var(--gray-200);">
+                <a href="{{ route('agent.dashboard') }}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Retour à la liste
+                </a>
             </div>
         </div>
     </div>
@@ -1119,10 +1595,10 @@
 <div class="modal" id="rejectModal">
     <div class="modal-content">
         <div class="modal-header">
-            <div class="modal-title">❌ Rejeter la déclaration</div>
-            <button class="modal-close" onclick="closeRejectModal()">×</button>
+            <div class="modal-title"><i class="bi bi-x-octagon"></i> Rejeter la déclaration</div>
+            <button class="modal-close" onclick="closeRejectModal()"><i class="bi bi-x-lg"></i></button>
         </div>
-        <form method="POST" action="{{ route('agent.perte.rejeter', $perte->id) }}">
+        <form method="POST" action="{{ route('agent.perte.rejeter', $perte->id) }}" id="rejectForm">
             @csrf
             <div class="form-group">
                 <label class="form-label">Motif du rejet *</label>
@@ -1137,30 +1613,76 @@
 </div>
 
 <script>
+    // Horloge temps réel
+    function updateDateTime() {
+        const now = new Date();
+        const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' };
+        const formatted = now.toLocaleDateString('fr-FR', options).replace(',', ' -');
+        const dateTimeEl = document.getElementById('currentDateTime');
+        if (dateTimeEl) dateTimeEl.innerHTML = formatted;
+    }
+    updateDateTime();
+    setInterval(updateDateTime, 60000);
+
+    // Mode sombre
+    function applyTheme(isDark) {
+        if (isDark) {
+            document.body.classList.add('dark-mode');
+            const icon = document.querySelector('#themeIcon');
+            if (icon) icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>';
+        } else {
+            document.body.classList.remove('dark-mode');
+            const icon = document.querySelector('#themeIcon');
+            if (icon) icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>';
+        }
+        localStorage.setItem('darkMode', isDark ? 'dark' : 'light');
+    }
+
+    function loadTheme() {
+        const savedTheme = localStorage.getItem('darkMode');
+        const isDark = savedTheme === 'dark';
+        applyTheme(isDark);
+    }
+
+    function toggleGlobalDarkMode() {
+        const isDark = !document.body.classList.contains('dark-mode');
+        applyTheme(isDark);
+        fetch('{{ route("profile.toggle-dark-mode") }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ dark_mode: isDark })
+        }).catch(() => console.log('Mode sombre sauvegardé localement'));
+    }
+
     // Reject Modal
     function openRejectModal() {
         document.getElementById('rejectModal').classList.add('active');
     }
-
     function closeRejectModal() {
         document.getElementById('rejectModal').classList.remove('active');
     }
-
-    // Close modal on outside click
-    document.getElementById('rejectModal').addEventListener('click', (e) => {
-        if (e.target.id === 'rejectModal') {
-            closeRejectModal();
-        }
+    document.getElementById('rejectModal')?.addEventListener('click', (e) => {
+        if (e.target.id === 'rejectModal') closeRejectModal();
     });
 
     // Auto-hide alerts
     setTimeout(() => {
         document.querySelectorAll('.alert').forEach(alert => {
+            alert.style.transition = 'opacity 0.3s';
             alert.style.opacity = '0';
             setTimeout(() => alert.remove(), 300);
         });
     }, 5000);
-</script>
 
+    // Initialisation
+    document.addEventListener('DOMContentLoaded', function() {
+        loadTheme();
+        const themeBtn = document.getElementById('themeToggleBtn');
+        if (themeBtn) themeBtn.addEventListener('click', toggleGlobalDarkMode);
+    });
+</script>
 </body>
 </html>

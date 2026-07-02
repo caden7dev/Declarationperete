@@ -243,24 +243,37 @@ public function updatePreferences(Request $request)
     /**
      * Changer la langue uniquement (sans AJAX - méthode alternative)
      */
-    public function changeLanguage(Request $request)
-    {
-        $request->validate([
-            'locale' => 'required|in:fr,en'
-        ]);
-        
+   
+public function changeLanguage(Request $request)
+{
+    $request->validate([
+        'locale' => 'required|string|in:fr,en',
+    ]);
+ 
+    $locale = $request->input('locale');
+ 
+    // 1. Sauvegarder en session (lu par SetLocale à chaque requête)
+    session(['locale' => $locale]);
+ 
+    // 2. Appliquer immédiatement pour cette requête
+    App::setLocale($locale);
+ 
+    // 3. Sauvegarder en base de données (persistance après reconnexion)
+    if (Auth::check()) {
         $user = Auth::user();
         $preferences = $user->preferences ?? [];
-        $preferences['language'] = $request->locale;
+        $preferences['language'] = $locale;
         $user->preferences = $preferences;
         $user->save();
-        
-        // Mettre à jour la session
-        session(['locale' => $request->locale]);
-        App::setLocale($request->locale);
-        
-        return redirect()->back()->with('success', 'Langue modifiée avec succès');
     }
+ 
+    // 4. Retourner sur la même page avec confirmation
+    return redirect()->back()->with('success',
+        $locale === 'fr'
+            ? '✅ Langue changée en Français'
+            : '✅ Language changed to English'
+    );
+}
 
     /**
      * Supprimer le compte

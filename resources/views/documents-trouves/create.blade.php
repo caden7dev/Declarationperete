@@ -6,38 +6,115 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Déclarer un Document Trouvé - e-Déclaration TG</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- ⚡ ANTI-FLASH BLANC -->
+    <script>
+        (function() {
+            try {
+                const savedTheme = localStorage.getItem('darkMode');
+                const isDark = savedTheme === 'dark';
+                if (isDark) {
+                    document.documentElement.style.backgroundColor = '#0f172a';
+                    document.body.style.backgroundColor = '#0f172a';
+                    document.documentElement.classList.add('dark-mode');
+                } else {
+                    document.documentElement.style.backgroundColor = '#f5f7fa';
+                    document.body.style.backgroundColor = '#f5f7fa';
+                }
+            } catch(e) {}
+        })();
+    </script>
+    
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --primary-light: #34d399;
+            --dark: #0f172a;
+            --gray-100: #f8fafc;
+            --gray-200: #e2e8f0;
+            --gray-600: #64748b;
+            --gray-800: #1e293b;
+        }
         
         body {
             font-family: 'Inter', sans-serif;
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             min-height: 100vh;
             padding: 2rem 1rem;
+            transition: background 0.2s ease;
         }
-
+        
+        body.dark-mode {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        }
+        
+        body.dark-mode .container {
+            background: transparent;
+        }
+        
         .container {
             max-width: 900px;
             margin: 0 auto;
         }
-
+        
+        /* Theme toggle button - petit bouton en haut à droite */
+        .theme-toggle-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            border: 2px solid var(--gray-200);
+            border-radius: 50px;
+            padding: 0.6rem 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            z-index: 1000;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        body.dark-mode .theme-toggle-btn {
+            background: #1e293b;
+            border-color: #334155;
+            color: #e5e7eb;
+        }
+        
+        .theme-toggle-btn:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+        
         .header {
             text-align: center;
             margin-bottom: 3rem;
         }
-
+        
         .header h1 {
             font-size: 2.5rem;
             color: #1e3a5f;
             margin-bottom: 0.5rem;
             font-weight: 900;
         }
-
+        
+        body.dark-mode .header h1 {
+            color: #e5e7eb;
+        }
+        
         .header .subtitle {
             font-size: 1.1rem;
             color: #64748b;
         }
-
+        
+        body.dark-mode .header .subtitle {
+            color: #94a3b8;
+        }
+        
         .alert-info {
             background: linear-gradient(135deg, #10b981, #059669);
             color: white;
@@ -48,19 +125,25 @@
             align-items: start;
             gap: 1rem;
         }
-
+        
         .alert-info-icon {
             font-size: 2rem;
             flex-shrink: 0;
         }
-
+        
         .form-card {
             background: white;
             border-radius: 20px;
             padding: 3rem;
             box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            transition: background 0.2s, border-color 0.2s;
         }
-
+        
+        body.dark-mode .form-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+        }
+        
         .section-title {
             font-size: 1.5rem;
             color: #1e3a5f;
@@ -69,27 +152,36 @@
             border-bottom: 2px solid #e2e8f0;
             font-weight: 800;
         }
-
+        
+        body.dark-mode .section-title {
+            color: #e5e7eb;
+            border-bottom-color: #334155;
+        }
+        
         .form-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 1.5rem;
             margin-bottom: 2rem;
         }
-
+        
         .form-group {
             margin-bottom: 1.5rem;
         }
-
+        
         .form-group label {
             display: block;
             font-weight: 600;
             color: #1e293b;
             margin-bottom: 0.5rem;
         }
-
+        
+        body.dark-mode .form-group label {
+            color: #cbd5e1;
+        }
+        
         .required { color: #ef4444; }
-
+        
         .form-control {
             width: 100%;
             padding: 0.9rem;
@@ -98,19 +190,31 @@
             font-size: 1rem;
             transition: all 0.3s;
             font-family: 'Inter', sans-serif;
+            background: white;
+            color: #1e293b;
         }
-
+        
+        body.dark-mode .form-control {
+            background: #334155;
+            border-color: #4b5563;
+            color: #e5e7eb;
+        }
+        
         .form-control:focus {
             outline: none;
             border-color: #10b981;
             box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
         }
-
+        
+        body.dark-mode .form-control:focus {
+            border-color: #34d399;
+        }
+        
         textarea.form-control {
             min-height: 120px;
             resize: vertical;
         }
-
+        
         .file-upload {
             border: 2px dashed #cbd5e1;
             border-radius: 8px;
@@ -118,15 +222,26 @@
             text-align: center;
             cursor: pointer;
             transition: all 0.3s;
+            background: white;
         }
-
+        
+        body.dark-mode .file-upload {
+            background: #334155;
+            border-color: #4b5563;
+        }
+        
         .file-upload:hover {
             border-color: #10b981;
             background: #f0fdf4;
         }
-
+        
+        body.dark-mode .file-upload:hover {
+            background: #2d3b4e;
+            border-color: #34d399;
+        }
+        
         .file-upload input[type="file"] { display: none; }
-
+        
         .btn-submit {
             background: linear-gradient(135deg, #10b981, #059669);
             color: white;
@@ -140,13 +255,12 @@
             width: 100%;
             box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
         }
-
+        
         .btn-submit:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
         }
-
-        /* ===== BOUTON RETOUR ===== */
+        
         .btn-back {
             display: inline-flex;
             align-items: center;
@@ -161,30 +275,49 @@
             font-size: 0.95rem;
             transition: all 0.3s;
         }
-
+        
         .btn-back:hover {
             background: #475569;
             color: white;
             transform: translateY(-1px);
         }
-
+        
+        body.dark-mode .btn-back {
+            background: #334155;
+        }
+        
+        body.dark-mode .btn-back:hover {
+            background: #475569;
+        }
+        
         .help-text {
             font-size: 0.85rem;
             color: #64748b;
             margin-top: 0.3rem;
         }
-
+        
+        body.dark-mode .help-text {
+            color: #94a3b8;
+        }
+        
         @media (max-width: 768px) {
             .form-card { padding: 2rem 1.5rem; }
             .header h1 { font-size: 2rem; }
             .form-grid { grid-template-columns: 1fr; }
+            .theme-toggle-btn { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <!-- Bouton thème flottant -->
+    <div class="theme-toggle-btn" id="themeToggleBtn">
+        <svg id="themeIcon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+        </svg>
+        <span>Thème</span>
+    </div>
 
-        {{-- ===== BOUTON RETOUR : dashboard si connecté, accueil sinon ===== --}}
+    <div class="container">
         @auth
             <a href="{{ route('dashboard') }}" class="btn-back">
                 ← Retour au dashboard
@@ -213,7 +346,6 @@
             <form action="{{ route('documents-trouves.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
 
-                <!-- Section 1 : Vos informations -->
                 <div class="section-title">👤 Vos Informations</div>
                 <div class="form-grid">
                     <div class="form-group">
@@ -254,7 +386,6 @@
                     </div>
                 </div>
 
-                <!-- Section 2 : Informations du document -->
                 <div class="section-title">📄 Informations du Document Trouvé</div>
                 <div class="form-grid">
                     <div class="form-group">
@@ -294,7 +425,6 @@
                     </div>
                 </div>
 
-                <!-- Section 3 : Circonstances de la découverte -->
                 <div class="section-title">📍 Où et Quand avez-vous trouvé ce document ?</div>
                 <div class="form-grid">
                     <div class="form-group">
@@ -332,7 +462,6 @@
                     <span class="help-text">Ex: Trouvé sur un banc, dans un taxi, etc.</span>
                 </div>
 
-                <!-- Section 4 : Photo (optionnelle) -->
                 <div class="section-title">📷 Photo du Document (Optionnel)</div>
                 <div class="form-group">
                     <div class="file-upload" onclick="document.getElementById('photo').click()">
@@ -355,6 +484,58 @@
     </div>
 
     <script>
+        // ===================== GESTION DU THÈME =====================
+        function applyTheme(isDark) {
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                document.documentElement.style.backgroundColor = '#0f172a';
+                document.body.style.backgroundColor = '#0f172a';
+                const icon = document.querySelector('#themeIcon');
+                if (icon) {
+                    icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>';
+                }
+            } else {
+                document.body.classList.remove('dark-mode');
+                document.documentElement.style.backgroundColor = '#f5f7fa';
+                document.body.style.backgroundColor = '#f5f7fa';
+                const icon = document.querySelector('#themeIcon');
+                if (icon) {
+                    icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>';
+                }
+            }
+            localStorage.setItem('darkMode', isDark ? 'dark' : 'light');
+        }
+
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('darkMode');
+            const isDark = savedTheme === 'dark';
+            applyTheme(isDark);
+        }
+
+        function toggleGlobalDarkMode() {
+            const isDark = !document.body.classList.contains('dark-mode');
+            applyTheme(isDark);
+            
+            fetch('{{ route("profile.toggle-dark-mode") }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ dark_mode: isDark })
+            }).catch(() => console.log('Mode sombre sauvegardé localement'));
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTheme();
+            
+            const themeBtn = document.getElementById('themeToggleBtn');
+            if (themeBtn) {
+                themeBtn.addEventListener('click', toggleGlobalDarkMode);
+            }
+        });
+
+        // Gestion du fichier upload
         document.getElementById('photo').addEventListener('change', function(e) {
             if (e.target.files.length > 0) {
                 const fileName = e.target.files[0].name;

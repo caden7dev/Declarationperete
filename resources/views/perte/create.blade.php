@@ -5,8 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Nouvelle Déclaration - e-Déclaration TG</title>
+    <script>
+        // Anti-flash blanc - exécuté immédiatement
+        (function() {
+            const isDark = localStorage.getItem('darkMode') === 'true';
+            if (isDark) {
+                document.documentElement.style.backgroundColor = '#0f172a';
+                document.body.style.backgroundColor = '#0f172a';
+            }
+        })();
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
+        /* ===== STYLES COMPLETS ===== */
         * {
             margin: 0;
             padding: 0;
@@ -391,6 +403,22 @@
             margin-top: 0.3rem;
         }
 
+        .copy-info {
+            background: #dbeafe;
+            border-left: 4px solid #3b82f6;
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        body.dark-mode .copy-info {
+            background: #1e3a5f;
+            color: #e5e7eb;
+        }
+
         .section {
             background: var(--gray-100);
             border-radius: 16px;
@@ -609,10 +637,19 @@
 @php
     use App\Models\Notification;
     $user = auth()->user();
-    $unreadNotificationsCount = Notification::where('user_id', $user->id)->where('is_read', false)->count();
+
+    // ============================================================
+    // ⚠️ COMPTEUR CORRIGÉ : Exclusion des messages (agent_message)
+    // et des notifications expirées
+    // ============================================================
+    $unreadNotificationsCount = Notification::where('user_id', $user->id)
+        ->where('type', '!=', 'agent_message')
+        ->notExpired()
+        ->where('is_read', false)
+        ->count();
 @endphp
 
-<!-- Sidebar (identique au dashboard final) -->
+<!-- Sidebar -->
 <div class="sidebar">
     <div class="sidebar-header">
         <h2>
@@ -645,6 +682,10 @@
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
             Nouvelle Déclaration
         </a>
+        <a href="{{ route('citoyen.messages') }}">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+            Messages
+        </a>
         <a href="{{ route('notifications.index') }}">
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
             Notifications
@@ -663,10 +704,9 @@
     </nav>
 
     <div class="sidebar-footer">
-        <form method="POST" action="{{ route('logout') }}">
+        <form method="POST" action="{{ route('logout') }}" onsubmit="return confirm('Voulez-vous vraiment vous déconnecter ?')">
             @csrf
             <button type="submit" class="logout-link">
-                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
                 Déconnecter
             </button>
         </form>
@@ -692,8 +732,8 @@
             <div class="date-time">
                 {{ \Carbon\Carbon::now()->locale('fr')->isoFormat('dddd D MMMM YYYY - HH:mm') }}
             </div>
-            <button class="icon-btn theme-toggle" onclick="toggleDarkMode()" title="Changer le thème">
-                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <button class="icon-btn theme-toggle" id="themeToggleBtn" title="Changer le thème">
+                <svg id="themeIcon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
                 </svg>
             </button>
@@ -714,6 +754,17 @@
             <p>Veuillez remplir tous les champs requis avec attention</p>
         </div>
 
+        {{-- Message d'information en cas de copie depuis une déclaration non retrouvée --}}
+        @if(isset($oldPerte) && $oldPerte)
+            <div class="copy-info">
+                <i class="bi bi-info-circle-fill fs-4"></i>
+                <div>
+                    <strong>Copie depuis votre déclaration non retrouvée #{{ $oldPerte->numero_declaration ?? $oldPerte->id }}</strong><br>
+                    Les champs ci‑dessous ont été pré‑remplis avec vos informations précédentes. Vous pouvez les modifier avant de soumettre.
+                </div>
+            </div>
+        @endif
+
         @if ($errors->any())
             <div class="error-box">
                 <ul>
@@ -727,7 +778,7 @@
         <form method="POST" action="{{ route('perte.store') }}" enctype="multipart/form-data">
             @csrf
 
-            <!-- Section 1 : Informations du déclarant -->
+            <!-- Section 1 : Informations du déclarant (auto-remplies) -->
             <div class="section">
                 <div class="section-title">
                     <span class="section-number">1</span> Informations du déclarant
@@ -752,7 +803,7 @@
                 </div>
             </div>
 
-            <!-- Section 2 : Informations sur la pièce perdue -->
+            <!-- Section 2 : Informations sur la pièce perdue (pré‑remplie depuis $oldPerte si dispo) -->
             <div class="section">
                 <div class="section-title">
                     <span class="section-number">2</span> Informations sur la pièce perdue
@@ -763,30 +814,33 @@
                         <select name="type_piece" required class="@error('type_piece') is-invalid @enderror">
                             <option value="">-- Sélectionner le type de pièce --</option>
                             @foreach($typesPieces ?? [] as $type)
-                                <option value="{{ $type->nom }}" {{ old('type_piece') == $type->nom ? 'selected' : '' }}>{{ $type->nom }}</option>
+                                @php
+                                    $selected = old('type_piece', $oldPerte->type_piece ?? '') == $type->nom;
+                                @endphp
+                                <option value="{{ $type->nom }}" {{ $selected ? 'selected' : '' }}>{{ $type->nom }}</option>
                             @endforeach
                         </select>
                         @error('type_piece') <div class="text-danger">{{ $message }}</div> @enderror
                     </div>
                     <div class="form-group">
                         <label>Numéro de la pièce</label>
-                        <input type="text" name="numero_piece" value="{{ old('numero_piece') }}" placeholder="Ex: 123456789">
+                        <input type="text" name="numero_piece" value="{{ old('numero_piece', $oldPerte->numero_piece ?? '') }}" placeholder="Ex: 123456789">
                         @error('numero_piece') <div class="text-danger">{{ $message }}</div> @enderror
                     </div>
                     <div class="form-group">
                         <label>Date de délivrance</label>
-                        <input type="date" name="date_delivrance" value="{{ old('date_delivrance') }}">
+                        <input type="date" name="date_delivrance" value="{{ old('date_delivrance', $oldPerte->date_delivrance ?? '') }}">
                         @error('date_delivrance') <div class="text-danger">{{ $message }}</div> @enderror
                     </div>
                     <div class="form-group">
                         <label>Autorité de délivrance</label>
-                        <input type="text" name="autorite_delivrance" value="{{ old('autorite_delivrance') }}" placeholder="Ex: Préfecture de Lomé">
+                        <input type="text" name="autorite_delivrance" value="{{ old('autorite_delivrance', $oldPerte->autorite_delivrance ?? '') }}" placeholder="Ex: Préfecture de Lomé">
                         @error('autorite_delivrance') <div class="text-danger">{{ $message }}</div> @enderror
                     </div>
                 </div>
             </div>
 
-            <!-- Section 3 : Détails de la perte -->
+            <!-- Section 3 : Détails de la perte (pré‑remplis depuis $oldPerte) -->
             <div class="section">
                 <div class="section-title">
                     <span class="section-number">3</span> Détails de la perte
@@ -794,23 +848,23 @@
                 <div class="grid">
                     <div class="form-group">
                         <label>Date de la perte <span class="required">*</span></label>
-                        <input type="date" name="date_perte" value="{{ old('date_perte') }}" max="{{ date('Y-m-d') }}" required>
+                        <input type="date" name="date_perte" value="{{ old('date_perte', $oldPerte ? $oldPerte->date_perte->format('Y-m-d') : '') }}" max="{{ date('Y-m-d') }}" required>
                         @error('date_perte') <div class="text-danger">{{ $message }}</div> @enderror
                     </div>
                     <div class="form-group">
                         <label>Lieu de la perte <span class="required">*</span></label>
-                        <input type="text" name="lieu_perte" value="{{ old('lieu_perte') }}" placeholder="Ex: Marché de Lomé" required>
+                        <input type="text" name="lieu_perte" value="{{ old('lieu_perte', $oldPerte->lieu_perte ?? '') }}" placeholder="Ex: Marché de Lomé" required>
                         @error('lieu_perte') <div class="text-danger">{{ $message }}</div> @enderror
                     </div>
                     <div class="form-group full">
                         <label>Circonstances de la perte</label>
-                        <textarea name="circonstances" rows="4" placeholder="Décrivez les circonstances de la perte...">{{ old('circonstances') }}</textarea>
+                        <textarea name="circonstances" rows="4" placeholder="Décrivez les circonstances de la perte...">{{ old('circonstances', $oldPerte->circonstances ?? '') }}</textarea>
                         @error('circonstances') <div class="text-danger">{{ $message }}</div> @enderror
                     </div>
                 </div>
             </div>
 
-            <!-- Section 4 : Justificatifs -->
+            <!-- Section 4 : Justificatifs (optionnels) – on ne copie pas les fichiers -->
             <div class="section">
                 <div class="section-title">
                     <span class="section-number">4</span> Justificatifs (optionnels)
@@ -858,18 +912,32 @@
 </div>
 
 <script>
-    function toggleDarkMode() {
-        document.body.classList.toggle('dark-mode');
-        const isDark = document.body.classList.contains('dark-mode');
-        localStorage.setItem('darkMode', isDark);
-        const themeIcon = document.querySelector('.theme-toggle svg');
-        if (themeIcon) {
-            if (isDark) {
-                themeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>';
-            } else {
-                themeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>';
+    function applyTheme(isDark) {
+        if (isDark) {
+            document.body.classList.add('dark-mode');
+            const icon = document.querySelector('#themeIcon');
+            if (icon) {
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>';
+            }
+        } else {
+            document.body.classList.remove('dark-mode');
+            const icon = document.querySelector('#themeIcon');
+            if (icon) {
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>';
             }
         }
+        localStorage.setItem('darkMode', isDark ? 'dark' : 'light');
+    }
+
+    function loadTheme() {
+        const savedTheme = localStorage.getItem('darkMode');
+        const isDark = savedTheme === 'dark';
+        applyTheme(isDark);
+    }
+
+    function toggleGlobalDarkMode() {
+        const isDark = !document.body.classList.contains('dark-mode');
+        applyTheme(isDark);
         fetch('{{ route("profile.toggle-dark-mode") }}', {
             method: 'POST',
             headers: {
@@ -880,17 +948,18 @@
         }).catch(console.error);
     }
 
-    if (localStorage.getItem('darkMode') === 'true') {
-        document.body.classList.add('dark-mode');
-        const themeIcon = document.querySelector('.theme-toggle svg');
-        if (themeIcon) {
-            themeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>';
-        }
-    }
+    document.addEventListener('DOMContentLoaded', function() {
+        loadTheme();
+        const themeBtn = document.getElementById('themeToggleBtn');
+        if (themeBtn) themeBtn.addEventListener('click', toggleGlobalDarkMode);
 
-    document.querySelector('form').addEventListener('submit', function(e) {
-        if (!confirm('Êtes-vous sûr de vouloir soumettre cette déclaration ?')) {
-            e.preventDefault();
+        const form = document.querySelector('form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                if (!confirm('Êtes-vous sûr de vouloir soumettre cette déclaration ?')) {
+                    e.preventDefault();
+                }
+            });
         }
     });
 </script>

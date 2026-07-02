@@ -6,6 +6,25 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Document Trouvé — Agent | e-Déclaration TG</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- ⚡ ANTI-FLASH BLANC -->
+    <script>
+        (function() {
+            try {
+                const savedTheme = localStorage.getItem('darkMode');
+                const isDark = savedTheme === 'dark';
+                if (isDark) {
+                    document.documentElement.style.backgroundColor = '#0f172a';
+                    document.body.style.backgroundColor = '#0f172a';
+                    document.documentElement.classList.add('dark-mode');
+                } else {
+                    document.documentElement.style.backgroundColor = '#f0f4f8';
+                    document.body.style.backgroundColor = '#f0f4f8';
+                }
+            } catch(e) {}
+        })();
+    </script>
+    
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
 
@@ -13,6 +32,11 @@
             background: #f0f4f8;
             min-height: 100vh;
             display: flex;
+            transition: background 0.2s ease;
+        }
+        
+        body.dark-mode {
+            background: #0f172a;
         }
 
         /* ===== SIDEBAR AGENT ===== */
@@ -25,6 +49,11 @@
             height: 100vh;
             z-index: 100;
             box-shadow: 4px 0 20px rgba(0,0,0,0.15);
+            transition: background 0.2s;
+        }
+        
+        body.dark-mode .sidebar {
+            background: linear-gradient(180deg, #0f172a 0%, #0a0f1a 100%);
         }
 
         .sidebar-header {
@@ -172,6 +201,10 @@
             padding: 2rem;
             min-height: 100vh;
         }
+        
+        body.dark-mode .main-content {
+            background: transparent;
+        }
 
         .page-wrapper { max-width: 1100px; margin: 0 auto; }
 
@@ -201,17 +234,31 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
             transition: all 0.2s;
         }
+        
+        body.dark-mode .back-btn {
+            background: #1e293b;
+            color: #94a3b8;
+        }
 
         .back-btn:hover {
             background: #f8fafc;
             color: #1e3a5f;
             transform: translateX(-2px);
         }
+        
+        body.dark-mode .back-btn:hover {
+            background: #334155;
+            color: #e5e7eb;
+        }
 
         .page-title {
             font-size: 1.4rem;
             font-weight: 800;
             color: #1e3a5f;
+        }
+        
+        body.dark-mode .page-title {
+            color: #e5e7eb;
         }
 
         .page-title span { color: #27ae60; }
@@ -232,9 +279,17 @@
             position: relative;
             transition: all 0.2s;
         }
+        
+        body.dark-mode .icon-btn {
+            background: #1e293b;
+        }
 
         .icon-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
         .icon-btn svg { width: 20px; height: 20px; stroke: #475569; }
+        
+        body.dark-mode .icon-btn svg {
+            stroke: #94a3b8;
+        }
 
         .notif-dot {
             position: absolute;
@@ -266,6 +321,9 @@
 
         .flash-success { background: #d1fae5; border: 1.5px solid #10b981; color: #065f46; }
         .flash-error   { background: #fee2e2; border: 1.5px solid #ef4444; color: #991b1b; }
+        
+        body.dark-mode .flash-success { background: #0a3b2a; color: #a7f3d0; }
+        body.dark-mode .flash-error { background: #3f1e1e; color: #fecaca; }
 
         /* ===== HERO CARD ===== */
         .hero-card {
@@ -276,6 +334,11 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.07);
             position: relative;
             overflow: hidden;
+            transition: background 0.2s;
+        }
+        
+        body.dark-mode .hero-card {
+            background: #1e293b;
         }
 
         .hero-card::before {
@@ -313,6 +376,10 @@
             line-height: 1.2;
             margin-bottom: 0.8rem;
         }
+        
+        body.dark-mode .hero-title {
+            color: #e5e7eb;
+        }
 
         .hero-title small {
             display: block;
@@ -320,6 +387,10 @@
             color: #64748b;
             font-weight: 500;
             margin-top: 0.3rem;
+        }
+        
+        body.dark-mode .hero-title small {
+            color: #94a3b8;
         }
 
         .statut-badge {
@@ -340,6 +411,11 @@
         .s-matche   { background: #dbeafe; color: #2563eb; }
         .s-restitue { background: #d1fae5; color: #059669; }
         .s-archive  { background: #f1f5f9; color: #64748b; }
+        
+        body.dark-mode .s-attente  { background: #422d0b; color: #fbbf24; }
+        body.dark-mode .s-matche   { background: #1e3a5f; color: #60a5fa; }
+        body.dark-mode .s-restitue { background: #0a3b2a; color: #34d399; }
+        body.dark-mode .s-archive  { background: #1e293b; color: #94a3b8; }
 
         .hero-doc-icon {
             width: 80px;
@@ -362,11 +438,19 @@
             border-top: 1px solid #f1f5f9;
             flex-wrap: wrap;
         }
+        
+        body.dark-mode .hero-meta-row {
+            border-top-color: #334155;
+        }
 
         .meta-item { display: flex; align-items: center; gap: 0.5rem; }
         .meta-item svg { width: 15px; height: 15px; stroke: #27ae60; flex-shrink: 0; }
         .meta-label { font-size: 0.75rem; color: #94a3b8; font-weight: 500; }
         .meta-value { font-size: 0.9rem; color: #1e293b; font-weight: 700; }
+        
+        body.dark-mode .meta-value {
+            color: #cbd5e1;
+        }
 
         /* ===== LAYOUT 3 COLONNES ===== */
         .layout-grid {
@@ -389,6 +473,11 @@
             border-radius: 16px;
             padding: 1.5rem;
             box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+            transition: background 0.2s;
+        }
+        
+        body.dark-mode .card {
+            background: #1e293b;
         }
 
         .card-full {
@@ -406,6 +495,10 @@
             margin-bottom: 1.2rem;
             padding-bottom: 0.8rem;
             border-bottom: 2px solid #f8fafc;
+        }
+        
+        body.dark-mode .card-header {
+            border-bottom-color: #334155;
         }
 
         .card-icon {
@@ -425,8 +518,19 @@
         .ci-red    { background: #fee2e2; }
         .ci-purple { background: #ede9fe; }
         .ci-yellow { background: #fef9c3; }
+        
+        body.dark-mode .ci-blue   { background: #1e3a5f; }
+        body.dark-mode .ci-green  { background: #0a3b2a; }
+        body.dark-mode .ci-orange { background: #422d0b; }
+        body.dark-mode .ci-red    { background: #3f1e1e; }
+        body.dark-mode .ci-purple { background: #2e1a3f; }
+        body.dark-mode .ci-yellow { background: #3d3a0a; }
 
         .card-title { font-weight: 700; color: #1e3a5f; font-size: 0.95rem; }
+        
+        body.dark-mode .card-title {
+            color: #e5e7eb;
+        }
 
         .info-list { display: flex; flex-direction: column; gap: 0; }
 
@@ -438,11 +542,20 @@
             border-bottom: 1px solid #f8fafc;
             gap: 1rem;
         }
+        
+        body.dark-mode .info-item {
+            border-bottom-color: #334155;
+        }
 
         .info-item:last-child { border-bottom: none; padding-bottom: 0; }
 
         .ii-label { font-size: 0.78rem; color: #94a3b8; font-weight: 500; flex-shrink: 0; }
         .ii-value { font-size: 0.87rem; color: #1e293b; font-weight: 600; text-align: right; }
+        
+        body.dark-mode .ii-value {
+            color: #cbd5e1;
+        }
+        
         .ii-empty { color: #cbd5e1; font-style: italic; font-weight: 400; }
 
         /* ===== ACTIONS PANEL ===== */
@@ -451,6 +564,10 @@
             border-radius: 16px;
             padding: 1.5rem;
             box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+        
+        body.dark-mode .actions-panel {
+            background: linear-gradient(135deg, #0f172a, #0a0f1a);
         }
 
         .actions-title {
@@ -539,6 +656,10 @@
             max-height: 90vh;
             overflow-y: auto;
         }
+        
+        body.dark-mode .modal {
+            background: #1e293b;
+        }
 
         @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
@@ -550,8 +671,16 @@
             padding-bottom: 1rem;
             border-bottom: 2px solid #f1f5f9;
         }
+        
+        body.dark-mode .modal-header {
+            border-bottom-color: #334155;
+        }
 
         .modal-title { font-size: 1.2rem; font-weight: 800; color: #1e3a5f; }
+        
+        body.dark-mode .modal-title {
+            color: #e5e7eb;
+        }
 
         .modal-close {
             background: #f1f5f9;
@@ -567,10 +696,24 @@
             color: #64748b;
             transition: all 0.2s;
         }
+        
+        body.dark-mode .modal-close {
+            background: #334155;
+            color: #94a3b8;
+        }
 
         .modal-close:hover { background: #e2e8f0; color: #1e3a5f; }
+        
+        body.dark-mode .modal-close:hover {
+            background: #475569;
+            color: #e5e7eb;
+        }
 
         .modal-subtitle { color: #64748b; font-size: 0.85rem; margin-bottom: 1.5rem; }
+        
+        body.dark-mode .modal-subtitle {
+            color: #94a3b8;
+        }
 
         .perte-option {
             display: flex;
@@ -583,12 +726,31 @@
             cursor: pointer;
             transition: all 0.2s;
         }
+        
+        body.dark-mode .perte-option {
+            border-color: #334155;
+        }
 
         .perte-option:hover { border-color: #3b82f6; background: #eff6ff; }
+        
+        body.dark-mode .perte-option:hover {
+            background: #1e3a5f;
+            border-color: #60a5fa;
+        }
+        
         .perte-option input[type="radio"] { width: 18px; height: 18px; accent-color: #3b82f6; flex-shrink: 0; }
         .perte-option-info { flex: 1; }
         .perte-option-name { font-weight: 700; color: #1e293b; font-size: 0.9rem; }
+        
+        body.dark-mode .perte-option-name {
+            color: #e5e7eb;
+        }
+        
         .perte-option-detail { font-size: 0.78rem; color: #64748b; margin-top: 0.2rem; }
+        
+        body.dark-mode .perte-option-detail {
+            color: #94a3b8;
+        }
 
         .modal-empty { text-align: center; padding: 2rem; color: #94a3b8; }
         .modal-empty-icon { font-size: 2rem; margin-bottom: 0.5rem; }
@@ -620,8 +782,18 @@
             cursor: pointer;
             transition: all 0.2s;
         }
+        
+        body.dark-mode .btn-modal-cancel {
+            background: #334155;
+            color: #94a3b8;
+        }
 
         .btn-modal-cancel:hover { background: #e2e8f0; }
+        
+        body.dark-mode .btn-modal-cancel:hover {
+            background: #475569;
+            color: #e5e7eb;
+        }
 
         /* ===== CORRESPONDANCES ===== */
         .corr-item {
@@ -636,12 +808,37 @@
             gap: 1rem;
             cursor: pointer;
         }
+        
+        body.dark-mode .corr-item {
+            border-color: #334155;
+        }
 
         .corr-item:hover { border-color: #3b82f6; background: #f8faff; }
+        
+        body.dark-mode .corr-item:hover {
+            background: #1e3a5f;
+            border-color: #60a5fa;
+        }
+        
         .corr-item:last-child { margin-bottom: 0; }
         .corr-name { font-weight: 700; color: #1e293b; font-size: 0.9rem; }
+        
+        body.dark-mode .corr-name {
+            color: #e5e7eb;
+        }
+        
         .corr-detail { font-size: 0.78rem; color: #64748b; margin-top: 0.2rem; }
+        
+        body.dark-mode .corr-detail {
+            color: #94a3b8;
+        }
+        
         .corr-tag { background: #fef3c7; color: #d97706; font-size: 0.72rem; font-weight: 700; padding: 0.25rem 0.7rem; border-radius: 50px; flex-shrink: 0; }
+        
+        body.dark-mode .corr-tag {
+            background: #422d0b;
+            color: #fbbf24;
+        }
 
         /* ===== PHOTO ===== */
         .photo-wrap {
@@ -656,6 +853,10 @@
             border: 2px solid #e2e8f0;
             object-fit: contain;
         }
+        
+        body.dark-mode .photo-wrap img {
+            border-color: #334155;
+        }
 
         .photo-none {
             background: #f8fafc;
@@ -666,8 +867,14 @@
             color: #94a3b8;
             font-size: 0.85rem;
         }
+        
+        body.dark-mode .photo-none {
+            background: #1e293b;
+            border-color: #334155;
+            color: #64748b;
+        }
 
-        /* ===== MATCHED STATE ===== */
+        /* ===== MATCHED BANNER ===== */
         .matched-banner {
             background: linear-gradient(135deg, #d1fae5, #a7f3d0);
             border: 2px solid #10b981;
@@ -678,10 +885,23 @@
             gap: 1rem;
             margin-bottom: 1.5rem;
         }
+        
+        body.dark-mode .matched-banner {
+            background: linear-gradient(135deg, #0a3b2a, #065f46);
+            border-color: #34d399;
+        }
 
         .matched-icon { font-size: 1.8rem; flex-shrink: 0; }
         .matched-title { font-weight: 800; color: #065f46; font-size: 0.95rem; margin-bottom: 0.2rem; }
         .matched-text { color: #047857; font-size: 0.85rem; line-height: 1.5; }
+        
+        body.dark-mode .matched-title {
+            color: #a7f3d0;
+        }
+        
+        body.dark-mode .matched-text {
+            color: #86efac;
+        }
 
         /* ===== TIMELINE ===== */
         .timeline { display: flex; flex-direction: column; gap: 0; }
@@ -704,6 +924,10 @@
             width: 2px;
             background: #f1f5f9;
         }
+        
+        body.dark-mode .tl-item::before {
+            background: #334155;
+        }
 
         .tl-item:last-child::before { display: none; }
 
@@ -722,9 +946,18 @@
         .tl-dot-green  { background: #d1fae5; }
         .tl-dot-blue   { background: #dbeafe; }
         .tl-dot-gray   { background: #f1f5f9; }
+        
+        body.dark-mode .tl-dot-green  { background: #0a3b2a; }
+        body.dark-mode .tl-dot-blue   { background: #1e3a5f; }
+        body.dark-mode .tl-dot-gray   { background: #1e293b; }
 
         .tl-content { flex: 1; }
         .tl-label { font-weight: 700; color: #1e293b; font-size: 0.85rem; }
+        
+        body.dark-mode .tl-label {
+            color: #cbd5e1;
+        }
+        
         .tl-date  { font-size: 0.75rem; color: #94a3b8; margin-top: 0.1rem; }
 
         /* ===== RESPONSIVE ===== */
@@ -839,7 +1072,7 @@
                 <div class="page-title">Dossier <span>#{{ $documentTrouve->numero_declaration ?? 'DT-'.str_pad($documentTrouve->id,5,'0',STR_PAD_LEFT) }}</span></div>
             </div>
             <div class="top-bar-right">
-                <button class="icon-btn" onclick="toggleGlobalDarkMode()" title="Thème">
+                <button class="icon-btn" id="themeToggleBtn" title="Thème">
                     <svg id="themeIcon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
                     </svg>
@@ -1339,28 +1572,44 @@
     });
 
     // Gestion perte_id : si manual rempli → écrase la sélection radio
-    document.querySelector('form').addEventListener('submit', function(e) {
-        const manual = document.getElementById('perteIdManual')?.value;
-        if (manual) {
-            document.querySelectorAll('input[name="perte_id"]').forEach(r => r.removeAttribute('required'));
-            const hidden = document.createElement('input');
-            hidden.type = 'hidden';
-            hidden.name = 'perte_id';
-            hidden.value = manual;
-            this.appendChild(hidden);
-        }
-    });
+    const modalForm = document.querySelector('#matchModal form');
+    if (modalForm) {
+        modalForm.addEventListener('submit', function(e) {
+            const manual = document.getElementById('perteIdManual')?.value;
+            if (manual) {
+                document.querySelectorAll('input[name="perte_id"]').forEach(r => r.removeAttribute('required'));
+                const hidden = document.createElement('input');
+                hidden.type = 'hidden';
+                hidden.name = 'perte_id';
+                hidden.value = manual;
+                this.appendChild(hidden);
+            }
+        });
+    }
 
-    // Thème
+    // ===================== GESTION DU THÈME =====================
     function applyTheme(isDark) {
-        document.body.classList.toggle('dark-mode', isDark);
-        const icon = document.getElementById('themeIcon');
-        if (icon) {
-            icon.innerHTML = isDark
-                ? '<path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>'
-                : '<path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>';
+        if (isDark) {
+            document.body.classList.add('dark-mode');
+            const icon = document.getElementById('themeIcon');
+            if (icon) {
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>';
+            }
+        } else {
+            document.body.classList.remove('dark-mode');
+            const icon = document.getElementById('themeIcon');
+            if (icon) {
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>';
+            }
         }
         localStorage.setItem('darkMode', isDark ? 'dark' : 'light');
+    }
+
+    function loadTheme() {
+        const serverTheme = '{{ auth()->user()->theme ?? "light" }}';
+        const localTheme = localStorage.getItem('darkMode');
+        const isDark = (serverTheme === 'dark') || (localTheme === 'dark');
+        applyTheme(isDark);
     }
 
     function toggleGlobalDarkMode() {
@@ -1374,13 +1623,16 @@
                 'Accept': 'application/json'
             },
             body: JSON.stringify({ dark_mode: isDark })
-        }).catch(e => {});
+        }).catch(e => console.log('Erreur serveur:', e));
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-        const serverTheme = '{{ auth()->user()->theme ?? "light" }}';
-        const localTheme = localStorage.getItem('darkMode');
-        applyTheme((serverTheme || localTheme || 'light') === 'dark');
+        loadTheme();
+        
+        const themeBtn = document.getElementById('themeToggleBtn');
+        if (themeBtn) {
+            themeBtn.addEventListener('click', toggleGlobalDarkMode);
+        }
     });
 </script>
 </body>

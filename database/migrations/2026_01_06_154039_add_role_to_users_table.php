@@ -10,15 +10,12 @@ class AddRoleToUsersTable extends Migration
      * Run the migrations.
      *
      * @return void
-     */
-    public function up()
-    {
-        Schema::table('users', function (Blueprint $table) {
-        $table->enum('role', ['user','agent','admin'])->default('user');
-
-        });
-    }
-
+     */public function up()
+{
+    Schema::table('users', function (Blueprint $table) {
+        $table->string('role')->default('user')->after('email');
+    });
+}
     /**
      * Reverse the migrations.
      *

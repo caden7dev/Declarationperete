@@ -30,15 +30,32 @@ class DocumentTrouve extends Model
         'circonstances',
         'photo_document',
         'statut',
-        'perte_matchee_id',
+        'perte_matchee_id',      // ID de la perte associée
         'date_restitution',
         'numero_declaration',
         'notes_admin',
+        'perte_id',              // Pour cohérence avec l'autre relation (optionnel, à uniformiser)
     ];
 
     protected $casts = [
         'date_decouverte' => 'date',
         'date_restitution' => 'datetime',
+    ];
+
+    /**
+     * Constantes de statuts pour les documents trouvés
+     */
+    const STATUT_EN_ATTENTE = 'en_attente';
+    const STATUT_MATCHE = 'matche';
+    const STATUT_RESTITUE = 'restitue';
+
+    /**
+     * Liste des statuts pour affichage
+     */
+    public static $statuts = [
+        self::STATUT_EN_ATTENTE => 'En attente',
+        self::STATUT_MATCHE => 'Matché',
+        self::STATUT_RESTITUE => 'Restitué',
     ];
 
     /**
@@ -63,35 +80,45 @@ class DocumentTrouve extends Model
     }
 
     /**
-     * Relation avec la perte matchée
+     * Relation avec la perte matchée (via perte_matchee_id)
      */
     public function perte()
     {
         return $this->belongsTo(Perte::class, 'perte_matchee_id');
     }
 
-    // Scopes
+    /**
+     * Alias pour la relation avec la perte (pour uniformité)
+     */
+    public function perteMatchee()
+    {
+        return $this->belongsTo(Perte::class, 'perte_matchee_id');
+    }
+
+    /**
+     * Scopes
+     */
     public function scopeEnAttente($query)
     {
-        return $query->where('statut', 'en_attente');
+        return $query->where('statut', self::STATUT_EN_ATTENTE);
     }
 
     public function scopeMatches($query)
     {
-        return $query->where('statut', 'matche');
+        return $query->where('statut', self::STATUT_MATCHE);
     }
 
     public function scopeRestitues($query)
     {
-        return $query->where('statut', 'restitue');
+        return $query->where('statut', self::STATUT_RESTITUE);
     }
 
     /**
-     * Chercher des correspondances avec des pertes
+     * Chercher des correspondances avec des pertes (en tenant compte des nouveaux statuts)
      */
     public function chercherCorrespondances()
     {
-        return Perte::where('statut', 'en_attente')
+        return Perte::whereIn('statut', [Perte::STATUT_EN_ATTENTE, Perte::STATUT_EN_COURS])
             ->where(function($q) {
                 $q->where('numero_piece', $this->numero_document)
                   ->orWhere('type_piece', $this->type_document)
@@ -102,29 +129,31 @@ class DocumentTrouve extends Model
     }
 
     /**
-     * Matcher avec une perte
+     * Associer ce document trouvé à une déclaration de perte.
+     * Met à jour les deux modèles et change les statuts.
      */
-    public function matcherAvecPerte($perteId)
+    public function associerAPerte(Perte $perte)
     {
+        // Vérifier que la perte est dans un statut compatible
+        if (!in_array($perte->statut, [Perte::STATUT_EN_ATTENTE, Perte::STATUT_EN_COURS])) {
+            throw new \Exception('La déclaration de perte ne peut pas être associée dans son statut actuel.');
+        }
+
+        // Mettre à jour le document trouvé
         $this->update([
-            'perte_matchee_id' => $perteId,
-            'statut' => 'matche'
+            'perte_matchee_id' => $perte->id,
+            'statut' => self::STATUT_MATCHE,
         ]);
 
-        $perte = Perte::find($perteId);
-        if ($perte) {
-            $perte->update([
-                'statut' => 'trouve',
-                'document_retrouve' => true,
-                'date_retrouvaille' => now(),
-                'document_trouve_id' => $this->id
-            ]);
-        }
+        // Mettre à jour la perte
+        $perte->update([
+            'statut' => Perte::STATUT_CORRESPONDANCE_TROUVEE,
+            'document_trouve_id' => $this->id,
+            'date_traitement' => now(),
+        ]);
+
+        return $this;
     }
-    public function perteMatchee()
-{
-    return $this->belongsTo(Perte::class, 'perte_matchee_id');
-}
 
     /**
      * Marquer comme restitué
@@ -132,8 +161,66 @@ class DocumentTrouve extends Model
     public function marquerRestitue()
     {
         $this->update([
-            'statut' => 'restitue',
+            'statut' => self::STATUT_RESTITUE,
             'date_restitution' => now()
         ]);
+
+        // Mettre à jour la perte associée si elle existe
+        if ($this->perte_matchee_id) {
+            $perte = Perte::find($this->perte_matchee_id);
+            if ($perte && $perte->statut !== Perte::STATUT_RESTITUE) {
+                $perte->update([
+                    'statut' => Perte::STATUT_RESTITUE,
+                    'date_restitution' => now(),
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Vérifier si le document est en attente
+     */
+    public function isEnAttente(): bool
+    {
+        return $this->statut === self::STATUT_EN_ATTENTE;
+    }
+
+    /**
+     * Vérifier si le document est matché
+     */
+    public function isMatche(): bool
+    {
+        return $this->statut === self::STATUT_MATCHE;
+    }
+
+    /**
+     * Vérifier si le document est restitué
+     */
+    public function isRestitue(): bool
+    {
+        return $this->statut === self::STATUT_RESTITUE;
+    }
+
+    /**
+     * Accesseur pour le badge de statut (HTML)
+     */
+    public function getStatutBadgeAttribute()
+    {
+        $classes = [
+            self::STATUT_EN_ATTENTE => 'bg-warning',
+            self::STATUT_MATCHE     => 'bg-primary',
+            self::STATUT_RESTITUE   => 'bg-success',
+        ];
+        $class = $classes[$this->statut] ?? 'bg-secondary';
+        $label = self::$statuts[$this->statut] ?? $this->statut;
+        return "<span class='badge {$class}'>{$label}</span>";
+    }
+
+    /**
+     * Texte du statut en français
+     */
+    public function getStatutTextAttribute()
+    {
+        return self::$statuts[$this->statut] ?? $this->statut;
     }
 }

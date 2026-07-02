@@ -5,6 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Paramètres - e-Déclaration TG</title>
+    <script>
+    // Anti-flash blanc - À mettre tout en haut du head
+    (function() {
+        const isDark = localStorage.getItem('darkMode') === 'true';
+        if (isDark) {
+            document.documentElement.style.backgroundColor = '#0f172a';
+            document.body.style.backgroundColor = '#0f172a';
+        }
+    })();
+</script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         /* ===== MÊMES STYLES QUE LE DASHBOARD ===== */
@@ -877,6 +887,11 @@
 <body>
 
 @php
+    // FORCER L'APPLICATION DE LA LANGUE DEPUIS LA SESSION
+    if(session('locale')) {
+        App::setLocale(session('locale'));
+    }
+    
     use App\Models\Perte;
     use App\Models\Notification;
     $user = auth()->user();
@@ -885,9 +900,24 @@
     $validees = Perte::where('user_id', auth()->id())->where('statut', 'validee')->count();
     $rejetees = Perte::where('user_id', auth()->id())->where('statut', 'rejetee')->count();
     $dernieresDeclarations = Perte::where('user_id', auth()->id())->orderBy('created_at', 'desc')->take(3)->get();
-    $unreadNotificationsCount = Notification::where('user_id', auth()->id())->where('is_read', false)->count();
+
+    // ============================================================
+    // ⚠️ COMPTEUR CORRIGÉ : Exclusion des messages (agent_message)
+    // et des notifications expirées
+    // ============================================================
+    $unreadNotificationsCount = Notification::where('user_id', auth()->id())
+        ->where('type', '!=', 'agent_message')
+        ->notExpired()
+        ->where('is_read', false)
+        ->count();
+
     // Préférences chargées depuis l'utilisateur ou session
     $preferences = session('user_preferences', $user->preferences ?? []);
+    // S'assurer que la langue des préférences est utilisée
+    if(isset($preferences['language']) && $preferences['language'] != app()->getLocale()) {
+        App::setLocale($preferences['language']);
+        session(['locale' => $preferences['language']]);
+    }
 @endphp
 
 <!-- Sidebar -->
@@ -941,13 +971,12 @@
     </nav>
 
     <div class="sidebar-footer">
-        <form method="POST" action="{{ route('logout') }}">
-            @csrf
-            <button type="submit" class="logout-link">
-                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-                Déconnecter
-            </button>
-        </form>
+        <form method="POST" action="{{ route('logout') }}" onsubmit="return confirm('Voulez-vous vraiment vous déconnecter ?')">
+    @csrf
+    <button type="submit" class="logout-link">
+        Déconnecter
+    </button>
+</form>
     </div>
 </div>
 
@@ -1045,9 +1074,8 @@
             </div>
         </div>
 
-        <!-- Tab Preferences (avec AJAX) -->
+        <!-- Tab Preferences (AVEC FORMULAIRE POST POUR LA LANGUE) -->
         <div class="tab-content" id="preferences-content">
-            <form id="preferencesForm" style="display:none;"></form>
             <div class="settings-card">
                 <div class="settings-card-header"><div class="settings-card-icon">🎨</div><div class="settings-card-title"><h3>Préférences d'affichage</h3><p>Personnalisez votre expérience</p></div></div>
                 <div class="setting-item"><div class="setting-item-info"><div class="setting-icon">🌙</div><div class="setting-text"><h4>Mode sombre</h4><p>Activer le thème sombre</p></div></div><label class="toggle-switch"><input type="checkbox" name="dark_mode" value="1" {{ ($preferences['dark_mode'] ?? false) ? 'checked' : '' }} id="darkModeToggle"><span class="toggle-slider"></span></label></div>
@@ -1055,11 +1083,47 @@
                 <div class="setting-item"><div class="setting-item-info"><div class="setting-icon">📱</div><div class="setting-text"><h4>Notifications SMS</h4><p>Disponible prochainement</p></div></div><label class="toggle-switch"><input type="checkbox" disabled><span class="toggle-slider"></span></label></div>
             </div>
 
+            <!-- ✅ NOUVEAU FORMULAIRE POST POUR LA LANGUE ET LE FUSEAU HORAIRE -->
             <div class="settings-card">
-                <div class="settings-card-header"><div class="settings-card-icon">🌍</div><div class="settings-card-title"><h3>Langue et région</h3><p>Configurez vos préférences</p></div></div>
-                <div class="form-group"><label class="form-label">Langue de l'interface</label><select class="form-input" id="languageSelect"><option value="fr" {{ ($preferences['language'] ?? 'fr') == 'fr' ? 'selected' : '' }}>🇫🇷 Français</option><option value="en" {{ ($preferences['language'] ?? 'fr') == 'en' ? 'selected' : '' }}>🇬🇧 English</option></select></div>
-                <div class="form-group"><label class="form-label">Fuseau horaire</label><select class="form-input" id="timezoneSelect"><option value="Africa/Lome" {{ ($preferences['timezone'] ?? 'Africa/Lome') == 'Africa/Lome' ? 'selected' : '' }}>🇹🇬 Afrique/Lomé (GMT+0)</option></select></div>
-                <div class="btn-group"><button type="button" class="btn btn-primary" id="savePreferencesBtn">💾 Enregistrer les préférences</button></div>
+                <div class="settings-card-header">
+                    <div class="settings-card-icon">🌍</div>
+                    <div class="settings-card-title">
+                        <h3>Langue et région</h3>
+                        <p>Configurez vos préférences linguistiques</p>
+                    </div>
+                </div>
+
+                <form method="POST" action="{{ route('profile.language') }}">
+                    @csrf
+
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label class="form-label">Langue de l'interface</label>
+                        <select class="form-input" name="locale" id="languageSelect">
+                            <option value="fr" {{ app()->getLocale() === 'fr' ? 'selected' : '' }}>
+                                🇫🇷 Français
+                            </option>
+                            <option value="en" {{ app()->getLocale() === 'en' ? 'selected' : '' }}>
+                                🇬🇧 English
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label class="form-label">Fuseau horaire</label>
+                        <select class="form-input" name="timezone" id="timezoneSelect">
+                            <option value="Africa/Lome" {{ ($preferences['timezone'] ?? 'Africa/Lome') == 'Africa/Lome' ? 'selected' : '' }}>
+                                🇹🇬 Afrique/Lomé (GMT+0)
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="btn-group">
+                        <button type="submit" class="btn btn-primary">
+                            🌐 Enregistrer les préférences
+                        </button>
+                    </div>
+
+                </form>
             </div>
         </div>
     </div>
@@ -1083,7 +1147,6 @@
             if (icon) icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>';
         }
         localStorage.setItem('darkMode', isDark ? 'dark' : 'light');
-        // Mettre à jour le toggle dans les préférences
         const darkToggle = document.getElementById('darkModeToggle');
         if (darkToggle) darkToggle.checked = isDark;
     }
@@ -1098,7 +1161,6 @@
     function toggleGlobalDarkMode() {
         const isDark = !document.body.classList.contains('dark-mode');
         applyTheme(isDark);
-        // Sauvegarde serveur via AJAX
         fetch('{{ route("profile.toggle-dark-mode") }}', {
             method: 'POST',
             headers: {'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Content-Type': 'application/json'},
@@ -1107,18 +1169,15 @@
         showToast('Mode ' + (isDark ? 'sombre' : 'clair') + ' activé');
     }
 
-    // ===================== PRÉFÉRENCES AJAX =====================
+    // ===================== PRÉFÉRENCES AJAX (sans la langue) =====================
     async function savePreferences() {
         const darkMode = document.getElementById('darkModeToggle').checked;
         const emailNotif = document.getElementById('emailNotifToggle').checked;
-        const language = document.getElementById('languageSelect').value;
-        const timezone = document.getElementById('timezoneSelect').value;
 
         const formData = new FormData();
         formData.append('dark_mode', darkMode ? 1 : 0);
         formData.append('email_notifications', emailNotif ? 1 : 0);
-        formData.append('language', language);
-        formData.append('timezone', timezone);
+        // ⚠️ On envoie PAS la langue ici, elle est gérée par le formulaire POST
 
         try {
             const response = await fetch('{{ route("profile.preferences") }}', {
@@ -1129,10 +1188,6 @@
             const data = await response.json();
             if (response.ok && data.success) {
                 showToast('✅ Préférences enregistrées');
-                // Si la langue a changé, on peut recharger la page pour appliquer la traduction (optionnel)
-                if (language !== '{{ $preferences['language'] ?? 'fr' }}') {
-                    setTimeout(() => location.reload(), 1000);
-                }
             } else {
                 showToast('❌ Erreur lors de l\'enregistrement', true);
             }
@@ -1191,9 +1246,8 @@
             const btn = document.querySelector(`.tab[onclick*="${activeTab}"]`);
             if (btn) btn.click();
         }
-        // Bouton enregistrer préférences
-        document.getElementById('savePreferencesBtn').addEventListener('click', savePreferences);
-        // Synchronisation du toggle mode sombre avec le toggle de la page
+        
+        // Événements pour le mode sombre et les notifications email
         document.getElementById('darkModeToggle').addEventListener('change', function(e) {
             const isDark = this.checked;
             applyTheme(isDark);
@@ -1203,11 +1257,10 @@
                 body: JSON.stringify({ dark_mode: isDark })
             }).catch(console.error);
         });
-        // Notification email : pas besoin de recharger
+        
         document.getElementById('emailNotifToggle').addEventListener('change', savePreferences);
-        // Changement langue / fuseau : enregistrement immédiat sans rechargement (sauf si changement langue)
-        document.getElementById('languageSelect').addEventListener('change', savePreferences);
-        document.getElementById('timezoneSelect').addEventListener('change', savePreferences);
+        
+        // ⚠️ Plus d'événements sur languageSelect et timezoneSelect car ils sont dans un formulaire POST
     });
 </script>
 </body>

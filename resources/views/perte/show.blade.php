@@ -5,9 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Détails de la Déclaration - e-Déclaration TG</title>
+    <script>
+    // Anti-flash blanc
+    (function() {
+        const isDark = localStorage.getItem('darkMode') === 'true';
+        if (isDark) {
+            document.documentElement.style.backgroundColor = '#0f172a';
+            document.body.style.backgroundColor = '#0f172a';
+        }
+    })();
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
+        /* ... vos styles existants (inchangés) ... */
         * {
             margin: 0;
             padding: 0;
@@ -62,7 +73,7 @@
             background: rgba(0, 0, 0, 0.75);
         }
 
-        /* ===== SIDEBAR (identique au dashboard final) ===== */
+        /* ===== SIDEBAR ===== */
         .sidebar {
             width: 280px;
             background: rgba(255, 255, 255, 0.98);
@@ -105,7 +116,7 @@
             color: #e5e7eb;
         }
 
-         .sidebar-header .flag-icon {
+        .sidebar-header .flag-icon {
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -226,7 +237,6 @@
             overflow-y: auto;
         }
 
-        /* Top Bar Icons */
         .top-bar-icons {
             display: flex;
             align-items: center;
@@ -294,7 +304,6 @@
             padding: 0 4px;
         }
 
-        /* Main Container */
         .main-container {
             background: white;
             border-radius: 24px;
@@ -308,7 +317,6 @@
             border-color: #4b5563;
         }
 
-        /* Header */
         .detail-header {
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             border-radius: 20px;
@@ -382,7 +390,6 @@
             font-weight: 600;
         }
 
-        /* Motif rejet */
         .motif-rejet {
             background: #fffbeb;
             border-left: 4px solid var(--warning);
@@ -397,7 +404,6 @@
             color: #fbbf24;
         }
 
-        /* Cards */
         .info-card, .timeline-card, .action-sidebar {
             background: white;
             border-radius: 20px;
@@ -466,7 +472,6 @@
             color: #e5e7eb;
         }
 
-        /* Documents */
         .documents-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -520,7 +525,6 @@
             border-color: #4b5563;
         }
 
-        /* Timeline */
         .timeline {
             position: relative;
             padding-left: 1.5rem;
@@ -573,7 +577,6 @@
             color: var(--gray-600);
         }
 
-        /* Action Sidebar */
         .user-info {
             text-align: center;
             background: var(--gray-100);
@@ -650,6 +653,44 @@
             filter: brightness(0.95);
         }
 
+        /* Banner non retrouvé */
+        .non-retrouve-banner {
+            background: linear-gradient(135deg, #e5e7eb, #d1d5db);
+            border-radius: 20px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            border: 1px solid #9ca3af;
+        }
+
+        body.dark-mode .non-retrouve-banner {
+            background: #1f2937;
+            border-color: #4b5563;
+        }
+
+        .non-retrouve-banner .icon {
+            font-size: 2rem;
+        }
+
+        .non-retrouve-banner .message {
+            flex: 1;
+        }
+
+        .non-retrouve-banner .btn-light {
+            background: white;
+            color: #1f2937;
+            padding: 0.6rem 1.2rem;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .non-retrouve-banner .btn-light:hover {
+            background: #f3f4f6;
+        }
+
         /* Responsive */
         @media (max-width: 1024px) {
             .sidebar {
@@ -675,10 +716,32 @@
 
 @php
     $user = auth()->user();
-    $unreadNotificationsCount = \App\Models\Notification::where('user_id', $user->id)->where('is_read', false)->count();
+
+    // ============================================================
+    // ⚠️ COMPTEUR CORRIGÉ : Exclusion des messages (agent_message)
+    // et des notifications expirées
+    // ============================================================
+    $unreadNotificationsCount = \App\Models\Notification::where('user_id', $user->id)
+        ->where('type', '!=', 'agent_message')
+        ->notExpired()
+        ->where('is_read', false)
+        ->count();
+
+    // Détermination du texte et de la classe du statut
+    $statusConfig = [
+        'en_attente'             => ['label' => 'En attente', 'class' => 'bg-warning', 'icon' => 'bi-clock'],
+        'en_cours'               => ['label' => 'En cours', 'class' => 'bg-info', 'icon' => 'bi-arrow-repeat'],
+        'correspondance_trouvee' => ['label' => 'Correspondance trouvée', 'class' => 'bg-primary', 'icon' => 'bi-check-circle'],
+        'restitue'               => ['label' => 'Restitué', 'class' => 'bg-success', 'icon' => 'bi-check2-circle'],
+        'non_retrouve'           => ['label' => 'Non retrouvé', 'class' => 'bg-secondary', 'icon' => 'bi-emoji-frown'],
+        'rejetee'                => ['label' => 'Rejetée', 'class' => 'bg-danger', 'icon' => 'bi-x-circle'],
+        'validee'                => ['label' => 'Validée', 'class' => 'bg-success', 'icon' => 'bi-check-circle'],
+    ];
+    $statut = $perte->statut;
+    $currentStatus = $statusConfig[$statut] ?? ['label' => ucfirst($statut), 'class' => 'bg-secondary', 'icon' => 'bi-question-circle'];
 @endphp
 
-<!-- Sidebar (identique au dashboard final) -->
+<!-- Sidebar -->
 <div class="sidebar">
     <div class="sidebar-header">
         <h2>
@@ -711,6 +774,10 @@
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
             Nouvelle Déclaration
         </a>
+        <a href="{{ route('citoyen.messages') }}">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+            Messages
+        </a>
         <a href="{{ route('notifications.index') }}">
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
             Notifications
@@ -729,10 +796,9 @@
     </nav>
 
     <div class="sidebar-footer">
-        <form method="POST" action="{{ route('logout') }}">
+       <form method="POST" action="{{ route('logout') }}" onsubmit="return confirm('Voulez-vous vraiment vous déconnecter ?')">
             @csrf
             <button type="submit" class="logout-link">
-                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
                 Déconnecter
             </button>
         </form>
@@ -781,21 +847,9 @@
                     <p class="header-subtitle"><i class="bi bi-calendar me-2"></i>Soumise le {{ $perte->created_at->format('d/m/Y à H:i') }}</p>
                 </div>
                 <div class="col-md-4 text-md-end">
-                    @php
-                        $badgeClass = [
-                            'en_attente' => 'bg-warning',
-                            'validee' => 'bg-success',
-                            'rejetee' => 'bg-danger'
-                        ][$perte->statut] ?? 'bg-secondary';
-                        $statutLabels = [
-                            'en_attente' => 'En attente',
-                            'validee' => 'Validée',
-                            'rejetee' => 'Rejetée'
-                        ];
-                    @endphp
                     <span class="status-badge-large">
-                        <i class="bi {{ $perte->statut == 'validee' ? 'bi-check-circle' : ($perte->statut == 'rejetee' ? 'bi-x-circle' : 'bi-clock') }}"></i>
-                        {{ $statutLabels[$perte->statut] }}
+                        <i class="bi {{ $currentStatus['icon'] }}"></i>
+                        {{ $currentStatus['label'] }}
                     </span>
                 </div>
             </div>
@@ -806,6 +860,20 @@
             <div class="motif-rejet">
                 <i class="bi bi-exclamation-triangle-fill me-2"></i>
                 <strong>Motif du rejet :</strong> {{ $perte->motif_rejet }}
+            </div>
+        @endif
+
+        <!-- Banner "Non retrouvé" avec lien vers nouvelle déclaration -->
+        @if($perte->statut == 'non_retrouve')
+            <div class="non-retrouve-banner">
+                <div class="icon">🔍</div>
+                <div class="message">
+                    <strong>Votre document n’a pas été retrouvé.</strong><br>
+                    Vous pouvez refaire une déclaration en reprenant vos informations.
+                </div>
+                <a href="{{ route('perte.create', ['copy_from' => $perte->id]) }}" class="btn-light">
+                    <i class="bi bi-plus-circle"></i> Refaire une déclaration
+                </a>
             </div>
         @endif
 
@@ -855,55 +923,112 @@
                 </div>
 
                 <!-- Documents justificatifs -->
-                @if($perte->document_path || $perte->declaration_vol || $perte->document_complementaire)
+                @if($perte->copie_piece || $perte->declaration_vol || $perte->document_complementaire)
                     <div class="info-card">
                         <div class="card-title"><i class="bi bi-paperclip"></i>Documents justificatifs</div>
                         <div class="documents-grid">
-                            @if($perte->document_path)
-                                <div class="document-card" onclick="window.open('{{ asset('storage/' . $perte->document_path) }}', '_blank')">
+                            @if($perte->copie_piece)
+                                <div class="document-card" onclick="window.open('{{ Storage::url($perte->copie_piece) }}', '_blank')">
                                     <div class="document-icon"><i class="bi bi-file-pdf"></i></div>
                                     <div class="document-name">Pièce d'identité</div>
-                                    <a href="{{ asset('storage/' . $perte->document_path) }}" download class="btn-download-card"><i class="bi bi-download me-1"></i>Télécharger</a>
+                                    <a href="{{ Storage::url($perte->copie_piece) }}" download class="btn-download-card"><i class="bi bi-download me-1"></i>Télécharger</a>
                                 </div>
                             @endif
                             @if($perte->declaration_vol)
-                                <div class="document-card" onclick="window.open('{{ asset('storage/' . $perte->declaration_vol) }}', '_blank')">
+                                <div class="document-card" onclick="window.open('{{ Storage::url($perte->declaration_vol) }}', '_blank')">
                                     <div class="document-icon"><i class="bi bi-file-text"></i></div>
                                     <div class="document-name">Déclaration de vol</div>
-                                    <a href="{{ asset('storage/' . $perte->declaration_vol) }}" download class="btn-download-card"><i class="bi bi-download me-1"></i>Télécharger</a>
+                                    <a href="{{ Storage::url($perte->declaration_vol) }}" download class="btn-download-card"><i class="bi bi-download me-1"></i>Télécharger</a>
                                 </div>
                             @endif
                             @if($perte->document_complementaire)
-                                <div class="document-card" onclick="window.open('{{ asset('storage/' . $perte->document_complementaire) }}', '_blank')">
+                                <div class="document-card" onclick="window.open('{{ Storage::url($perte->document_complementaire) }}', '_blank')">
                                     <div class="document-icon"><i class="bi bi-file-earmark"></i></div>
                                     <div class="document-name">Document complémentaire</div>
-                                    <a href="{{ asset('storage/' . $perte->document_complementaire) }}" download class="btn-download-card"><i class="bi bi-download me-1"></i>Télécharger</a>
+                                    <a href="{{ Storage::url($perte->document_complementaire) }}" download class="btn-download-card"><i class="bi bi-download me-1"></i>Télécharger</a>
                                 </div>
                             @endif
                         </div>
                     </div>
                 @endif
 
-                <!-- Historique -->
+                <!-- Historique enrichi (timeline) -->
                 <div class="timeline-card">
                     <div class="card-title"><i class="bi bi-clock-history"></i>Historique de la déclaration</div>
                     <div class="timeline">
+                        <!-- Étape 1 : Soumission -->
                         <div class="timeline-item">
                             <div class="timeline-dot"></div>
                             <div class="timeline-date"><i class="bi bi-calendar me-1"></i>{{ $perte->created_at->format('d/m/Y H:i') }}</div>
                             <div class="timeline-title">Déclaration soumise</div>
-                            <div class="timeline-subtitle">En attente de traitement par un agent</div>
+                            <div class="timeline-subtitle">En attente de traitement</div>
                         </div>
-                        @if($perte->statut != 'en_attente')
-                            <div class="timeline-item">
-                                <div class="timeline-dot" style="border-color: {{ $perte->statut == 'validee' ? '#10b981' : '#ef4444' }};"></div>
-                                <div class="timeline-date"><i class="bi bi-calendar me-1"></i>{{ $perte->updated_at->format('d/m/Y H:i') }}</div>
-                                <div class="timeline-title">Déclaration {{ $perte->statut == 'validee' ? 'validée' : 'rejetée' }}</div>
-                                @if($perte->validator)
-                                    <div class="timeline-subtitle"><i class="bi bi-person me-1"></i>Par {{ $perte->validator->name }}</div>
+
+                        <!-- Étape 2 : Prise en charge (si statut >= en_cours) -->
+                        @php
+                            $takenCharge = in_array($perte->statut, ['en_cours', 'correspondance_trouvee', 'restitue', 'non_retrouve', 'validee', 'rejetee']);
+                        @endphp
+                        <div class="timeline-item">
+                            <div class="timeline-dot" style="border-color: {{ $takenCharge ? '#10b981' : '#cbd5e1' }};"></div>
+                            <div class="timeline-date">
+                                @if($takenCharge && $perte->validated_at)
+                                    {{ $perte->validated_at->format('d/m/Y H:i') }}
+                                @else
+                                    —
                                 @endif
                             </div>
-                        @endif
+                            <div class="timeline-title">Prise en charge par un agent</div>
+                            <div class="timeline-subtitle">
+                                @if($perte->validator)
+                                    Par {{ $perte->validator->name }}
+                                @elseif(!$takenCharge)
+                                    En attente
+                                @endif
+                            </div>
+                        </div>
+
+                        <!-- Étape 3 : Correspondance trouvée (si statut correspondance_trouvee ou restitue) -->
+                        @php
+                            $found = in_array($perte->statut, ['correspondance_trouvee', 'restitue']);
+                        @endphp
+                        <div class="timeline-item">
+                            <div class="timeline-dot" style="border-color: {{ $found ? '#10b981' : '#cbd5e1' }};"></div>
+                            <div class="timeline-date">
+                                @if($found && $perte->document_trouve_id)
+                                    {{ $perte->updated_at->format('d/m/Y H:i') }}
+                                @else
+                                    —
+                                @endif
+                            </div>
+                            <div class="timeline-title">Correspondance trouvée</div>
+                            <div class="timeline-subtitle">
+                                @if($found)
+                                    Un document correspondant a été identifié
+                                @else
+                                    Non encore trouvé
+                                @endif
+                            </div>
+                        </div>
+
+                        <!-- Étape 4 : Restitution (si restitue) -->
+                        <div class="timeline-item">
+                            <div class="timeline-dot" style="border-color: {{ $perte->statut == 'restitue' ? '#10b981' : '#cbd5e1' }};"></div>
+                            <div class="timeline-date">
+                                @if($perte->statut == 'restitue' && $perte->date_restitution)
+                                    {{ $perte->date_restitution->format('d/m/Y H:i') }}
+                                @else
+                                    —
+                                @endif
+                            </div>
+                            <div class="timeline-title">Document restitué</div>
+                            <div class="timeline-subtitle">
+                                @if($perte->statut == 'restitue')
+                                    Félicitations, votre document vous a été rendu
+                                @else
+                                    En attente de restitution
+                                @endif
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -954,7 +1079,7 @@
     function loadTheme() {
         const serverTheme = '{{ auth()->user()->theme ?? "light" }}';
         const localTheme = localStorage.getItem('darkMode');
-        const theme = serverTheme || localTheme || 'light';
+        const theme = localTheme === 'dark' ? 'dark' : (serverTheme ?? 'light');
         applyTheme(theme === 'dark');
     }
 

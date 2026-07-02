@@ -1,7 +1,14 @@
 {{-- ===== SIDEBAR UNIVERSELLE ===== --}}
+
 @php
+    // ===== COMPTEUR CORRIGÉ AVEC LE BON FILTRE =====
     $unreadNotifications = \App\Models\Notification::where('user_id', auth()->id())
         ->where('is_read', false)
+        ->where('type', '!=', 'agent_message')
+        ->where(function($q) {
+            $q->whereNull('expires_at')
+              ->orWhere('expires_at', '>', now());
+        })
         ->count();
 @endphp
 
@@ -33,6 +40,13 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
             </svg>
             Nouvelle Déclaration
+        </a>
+
+        <a href="{{ route('citoyen.messages') }}" class="{{ request()->routeIs('citoyen.messages') ? 'active' : '' }}">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+            </svg>
+            Messages
         </a>
 
         <a href="{{ route('notifications.index') }}" class="{{ request()->routeIs('notifications.*') ? 'active' : '' }}">

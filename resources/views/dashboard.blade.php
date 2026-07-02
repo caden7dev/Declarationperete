@@ -5,8 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Tableau de bord - e-Déclaration TG</title>
+
+    <script>
+    (function() {
+        const isDark = localStorage.getItem('darkMode') === 'true';
+        if (isDark) {
+            document.documentElement.style.backgroundColor = '#0f172a';
+            document.body.style.backgroundColor = '#0f172a';
+        }
+    })();
+    </script>
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
+        /* ============================================
+               1. RESET & VARIABLES
+               ============================================ */
         * {
             margin: 0;
             padding: 0;
@@ -27,6 +41,9 @@
             --gray-800: #1e293b;
         }
 
+        /* ============================================
+               2. BODY & BACKGROUND
+               ============================================ */
         body {
             font-family: 'Inter', sans-serif;
             min-height: 100vh;
@@ -61,7 +78,9 @@
             background: rgba(0, 0, 0, 0.75);
         }
 
-        /* ===== SIDEBAR ===== */
+        /* ============================================
+               3. SIDEBAR
+               ============================================ */
         .sidebar {
             width: 280px;
             background: rgba(255, 255, 255, 0.98);
@@ -72,7 +91,7 @@
             height: 100vh;
             z-index: 100;
             border-right: 1px solid rgba(16, 185, 129, 0.15);
-            box-shadow: 2px 0 20px rgba(0,0,0,0.05);
+            box-shadow: 2px 0 20px rgba(0, 0, 0, 0.05);
             transition: background 0.3s, border-color 0.3s;
         }
 
@@ -104,7 +123,7 @@
             color: #e5e7eb;
         }
 
-         .sidebar-header .flag-icon {
+        .sidebar-header .flag-icon {
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -112,7 +131,7 @@
             height: 35px;
             border-radius: 4px;
             overflow: hidden;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
             flex-shrink: 0;
         }
 
@@ -217,7 +236,9 @@
             transform: translateX(3px);
         }
 
-        /* ===== MAIN CONTENT ===== */
+        /* ============================================
+               4. MAIN CONTENT
+               ============================================ */
         .main {
             margin-left: 280px;
             flex: 1;
@@ -229,7 +250,9 @@
             background: transparent;
         }
 
-        /* Alertes */
+        /* ============================================
+               5. ALERTES
+               ============================================ */
         .alert {
             padding: 1rem 1.2rem;
             border-radius: 12px;
@@ -246,10 +269,19 @@
             background: #2d2d35;
             color: #e5e7eb;
         }
-        body.dark-mode .alert-success { color: #a7f3d0; }
-        body.dark-mode .alert-error { color: #fecaca; background: #3f1e1e; }
 
-        /* En-tête avec titre + bienvenue à gauche, boutons à droite */
+        body.dark-mode .alert-success {
+            color: #a7f3d0;
+        }
+
+        body.dark-mode .alert-error {
+            color: #fecaca;
+            background: #3f1e1e;
+        }
+
+        /* ============================================
+               6. DASHBOARD TOP (Titre + Header)
+               ============================================ */
         .dashboard-top {
             display: flex;
             justify-content: space-between;
@@ -303,6 +335,9 @@
             color: #94a3b8;
         }
 
+        /* ============================================
+               7. HEADER RIGHT (Boutons)
+               ============================================ */
         .header-right {
             display: flex;
             align-items: center;
@@ -315,7 +350,7 @@
             background: white;
             padding: 0.4rem 1rem;
             border-radius: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
             transition: background 0.3s, color 0.3s;
         }
 
@@ -383,7 +418,9 @@
             padding: 0 4px;
         }
 
-        /* Stats Cards */
+        /* ============================================
+               8. STATS CARDS
+               ============================================ */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -396,7 +433,7 @@
             border-radius: 20px;
             padding: 1.2rem;
             text-align: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
             border: 1px solid rgba(16, 185, 129, 0.1);
             transition: all 0.25s;
             cursor: default;
@@ -443,7 +480,9 @@
             color: var(--primary);
         }
 
-        /* Action Buttons */
+        /* ============================================
+               9. ACTION BUTTONS
+               ============================================ */
         .action-buttons {
             display: flex;
             gap: 1rem;
@@ -463,7 +502,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
         }
 
         body.dark-mode .action-btn {
@@ -506,13 +545,115 @@
             font-size: 0.8rem;
         }
 
-        /* Tableau */
+        /* ============================================
+               10. NOTIFICATIONS WIDGET
+               ============================================ */
+        .notifications-widget {
+            background: white;
+            border-radius: 20px;
+            border: 1px solid var(--gray-200);
+            overflow: hidden;
+            margin-bottom: 2rem;
+            transition: background 0.3s, border-color 0.3s;
+        }
+
+        body.dark-mode .notifications-widget {
+            background: #2d2d35;
+            border-color: #4b5563;
+        }
+
+        .widget-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        body.dark-mode .widget-header {
+            border-bottom-color: #4b5563;
+        }
+
+        .widget-header h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        body.dark-mode .widget-header h3 {
+            color: #e5e7eb;
+        }
+
+        .notification-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .notification-item {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--gray-100);
+            transition: background 0.2s;
+            text-decoration: none;
+            display: block;
+        }
+
+        body.dark-mode .notification-item {
+            border-bottom-color: #404040;
+        }
+
+        .notification-item.unread {
+            background: rgba(16, 185, 129, 0.05);
+            border-left: 3px solid var(--primary);
+        }
+
+        body.dark-mode .notification-item.unread {
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .notification-item:hover {
+            background: var(--gray-100);
+        }
+
+        body.dark-mode .notification-item:hover {
+            background: #3f3f4a;
+        }
+
+        .notification-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--dark);
+            margin-bottom: 0.2rem;
+        }
+
+        body.dark-mode .notification-title {
+            color: #e5e7eb;
+        }
+
+        .notification-content {
+            font-size: 0.8rem;
+            color: var(--gray-600);
+            line-height: 1.4;
+        }
+
+        body.dark-mode .notification-content {
+            color: #9ca3af;
+        }
+
+        .notification-date {
+            font-size: 0.7rem;
+            color: var(--gray-600);
+            margin-top: 0.3rem;
+        }
+
+        /* ============================================
+               11. TABLEAU (Déclarations récentes)
+               ============================================ */
         .table-section {
             background: white;
             border-radius: 20px;
             border: 1px solid var(--gray-200);
             overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
             transition: background 0.3s, border-color 0.3s;
         }
 
@@ -577,8 +718,13 @@
             color: #cbd5e1;
         }
 
-        tr:last-child td { border-bottom: none; }
+        tr:last-child td {
+            border-bottom: none;
+        }
 
+        /* ============================================
+               12. STATUS BADGES
+               ============================================ */
         .status-badge {
             display: inline-flex;
             align-items: center;
@@ -589,13 +735,63 @@
             font-weight: 600;
         }
 
-        .status-pending { background: #fef3c7; color: #b45309; }
-        .status-validated { background: #d1fae5; color: #065f46; }
-        .status-rejected { background: #fee2e2; color: #991b1b; }
+        .status-pending {
+            background: #fef3c7;
+            color: #b45309;
+        }
+        .status-validated {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .status-rejected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .status-in-progress {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        .status-found {
+            background: #c7d2fe;
+            color: #3730a3;
+        }
+        .status-returned {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .status-not-found {
+            background: #e5e7eb;
+            color: #374151;
+        }
 
-        body.dark-mode .status-pending { background: #422d0b; color: #fbbf24; }
-        body.dark-mode .status-validated { background: #0a3b2a; color: #34d399; }
-        body.dark-mode .status-rejected { background: #3f1e1e; color: #f87171; }
+        body.dark-mode .status-pending {
+            background: #422d0b;
+            color: #fbbf24;
+        }
+        body.dark-mode .status-validated {
+            background: #0a3b2a;
+            color: #34d399;
+        }
+        body.dark-mode .status-rejected {
+            background: #3f1e1e;
+            color: #f87171;
+        }
+        body.dark-mode .status-in-progress {
+            background: #1e3a5f;
+            color: #60a5fa;
+        }
+        body.dark-mode .status-found {
+            background: #2e2b5c;
+            color: #a78bfa;
+        }
+        body.dark-mode .status-returned {
+            background: #0a3b2a;
+            color: #34d399;
+        }
+        body.dark-mode .status-not-found {
+            background: #1f2937;
+            color: #9ca3af;
+        }
 
         .btn-view {
             background: linear-gradient(135deg, var(--secondary), #60a5fa);
@@ -624,238 +820,405 @@
             color: #94a3b8;
         }
 
-        /* Responsive */
+        /* ============================================
+               13. RESPONSIVE
+               ============================================ */
         @media (max-width: 1024px) {
-            .sidebar { transform: translateX(-100%); transition: transform 0.3s; }
-            .sidebar.open { transform: translateX(0); }
-            .main { margin-left: 0; }
-            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .main {
+                margin-left: 0;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
         }
 
         @media (max-width: 640px) {
-            .stats-grid { grid-template-columns: 1fr; }
-            .action-buttons { flex-direction: column; }
-            .dashboard-top { flex-direction: column; align-items: flex-start; }
-            .header-right { margin-top: 0.5rem; }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .action-buttons {
+                flex-direction: column;
+            }
+            .dashboard-top {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .header-right {
+                margin-top: 0.5rem;
+            }
+            .notifications-widget {
+                margin-top: 1rem;
+            }
         }
     </style>
 </head>
+
 <body>
 
-@php
-    use App\Models\Perte;
-    use App\Models\Notification;
-    
-    $totalDeclarations = $totalDeclarations ?? Perte::where('user_id', auth()->id())->count();
-    $enAttente = $enAttente ?? Perte::where('user_id', auth()->id())->where('statut', 'en_attente')->count();
-    $validees = $validees ?? Perte::where('user_id', auth()->id())->where('statut', 'validee')->count();
-    $rejetees = Perte::where('user_id', auth()->id())->where('statut', 'rejetee')->count();
-    $dernieresDeclarations = $dernieresDeclarations ?? Perte::where('user_id', auth()->id())->orderBy('created_at', 'desc')->take(5)->get();
-    $user = auth()->user();
-    $unreadNotificationsCount = Notification::where('user_id', auth()->id())->where('is_read', false)->count();
-@endphp
+    <!-- ============================================
+    PHP : LOGIQUE & DONNÉES
+    ============================================ -->
+    @php
+        use App\Models\Perte;
+        use App\Models\Notification;
 
-<!-- Sidebar -->
-<div class="sidebar">
-    <div class="sidebar-header">
-        <h2>
-            <div class="flag-icon">
-                <svg viewBox="0 0 5 4" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-                    <rect width="5" height=".8" y="0"   fill="#006A36"/>
-                    <rect width="5" height=".8" y=".8"  fill="#FFCB00"/>
-                    <rect width="5" height=".8" y="1.6" fill="#006A36"/>
-                    <rect width="5" height=".8" y="2.4" fill="#FFCB00"/>
-                    <rect width="5" height=".8" y="3.2" fill="#006A36"/>
-                    <rect width="1.9" height="2.4" fill="#D21034"/>
-                    <polygon points="0.95,0.38 1.07,0.76 1.47,0.76 1.16,0.99 1.28,1.37 0.95,1.14 0.62,1.37 0.74,0.99 0.43,0.76 0.83,0.76" fill="#FFFFFF"/>
-                </svg>
-            </div>
-            e-Déclaration TG
-        </h2>
-        <div class="republic">RÉPUBLIQUE TOGOLAISE</div>
-    </div>
+        // --- Statistiques générales ---
+        $totalDeclarations = $totalDeclarations ?? Perte::where('user_id', auth()->id())->count();
+        $enAttente = $enAttente ?? Perte::where('user_id', auth()->id())->where('statut', 'en_attente')->count();
+        $enCours = Perte::where('user_id', auth()->id())->where('statut', 'en_cours')->count();
+        $correspondanceTrouvee = Perte::where('user_id', auth()->id())->where('statut', 'correspondance_trouvee')->count();
+        $restituees = Perte::where('user_id', auth()->id())->where('statut', 'restitue')->count();
+        $nonRetrouvees = Perte::where('user_id', auth()->id())->where('statut', 'non_retrouve')->count();
+        $rejetees = Perte::where('user_id', auth()->id())->where('statut', 'rejetee')->count();
 
-    <nav class="sidebar-nav">
-        <a href="{{ route('dashboard') }}" class="active">
-            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-            Tableau de bord
-        </a>
-        <a href="{{ route('perte.index') }}">
-            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-            Mes Déclarations
-        </a>
-        <a href="{{ route('perte.create') }}">
-            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
-            Nouvelle Déclaration
-        </a>
-        <a href="{{ route('notifications.index') }}">
-            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-            Notifications
-            @if($unreadNotificationsCount > 0)
-                <span style="background: #ef4444; color: white; font-size: 0.65rem; border-radius: 20px; padding: 0 0.4rem; margin-left: auto;">{{ $unreadNotificationsCount }}</span>
-            @endif
-        </a>
-        <a href="{{ route('profile.index') }}">
-            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-            Paramètres
-        </a>
-        <a href="{{ route('help.index') }}">
-            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            Aide
-        </a>
-    </nav>
+        // --- Dernières déclarations ---
+        $dernieresDeclarations = $dernieresDeclarations ?? Perte::where('user_id', auth()->id())
+                                    ->orderBy('created_at', 'desc')
+                                    ->take(5)
+                                    ->get();
 
-    <div class="sidebar-footer">
-        <form method="POST" action="{{ route('logout') }}">
-            @csrf
-            <button type="submit" class="logout-link">
-                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-                Déconnecter
-            </button>
-        </form>
-    </div>
-</div>
+        $user = auth()->user();
 
-<!-- Main Content -->
-<div class="main">
-    @if(session('success'))
-        <div class="alert alert-success">✅ {{ session('success') }}</div>
-    @endif
-    @if(session('error'))
-        <div class="alert alert-error">❌ {{ session('error') }}</div>
-    @endif
+        // ========== MODIFICATION 1 : COMPTEUR CORRIGÉ ==========
+        $unreadNotificationsCount = Notification::where('user_id', auth()->id())
+            ->where('type', '!=', 'agent_message')
+            ->notExpired()
+            ->where('is_read', false)
+            ->count();
 
-    <div class="dashboard-top">
-        <div class="dashboard-left">
-            <div class="dashboard-title">
-                <h1>Tableau de bord</h1>
-            </div>
-            <div class="welcome-message">
-                Bienvenue, <strong>{{ $user->name }}</strong>
-            </div>
-            <div class="preview-text">
-                👁️ Voir l'aperçu de vos activités en temps réel 
-            </div>
+        // --- NOTIFICATIONS RÉCENTES (synchronisées) ---
+        $recentNotifications = Notification::where('user_id', auth()->id())
+            ->where('type', '!=', 'agent_message')
+            ->where(function($q) {
+                $q->whereNull('expires_at')
+                  ->orWhere('expires_at', '>', now());
+            })
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
+    @endphp
+
+    <!-- ============================================
+    SIDEBAR
+    ============================================ -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>
+                <div class="flag-icon">
+                    <svg viewBox="0 0 5 4" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                        <rect width="5" height=".8" y="0"   fill="#006A36"/>
+                        <rect width="5" height=".8" y=".8"  fill="#FFCB00"/>
+                        <rect width="5" height=".8" y="1.6" fill="#006A36"/>
+                        <rect width="5" height=".8" y="2.4" fill="#FFCB00"/>
+                        <rect width="5" height=".8" y="3.2" fill="#006A36"/>
+                        <rect width="1.9" height="2.4" fill="#D21034"/>
+                        <polygon points="0.95,0.38 1.07,0.76 1.47,0.76 1.16,0.99 1.28,1.37 0.95,1.14 0.62,1.37 0.74,0.99 0.43,0.76 0.83,0.76" fill="#FFFFFF"/>
+                    </svg>
+                </div>
+                e-Déclaration TG
+            </h2>
+            <div class="republic">RÉPUBLIQUE TOGOLAISE</div>
         </div>
-        <div class="header-right">
-            <div class="date-time">
-                {{ \Carbon\Carbon::now()->locale('fr')->isoFormat('dddd D MMMM YYYY - HH:mm') }}
-            </div>
-            <button class="icon-btn theme-toggle" onclick="toggleDarkMode()" title="Changer le thème">
+
+        <nav class="sidebar-nav">
+            <a href="{{ route('dashboard') }}" class="active">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                Tableau de bord
+            </a>
+            <a href="{{ route('perte.index') }}">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                Mes Déclarations
+            </a>
+            <a href="{{ route('perte.create') }}">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
+                Nouvelle Déclaration
+            </a>
+            <a href="{{ route('citoyen.messages') }}">
                 <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
                 </svg>
-            </button>
-            <button class="icon-btn notification-btn" onclick="window.location.href='{{ route('notifications.index') }}'" title="Voir les notifications">
-                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                </svg>
+                Messages
+            </a>
+            <a href="{{ route('notifications.index') }}">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                Notifications
                 @if($unreadNotificationsCount > 0)
-                    <span class="notification-badge">{{ $unreadNotificationsCount }}</span>
+                    <span style="background: #ef4444; color: white; font-size: 0.65rem; border-radius: 20px; padding: 0 0.4rem; margin-left: auto;">{{ $unreadNotificationsCount }}</span>
                 @endif
-            </button>
+            </a>
+            <a href="{{ route('profile.index') }}">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                Paramètres
+            </a>
+            <a href="{{ route('help.index') }}">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Aide
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <form method="POST" action="{{ route('logout') }}" onsubmit="return confirm('Voulez-vous vraiment vous déconnecter ?')">
+                @csrf
+                <button type="submit" class="logout-link">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    Déconnecter
+                </button>
+            </form>
         </div>
     </div>
 
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-value">{{ $totalDeclarations }}</div>
-            <div class="stat-label">TOTAL</div>
-            <div class="stat-trend">↑ Ce mois</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-value">{{ $enAttente }}</div>
-            <div class="stat-label">EN ATTENTE</div>
-            <div class="stat-trend">{{ $enAttente }} dossiers actifs</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-value">{{ $validees }}</div>
-            <div class="stat-label">VALIDÉES</div>
-            <div class="stat-trend">+1 cette semaine</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-value">{{ $rejetees }}</div>
-            <div class="stat-label">REJETÉES</div>
-            <div class="stat-trend">Aucune</div>
-        </div>
-    </div>
+    <!-- ============================================
+    MAIN CONTENT
+    ============================================ -->
+    <div class="main">
 
-    <div class="action-buttons">
-        <a href="{{ route('perte.create') }}" class="action-btn">
-            <div class="action-left">
-                <h3>Nouvelle déclaration</h3>
-                <p>Déclarez une perte en ligne</p>
-            </div>
-            <div class="action-right">+ Commencer</div>
-        </a>
-        <a href="{{ route('documents-trouves.create') }}" class="action-btn">
-            <div class="action-left">
-                <h3>Document trouvé</h3>
-                <p>Aidez un citoyen togolais</p>
-            </div>
-            <div class="action-right">Déclarer</div>
-        </a>
-    </div>
-
-    <div class="table-section">
-        <div class="table-header">
-            <h3>Activités récentes</h3>
-        </div>
-        @if($dernieresDeclarations->count())
-            <table>
-                <thead>
-                    <tr>
-                        <th>Type de pièce</th>
-                        <th>Date</th>
-                        <th>Lieu</th>
-                        <th>Statut</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($dernieresDeclarations as $declaration)
-                    <tr>
-                        <td><strong>{{ $declaration->type_piece }}</strong></td>
-                        <td>{{ $declaration->created_at->format('d/m/Y') }}</td>
-                        <td>{{ $declaration->lieu_perte }}</td>
-                        <td>
-                            @if($declaration->statut === 'validee')
-                                <span class="status-badge status-validated">✅ Validée</span>
-                            @elseif($declaration->statut === 'rejetee')
-                                <span class="status-badge status-rejected">❌ Rejetée</span>
-                            @else
-                                <span class="status-badge status-pending">⏳ En attente</span>
-                            @endif
-                        </td>
-                        <td><a href="{{ route('perte.show', $declaration->id) }}" class="btn-view">👁️ Voir</a></td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        @else
-            <div class="empty-state">📭 Aucune déclaration récente.</div>
+        <!-- Alertes Flash -->
+        @if(session('success'))
+            <div class="alert alert-success">✅ {{ session('success') }}</div>
         @endif
+        @if(session('error'))
+            <div class="alert alert-error">❌ {{ session('error') }}</div>
+        @endif
+
+        <!-- En-tête -->
+        <div class="dashboard-top">
+            <div class="dashboard-left">
+                <div class="dashboard-title">
+                    <h1>Tableau de bord</h1>
+                </div>
+                <div class="welcome-message">
+                    Bienvenue, <strong>{{ $user->name }}</strong>
+                </div>
+                <div class="preview-text">
+                    👁️ Voir l'aperçu de vos activités en temps réel
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="date-time">
+                    {{ \Carbon\Carbon::now()->locale('fr')->isoFormat('dddd D MMMM YYYY - HH:mm') }}
+                </div>
+                <button class="icon-btn theme-toggle" id="themeToggleBtn" title="Changer le thème">
+                    <svg id="themeIcon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                    </svg>
+                </button>
+                <button class="icon-btn notification-btn" onclick="window.location.href='{{ route('notifications.index') }}'" title="Voir les notifications">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                    </svg>
+                    @if($unreadNotificationsCount > 0)
+                        <span class="notification-badge">{{ $unreadNotificationsCount }}</span>
+                    @endif
+                </button>
+            </div>
+        </div>
+
+        <!-- Statistiques -->
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-value">{{ $totalDeclarations }}</div><div class="stat-label">TOTAL</div></div>
+            <div class="stat-card"><div class="stat-value">{{ $enAttente }}</div><div class="stat-label">EN ATTENTE</div></div>
+            <div class="stat-card"><div class="stat-value">{{ $enCours }}</div><div class="stat-label">EN COURS</div></div>
+            <div class="stat-card"><div class="stat-value">{{ $correspondanceTrouvee }}</div><div class="stat-label">TROUVÉ</div></div>
+            <div class="stat-card"><div class="stat-value">{{ $restituees }}</div><div class="stat-label">RESTITUÉ</div></div>
+            <div class="stat-card"><div class="stat-value">{{ $nonRetrouvees }}</div><div class="stat-label">NON RETROUVÉ</div></div>
+            <div class="stat-card"><div class="stat-value">{{ $rejetees }}</div><div class="stat-label">REJETÉ</div></div>
+        </div>
+
+        <!-- Actions Rapides -->
+        <div class="action-buttons">
+            <a href="{{ route('perte.create') }}" class="action-btn">
+                <div class="action-left"><h3>Nouvelle déclaration</h3><p>Déclarez une perte en ligne</p></div>
+                <div class="action-right">+ Commencer</div>
+            </a>
+            <a href="{{ route('documents-trouves.create') }}" class="action-btn">
+                <div class="action-left"><h3>Document trouvé</h3><p>Aidez un citoyen togolais</p></div>
+                <div class="action-right">Déclarer</div>
+            </a>
+        </div>
+
+        <!-- Widget Notifications Récentes -->
+        <div class="notifications-widget">
+            <div class="widget-header">
+                <h3><i class="bi bi-bell"></i> Dernières notifications</h3>
+                <a href="{{ route('notifications.index') }}" class="small">Voir tout →</a>
+            </div>
+            <div class="notification-list">
+                @forelse($recentNotifications as $notif)
+                    <a href="{{ $notif->action_url ?? '#' }}" class="notification-item {{ !$notif->is_read ? 'unread' : '' }}">
+                        <div class="notification-title">{{ $notif->title }}</div>
+                        <div class="notification-content">{{ Str::limit($notif->content, 80) }}</div>
+                        <div class="notification-date">{{ $notif->created_at->diffForHumans() }}</div>
+                    </a>
+                @empty
+                    <div class="empty-state" style="padding: 2rem;">
+                        <p>Aucune notification récente.</p>
+                    </div>
+                @endforelse
+            </div>
+        </div>
+
+        <!-- Tableau des Déclarations Récentes -->
+        <div class="table-section">
+            <div class="table-header"><h3>Activités récentes</h3></div>
+            @if($dernieresDeclarations->count())
+                <table>
+                    <thead><tr><th>Type de pièce</th><th>Date</th><th>Lieu</th><th>Statut</th><th>Actions</th></tr></thead>
+                    <tbody>
+                        @foreach($dernieresDeclarations as $declaration)
+                            @php
+                                $statusClass = '';
+                                $statusLabel = '';
+                                switch($declaration->statut) {
+                                    case 'en_attente': $statusClass = 'status-pending'; $statusLabel = 'En attente'; break;
+                                    case 'en_cours': $statusClass = 'status-in-progress'; $statusLabel = 'En cours'; break;
+                                    case 'correspondance_trouvee': $statusClass = 'status-found'; $statusLabel = 'Correspondance trouvée'; break;
+                                    case 'restitue': $statusClass = 'status-returned'; $statusLabel = 'Restitué'; break;
+                                    case 'non_retrouve': $statusClass = 'status-not-found'; $statusLabel = 'Non retrouvé'; break;
+                                    case 'rejetee': $statusClass = 'status-rejected'; $statusLabel = 'Rejetée'; break;
+                                    case 'validee': $statusClass = 'status-validated'; $statusLabel = 'Validée'; break;
+                                    default: $statusClass = 'status-pending'; $statusLabel = ucfirst($declaration->statut);
+                                }
+                            @endphp
+                            <tr>
+                                <td><strong>{{ $declaration->type_piece }}</strong></td>
+                                <td>{{ $declaration->created_at->format('d/m/Y') }}</td>
+                                <td>{{ $declaration->lieu_perte }}</td>
+                                <td><span class="status-badge {{ $statusClass }}">{{ $statusLabel }}</span></td>
+                                <td><a href="{{ route('perte.show', $declaration->id) }}" class="btn-view">👁️ Voir</a></td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            @else
+                <div class="empty-state">📭 Aucune déclaration récente.</div>
+            @endif
+        </div>
+
     </div>
-</div>
 
-<script>
-    function toggleDarkMode() {
-        document.body.classList.toggle('dark-mode');
-        const isDark = document.body.classList.contains('dark-mode');
-        localStorage.setItem('darkMode', isDark);
-        fetch('{{ route("profile.toggle-dark-mode") }}', {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ dark_mode: isDark })
-        }).catch(console.error);
-    }
+    <!-- ============================================
+    JAVASCRIPT
+    ============================================ -->
+    <script>
+        // --- Thème (clair/sombre) ---
+        function applyTheme(isDark) {
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                const icon = document.querySelector('#themeIcon');
+                if (icon) {
+                    icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>';
+                }
+            } else {
+                document.body.classList.remove('dark-mode');
+                const icon = document.querySelector('#themeIcon');
+                if (icon) {
+                    icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>';
+                }
+            }
+            localStorage.setItem('darkMode', isDark ? 'dark' : 'light');
+        }
 
-    if (localStorage.getItem('darkMode') === 'true') {
-        document.body.classList.add('dark-mode');
-    }
-</script>
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('darkMode');
+            const isDark = savedTheme === 'dark';
+            applyTheme(isDark);
+        }
+
+        function toggleGlobalDarkMode() {
+            const isDark = !document.body.classList.contains('dark-mode');
+            applyTheme(isDark);
+            fetch('{{ route("profile.toggle-dark-mode") }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ dark_mode: isDark })
+            }).catch(console.error);
+        }
+
+        // ========== MODIFICATION 2 : REFRESH UNREAD COUNT CORRIGÉ ==========
+        function refreshUnreadCount() {
+            fetch('{{ route("notifications.unread-count") }}', {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const count = data.count || 0;
+
+                // Badge dans le header
+                const badge = document.querySelector('.notification-badge');
+                if (badge) {
+                    if (count > 0) {
+                        badge.textContent = count > 9 ? '9+' : count;
+                        badge.style.display = 'flex';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                }
+
+                // Badge dans la sidebar
+                const sidebarBadge = document.querySelector('.sidebar-nav a[href*="notifications"] span');
+                if (sidebarBadge) {
+                    if (count > 0) {
+                        sidebarBadge.textContent = count > 9 ? '9+' : count;
+                        sidebarBadge.style.display = 'inline-flex';
+                    } else {
+                        sidebarBadge.style.display = 'none';
+                    }
+                }
+            })
+            .catch(error => console.error('Erreur lors du rafraîchissement :', error));
+        }
+
+        // ========== MODIFICATION 3 : OPEN NOTIFICATIONS (MARK ALL AS READ) ==========
+        function openNotifications() {
+            fetch('{{ route("notifications.mark-all-read") }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Rafraîchir le compteur après avoir marqué comme lu
+                    refreshUnreadCount();
+                }
+                // Rediriger vers la page des notifications
+                window.location.href = '{{ route("notifications.index") }}';
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                window.location.href = '{{ route("notifications.index") }}';
+            });
+        }
+
+        // --- Initialisation ---
+        document.addEventListener('DOMContentLoaded', function() {
+            // Thème
+            loadTheme();
+            const themeBtn = document.getElementById('themeToggleBtn');
+            if (themeBtn) {
+                themeBtn.addEventListener('click', toggleGlobalDarkMode);
+            }
+
+            // Notifications (polling toutes les 30s)
+            refreshUnreadCount();
+            setInterval(refreshUnreadCount, 30000);
+        });
+    </script>
+
 </body>
 </html>

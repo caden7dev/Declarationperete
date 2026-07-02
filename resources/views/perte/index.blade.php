@@ -5,9 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Mes Déclarations de Perte - e-Déclaration TG</title>
+    <script>
+    (function() {
+        const isDark = localStorage.getItem('darkMode') === 'true';
+        if (isDark) {
+            document.documentElement.style.backgroundColor = '#0f172a';
+            document.body.style.backgroundColor = '#0f172a';
+        }
+    })();
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
+        /* ===== STYLES COMPLETS ===== */
         * {
             margin: 0;
             padding: 0;
@@ -62,7 +72,7 @@
             background: rgba(0, 0, 0, 0.75);
         }
 
-        /* ===== SIDEBAR (identique au dashboard final) ===== */
+        /* ===== SIDEBAR ===== */
         .sidebar {
             width: 280px;
             background: rgba(255, 255, 255, 0.98);
@@ -443,7 +453,7 @@
         /* Stats */
         .stats-container {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(6, 1fr);
             gap: 1rem;
             margin-bottom: 2rem;
         }
@@ -451,9 +461,10 @@
         .stat-card {
             background: white;
             border-radius: 16px;
-            padding: 1.2rem;
+            padding: 1rem;
             border: 1px solid var(--gray-200);
             transition: all 0.2s;
+            cursor: pointer;
         }
 
         body.dark-mode .stat-card {
@@ -467,20 +478,13 @@
         }
 
         .stat-icon {
-            width: 45px;
-            height: 45px;
-            background: rgba(16, 185, 129, 0.1);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            margin-bottom: 0.8rem;
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
             color: var(--primary);
         }
 
         .stat-value {
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             font-weight: 800;
             color: var(--dark);
         }
@@ -490,11 +494,11 @@
         }
 
         .stat-label {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             color: var(--gray-600);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
             font-weight: 600;
+            letter-spacing: 0.5px;
         }
 
         /* Table Card */
@@ -573,17 +577,25 @@
         }
 
         .badge-warning { background: #fef3c7; color: #b45309; }
+        .badge-info    { background: #dbeafe; color: #1e40af; }
+        .badge-primary { background: #c7d2fe; color: #3730a3; }
         .badge-success { background: #d1fae5; color: #065f46; }
+        .badge-secondary { background: #e5e7eb; color: #374151; }
         .badge-danger { background: #fee2e2; color: #991b1b; }
 
         body.dark-mode .badge-warning { background: #422d0b; color: #fbbf24; }
+        body.dark-mode .badge-info    { background: #1e3a5f; color: #60a5fa; }
+        body.dark-mode .badge-primary { background: #2e2b5c; color: #a78bfa; }
         body.dark-mode .badge-success { background: #0a3b2a; color: #34d399; }
+        body.dark-mode .badge-secondary { background: #1f2937; color: #9ca3af; }
         body.dark-mode .badge-danger { background: #3f1e1e; color: #f87171; }
 
         .action-buttons {
             display: flex;
             gap: 0.5rem;
             justify-content: flex-end;
+            align-items: center;
+            flex-wrap: wrap;
         }
 
         .btn-action {
@@ -603,6 +615,8 @@
         .btn-edit { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
         .btn-delete { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
         .btn-download { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+        .btn-retry { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+        .btn-suivi { background: rgba(16, 185, 129, 0.1); color: #10b981; }
 
         .btn-action:hover {
             transform: translateY(-2px);
@@ -676,7 +690,7 @@
                 padding: 1rem;
             }
             .stats-container {
-                grid-template-columns: 1fr 1fr;
+                grid-template-columns: repeat(2, 1fr);
             }
         }
 
@@ -698,10 +712,28 @@
 
 @php
     $user = auth()->user();
-    $unreadNotificationsCount = \App\Models\Notification::where('user_id', $user->id)->where('is_read', false)->count();
+
+    // ============================================================
+    // ⚠️ COMPTEUR CORRIGÉ : Exclusion des messages (agent_message)
+    // et des notifications expirées
+    // ============================================================
+    $unreadNotificationsCount = \App\Models\Notification::where('user_id', $user->id)
+        ->where('type', '!=', 'agent_message')
+        ->notExpired()
+        ->where('is_read', false)
+        ->count();
+
+    // Statistiques enrichies
+    $totalDeclarations = \App\Models\Perte::where('user_id', $user->id)->count();
+    $enAttenteCount = \App\Models\Perte::where('user_id', $user->id)->where('statut', 'en_attente')->count();
+    $enCoursCount = \App\Models\Perte::where('user_id', $user->id)->where('statut', 'en_cours')->count();
+    $correspondanceCount = \App\Models\Perte::where('user_id', $user->id)->where('statut', 'correspondance_trouvee')->count();
+    $restitueCount = \App\Models\Perte::where('user_id', $user->id)->where('statut', 'restitue')->count();
+    $nonRetrouveCount = \App\Models\Perte::where('user_id', $user->id)->where('statut', 'non_retrouve')->count();
+    $rejeteeCount = \App\Models\Perte::where('user_id', $user->id)->where('statut', 'rejetee')->count();
 @endphp
 
-<!-- Sidebar (identique au dashboard final) -->
+<!-- Sidebar -->
 <div class="sidebar">
     <div class="sidebar-header">
         <h2>
@@ -734,6 +766,10 @@
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
             Nouvelle Déclaration
         </a>
+        <a href="{{ route('citoyen.messages') }}">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+            Messages
+        </a>
         <a href="{{ route('notifications.index') }}">
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
             Notifications
@@ -752,10 +788,9 @@
     </nav>
 
     <div class="sidebar-footer">
-        <form method="POST" action="{{ route('logout') }}">
+        <form method="POST" action="{{ route('logout') }}" onsubmit="return confirm('Voulez-vous vraiment vous déconnecter ?')">
             @csrf
             <button type="submit" class="logout-link">
-                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
                 Déconnecter
             </button>
         </form>
@@ -810,7 +845,7 @@
         <div class="stat-card">
             <div class="stat-icon"><i class="bi bi-files"></i></div>
             <div class="stat-value">{{ $totalDeclarations }}</div>
-            <div class="stat-label">Total déclarations</div>
+            <div class="stat-label">Total</div>
         </div>
         <div class="stat-card">
             <div class="stat-icon"><i class="bi bi-clock"></i></div>
@@ -818,14 +853,29 @@
             <div class="stat-label">En attente</div>
         </div>
         <div class="stat-card">
+            <div class="stat-icon"><i class="bi bi-arrow-repeat"></i></div>
+            <div class="stat-value">{{ $enCoursCount }}</div>
+            <div class="stat-label">En cours</div>
+        </div>
+        <div class="stat-card">
             <div class="stat-icon"><i class="bi bi-check-circle"></i></div>
-            <div class="stat-value">{{ $valideeCount }}</div>
-            <div class="stat-label">Validées</div>
+            <div class="stat-value">{{ $correspondanceCount }}</div>
+            <div class="stat-label">Trouvé</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="bi bi-check2-circle"></i></div>
+            <div class="stat-value">{{ $restitueCount }}</div>
+            <div class="stat-label">Restitué</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="bi bi-emoji-frown"></i></div>
+            <div class="stat-value">{{ $nonRetrouveCount }}</div>
+            <div class="stat-label">Non retrouvé</div>
         </div>
         <div class="stat-card">
             <div class="stat-icon"><i class="bi bi-x-circle"></i></div>
             <div class="stat-value">{{ $rejeteeCount }}</div>
-            <div class="stat-label">Rejetées</div>
+            <div class="stat-label">Rejeté</div>
         </div>
     </div>
 
@@ -842,13 +892,25 @@
                        class="filter-btn {{ request('statut') == 'en_attente' ? 'active' : '' }}">
                         En attente ({{ $enAttenteCount }})
                     </a>
-                    <a href="{{ request()->fullUrlWithQuery(['statut' => 'validee']) }}" 
-                       class="filter-btn {{ request('statut') == 'validee' ? 'active' : '' }}">
-                        Validées ({{ $valideeCount }})
+                    <a href="{{ request()->fullUrlWithQuery(['statut' => 'en_cours']) }}" 
+                       class="filter-btn {{ request('statut') == 'en_cours' ? 'active' : '' }}">
+                        En cours ({{ $enCoursCount }})
+                    </a>
+                    <a href="{{ request()->fullUrlWithQuery(['statut' => 'correspondance_trouvee']) }}" 
+                       class="filter-btn {{ request('statut') == 'correspondance_trouvee' ? 'active' : '' }}">
+                        Trouvé ({{ $correspondanceCount }})
+                    </a>
+                    <a href="{{ request()->fullUrlWithQuery(['statut' => 'restitue']) }}" 
+                       class="filter-btn {{ request('statut') == 'restitue' ? 'active' : '' }}">
+                        Restitué ({{ $restitueCount }})
+                    </a>
+                    <a href="{{ request()->fullUrlWithQuery(['statut' => 'non_retrouve']) }}" 
+                       class="filter-btn {{ request('statut') == 'non_retrouve' ? 'active' : '' }}">
+                        Non retrouvé ({{ $nonRetrouveCount }})
                     </a>
                     <a href="{{ request()->fullUrlWithQuery(['statut' => 'rejetee']) }}" 
                        class="filter-btn {{ request('statut') == 'rejetee' ? 'active' : '' }}">
-                        Rejetées ({{ $rejeteeCount }})
+                        Rejeté ({{ $rejeteeCount }})
                     </a>
                 </div>
             </div>
@@ -887,6 +949,18 @@
                     </thead>
                     <tbody>
                         @foreach($pertes as $perte)
+                            @php
+                                // Configuration des statuts
+                                $statusConfig = [
+                                    'en_attente' => ['class' => 'badge-warning', 'icon' => 'bi-clock', 'label' => 'En attente'],
+                                    'en_cours' => ['class' => 'badge-info', 'icon' => 'bi-arrow-repeat', 'label' => 'En cours'],
+                                    'correspondance_trouvee' => ['class' => 'badge-primary', 'icon' => 'bi-check-circle', 'label' => 'Trouvé'],
+                                    'restitue' => ['class' => 'badge-success', 'icon' => 'bi-check2-circle', 'label' => 'Restitué'],
+                                    'non_retrouve' => ['class' => 'badge-secondary', 'icon' => 'bi-emoji-frown', 'label' => 'Non retrouvé'],
+                                    'rejetee' => ['class' => 'badge-danger', 'icon' => 'bi-x-circle', 'label' => 'Rejetée'],
+                                ];
+                                $cfg = $statusConfig[$perte->statut] ?? ['class' => 'badge-secondary', 'icon' => 'bi-question-circle', 'label' => ucfirst($perte->statut)];
+                            @endphp
                             <tr>
                                 <td>
                                     <strong>#{{ str_pad($perte->id, 6, '0', STR_PAD_LEFT) }}</strong><br>
@@ -899,21 +973,9 @@
                                     <small class="text-muted">{{ $perte->date_perte->diffForHumans() }}</small>
                                 </td>
                                 <td>
-                                    @php
-                                        $badgeClass = [
-                                            'en_attente' => 'badge-warning',
-                                            'validee' => 'badge-success',
-                                            'rejetee' => 'badge-danger'
-                                        ][$perte->statut] ?? 'badge-secondary';
-                                        $statutLabels = [
-                                            'en_attente' => 'En attente',
-                                            'validee' => 'Validée',
-                                            'rejetee' => 'Rejetée'
-                                        ];
-                                    @endphp
-                                    <span class="badge-modern {{ $badgeClass }}">
-                                        <i class="bi {{ $perte->statut == 'validee' ? 'bi-check-circle' : ($perte->statut == 'rejetee' ? 'bi-x-circle' : 'bi-clock') }}"></i>
-                                        {{ $statutLabels[$perte->statut] }}
+                                    <span class="badge-modern {{ $cfg['class'] }}">
+                                        <i class="bi {{ $cfg['icon'] }}"></i>
+                                        {{ $cfg['label'] }}
                                     </span>
                                     @if($perte->statut == 'rejetee' && $perte->motif_rejet)
                                         <i class="bi bi-info-circle text-danger ms-1" data-bs-toggle="tooltip" title="{{ $perte->motif_rejet }}"></i>
@@ -921,6 +983,8 @@
                                 </td>
                                 <td>
                                     <div class="action-buttons">
+                                        <!-- Bouton Suivre -->
+                                        <a href="{{ route('perte.suivi', $perte->id) }}" class="btn-action btn-suivi" data-bs-toggle="tooltip" title="Suivre"><i class="bi bi-eye"></i></a>
                                         <a href="{{ route('perte.show', $perte->id) }}" class="btn-action btn-view" data-bs-toggle="tooltip" title="Voir"><i class="bi bi-eye"></i></a>
                                         @if($perte->statut == 'en_attente')
                                             <a href="{{ route('perte.edit', $perte->id) }}" class="btn-action btn-edit" data-bs-toggle="tooltip" title="Modifier"><i class="bi bi-pencil"></i></a>
@@ -928,6 +992,9 @@
                                                 @csrf @method('DELETE')
                                                 <button type="submit" class="btn-action btn-delete" data-bs-toggle="tooltip" title="Supprimer"><i class="bi bi-trash"></i></button>
                                             </form>
+                                        @endif
+                                        @if($perte->statut == 'non_retrouve')
+                                            <a href="{{ route('perte.create', ['copy_from' => $perte->id]) }}" class="btn-action btn-retry" data-bs-toggle="tooltip" title="Refaire une déclaration"><i class="bi bi-arrow-repeat"></i></a>
                                         @endif
                                         @if($perte->document_path)
                                             <a href="{{ asset('storage/' . $perte->document_path) }}" target="_blank" class="btn-action btn-download" data-bs-toggle="tooltip" title="Télécharger"><i class="bi bi-download"></i></a>

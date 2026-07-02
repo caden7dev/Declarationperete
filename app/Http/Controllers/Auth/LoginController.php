@@ -72,4 +72,28 @@ class LoginController extends Controller
             return route('dashboard');
         }
     }
+
+    /**
+     * La méthode authenticated est appelée après une authentification réussie.
+     * Elle permet de stocker la préférence de langue et éventuellement le thème.
+     */
+    protected function authenticated(Request $request, $user)
+    {
+        // ✅ Appliquer la langue préférée si elle existe en base
+        if (!empty($user->preferred_language)) {
+            session(['locale' => $user->preferred_language]);
+            app()->setLocale($user->preferred_language);
+        } else {
+            // Langue par défaut (français)
+            session(['locale' => 'fr']);
+            app()->setLocale('fr');
+        }
+
+        // ✅ Optionnel : appliquer le thème sombre si l'utilisateur l'a enregistré
+        if (isset($user->dark_mode) && $user->dark_mode) {
+            session(['dark_mode' => true]);
+        } else {
+            session(['dark_mode' => false]);
+        }
+    }
 }

@@ -2,23 +2,26 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Models\Notification;
 use App\Models\Perte;
 use App\Models\TypePiece;
+use App\Models\DocumentTrouve;
+use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class PerteController extends Controller
 {
     /**
-     * Display a listing of user's declarations.
+     * Afficher la liste des déclarations de l'utilisateur.
      */
     public function index(Request $request)
     {
         $user = Auth::user();
         $query = Perte::where('user_id', $user->id);
         
-        // Filtre par statut
+        // Filtre par statut (intègre les nouveaux statuts)
         if ($request->has('statut') && $request->statut != '') {
             $query->where('statut', $request->statut);
         }
@@ -38,46 +41,131 @@ class PerteController extends Controller
         
         $pertes = $query->orderBy('created_at', 'desc')->paginate(10);
         
-        // Statistiques
+        // Statistiques enrichies
         $totalDeclarations = Perte::where('user_id', $user->id)->count();
         $enAttenteCount = Perte::where('user_id', $user->id)->where('statut', 'en_attente')->count();
+        $enCoursCount = Perte::where('user_id', $user->id)->where('statut', 'en_cours')->count();
+        $correspondanceCount = Perte::where('user_id', $user->id)->where('statut', 'correspondance_trouvee')->count();
+        $restitueCount = Perte::where('user_id', $user->id)->where('statut', 'restitue')->count();
+        $nonRetrouveCount = Perte::where('user_id', $user->id)->where('statut', 'non_retrouve')->count();
         $valideeCount = Perte::where('user_id', $user->id)->where('statut', 'validee')->count();
         $rejeteeCount = Perte::where('user_id', $user->id)->where('statut', 'rejetee')->count();
         
-        return view('perte.index', compact('pertes', 'totalDeclarations', 'enAttenteCount', 'valideeCount', 'rejeteeCount'));
+        return view('perte.index', compact(
+            'pertes',
+            'totalDeclarations',
+            'enAttenteCount',
+            'enCoursCount',
+            'correspondanceCount',
+            'restitueCount',
+            'nonRetrouveCount',
+            'valideeCount',
+            'rejeteeCount'
+        ));
     }
 
     /**
-     * Show the form for creating a new declaration.
+     * Afficher le formulaire de création d'une déclaration.
+     * Si un paramètre 'copy_from' est fourni, pré‑remplit les champs
+     * avec les données de l'ancienne déclaration (pour les cas non retrouvés).
      */
-    public function create()
+    public function create(Request $request)
     {
         $user = Auth::user();
         $typesPieces = TypePiece::all();
+        $oldPerte = null;
         
-        return view('perte.create', compact('user', 'typesPieces'));
+        if ($request->has('copy_from')) {
+            $oldPerte = Perte::where('user_id', $user->id)
+                             ->where('statut', 'non_retrouve')
+                             ->find($request->copy_from);
+        }
+        
+        return view('perte.create', compact('user', 'typesPieces', 'oldPerte'));
     }
 
     /**
-     * Store a newly created declaration in storage.
+     * Télécharger le récépissé de non‑retrouvé.
+     */
+    public function downloadRecu($id)
+    {
+        $perte = Perte::findOrFail($id);
+        // Vérifier que l'utilisateur est bien le déclarant ou un agent
+        if (auth()->id() != $perte->user_id && !auth()->user()->isAgent()) {
+            abort(403);
+        }
+        if (!$perte->pdf_recu || !Storage::disk('public')->exists($perte->pdf_recu)) {
+            abort(404, 'Récépissé non disponible.');
+        }
+        return Storage::disk('public')->download($perte->pdf_recu, 'recu_perte_'.$perte->id.'.pdf');
+    }
+
+    /**
+     * Afficher la page de suivi d'une déclaration pour le citoyen.
+     */
+    public function suivi($id)
+    {
+        $perte = Perte::with('user')->findOrFail($id);
+        if (auth()->id() != $perte->user_id) {
+            abort(403);
+        }
+        
+        // Récupérer les notifications liées à cette déclaration
+        $notifications = Notification::where('perte_id', $perte->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        return view('citizen.suivi', compact('perte', 'notifications'));
+    }
+
+    /**
+     * Le citoyen signale qu'il a récupéré son document (pour la démo).
+     * Envoie une notification à tous les agents.
+     */
+    public function signalerRecuperation($perteId)
+    {
+        $perte = Perte::where('user_id', auth()->id())->findOrFail($perteId);
+        
+        if ($perte->statut !== Perte::STATUT_PRET_RECUPERATION) {
+            return back()->with('error', 'Ce document n\'est pas encore prêt à être récupéré.');
+        }
+
+        // Notifier tous les agents (ou un agent spécifique selon votre besoin)
+        $agents = User::where('role', 'agent')->get();
+        foreach ($agents as $agent) {
+            Notification::createSystemNotification(
+                $agent,
+                '📢 Le citoyen a récupéré son document',
+                "Le citoyen {$perte->user->name} a signalé avoir récupéré son document ({$perte->type_piece}). Veuillez valider la restitution.",
+                route('agent.perte.show', $perte->id),
+                $perte,
+                '📥',
+                'info'
+            );
+        }
+
+        return back()->with('success', '✅ Vous avez signalé la récupération. L’agent en a été informé.');
+    }
+
+    /**
+     * Enregistrer une nouvelle déclaration.
      */
     public function store(Request $request)
     {
-        // Validation avec les règles combinées
         $validated = $request->validate([
-            'last_name' => 'required|string|max:255',
-            'first_name' => 'required|string|max:255',
-            'contact' => 'required|string|max:30',
-            'email' => 'required|email|max:255',
-            'type_piece' => 'required|string|max:100',
-            'numero_piece' => 'nullable|string|max:100',
-            'date_delivrance' => 'nullable|date',
+            'last_name'      => 'required|string|max:255',
+            'first_name'     => 'required|string|max:255',
+            'contact'        => 'required|string|max:30',
+            'email'          => 'required|email|max:255',
+            'type_piece'     => 'required|string|max:100',
+            'numero_piece'   => 'nullable|string|max:100',
+            'date_delivrance'=> 'nullable|date',
             'autorite_delivrance' => 'nullable|string|max:255',
-            'date_perte' => 'required|date|before_or_equal:today',
-            'lieu_perte' => 'required|string|max:255', // Gardé required car c'est important
-            'circonstances' => 'nullable|string',
-            'copie_piece' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
-            'declaration_vol' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'date_perte'     => 'required|date|before_or_equal:today',
+            'lieu_perte'     => 'required|string|max:255',
+            'circonstances'  => 'nullable|string',
+            'copie_piece'    => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'declaration_vol'=> 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
             'document_complementaire' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ], [
             'last_name.required' => 'Le nom est obligatoire.',
@@ -89,54 +177,42 @@ class PerteController extends Controller
             'date_perte.required' => 'La date de perte est obligatoire.',
             'date_perte.before_or_equal' => 'La date de perte ne peut pas être dans le futur.',
             'lieu_perte.required' => 'Le lieu de perte est obligatoire.',
-            'copie_piece.mimes' => 'La copie de la pièce doit être un fichier PDF, JPG ou PNG.',
-            'copie_piece.max' => 'La copie de la pièce ne doit pas dépasser 2 Mo.',
-            'declaration_vol.mimes' => 'La déclaration de vol doit être un fichier PDF, JPG ou PNG.',
-            'declaration_vol.max' => 'La déclaration de vol ne doit pas dépasser 2 Mo.',
-            'document_complementaire.mimes' => 'Le document complémentaire doit être un fichier PDF, JPG ou PNG.',
-            'document_complementaire.max' => 'Le document complémentaire ne doit pas dépasser 2 Mo.',
         ]);
         
-        // Ajouter l'ID utilisateur et le statut initial
         $validated['user_id'] = Auth::id();
-        $validated['statut'] = 'en_attente';
+        $validated['statut'] = Perte::STATUT_EN_ATTENTE;
         $validated['date_declaration'] = now();
-
+        
         // Upload des fichiers
-        if ($request->hasFile('copie_piece')) {
-            $validated['copie_piece'] = $request->file('copie_piece')->store('pertes/copie_piece', 'public');
+        foreach (['copie_piece', 'declaration_vol', 'document_complementaire'] as $field) {
+            if ($request->hasFile($field)) {
+                $validated[$field] = $request->file($field)->store("pertes/{$field}", 'public');
+            }
         }
         
-        if ($request->hasFile('declaration_vol')) {
-            $validated['declaration_vol'] = $request->file('declaration_vol')->store('pertes/declaration_vol', 'public');
-        }
-        
-        if ($request->hasFile('document_complementaire')) {
-            $validated['document_complementaire'] = $request->file('document_complementaire')->store('pertes/documents', 'public');
-        }
-
-        // Créer la déclaration
         $perte = Perte::create($validated);
         
         return redirect()->route('perte.index')->with('success', '✅ Déclaration soumise avec succès ! Votre numéro de déclaration est : ' . $perte->numero_declaration);
     }
 
     /**
-     * Display the specified declaration.
+     * Afficher les détails d'une déclaration (pour le citoyen).
+     * Enrichi avec les informations de correspondance si un document trouvé est associé.
      */
     public function show($id)
     {
         $perte = Perte::where('user_id', Auth::id())->findOrFail($id);
+        $perte->load('documentTrouve');
         return view('perte.show', compact('perte'));
     }
 
     /**
-     * Show the form for editing the specified declaration.
+     * Afficher le formulaire d'édition (uniquement si le statut est 'en_attente').
      */
     public function edit($id)
     {
         $perte = Perte::where('user_id', Auth::id())
-                      ->where('statut', 'en_attente')
+                      ->where('statut', Perte::STATUT_EN_ATTENTE)
                       ->findOrFail($id);
         
         $typesPieces = TypePiece::all();
@@ -145,39 +221,37 @@ class PerteController extends Controller
     }
 
     /**
-     * Update the specified declaration in storage.
+     * Mettre à jour une déclaration (uniquement si 'en_attente').
      */
     public function update(Request $request, $id)
     {
         $perte = Perte::where('user_id', Auth::id())
-                      ->where('statut', 'en_attente')
+                      ->where('statut', Perte::STATUT_EN_ATTENTE)
                       ->findOrFail($id);
         
         $validated = $request->validate([
-            'last_name' => 'required|string|max:255',
-            'first_name' => 'required|string|max:255',
-            'contact' => 'required|string|max:30',
-            'email' => 'required|email|max:255',
-            'type_piece' => 'required|string|max:100',
-            'numero_piece' => 'nullable|string|max:100',
-            'date_delivrance' => 'nullable|date',
+            'last_name'      => 'required|string|max:255',
+            'first_name'     => 'required|string|max:255',
+            'contact'        => 'required|string|max:30',
+            'email'          => 'required|email|max:255',
+            'type_piece'     => 'required|string|max:100',
+            'numero_piece'   => 'nullable|string|max:100',
+            'date_delivrance'=> 'nullable|date',
             'autorite_delivrance' => 'nullable|string|max:255',
-            'date_perte' => 'required|date|before_or_equal:today',
-            'lieu_perte' => 'required|string|max:255',
-            'circonstances' => 'nullable|string',
-            'copie_piece' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
-            'declaration_vol' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'date_perte'     => 'required|date|before_or_equal:today',
+            'lieu_perte'     => 'required|string|max:255',
+            'circonstances'  => 'nullable|string',
+            'copie_piece'    => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'declaration_vol'=> 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
             'document_complementaire' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ]);
         
-        // Upload des nouveaux fichiers (et suppression des anciens)
+        // Gestion des fichiers (remplacement)
         foreach (['copie_piece', 'declaration_vol', 'document_complementaire'] as $field) {
             if ($request->hasFile($field)) {
-                // Supprimer l'ancien fichier si existe
                 if ($perte->$field) {
                     Storage::disk('public')->delete($perte->$field);
                 }
-                // Uploader le nouveau
                 $validated[$field] = $request->file($field)->store("pertes/{$field}", 'public');
             }
         }
@@ -188,12 +262,12 @@ class PerteController extends Controller
     }
 
     /**
-     * Remove the specified declaration from storage.
+     * Supprimer une déclaration (uniquement si 'en_attente').
      */
     public function destroy($id)
     {
         $perte = Perte::where('user_id', Auth::id())
-                      ->where('statut', 'en_attente')
+                      ->where('statut', Perte::STATUT_EN_ATTENTE)
                       ->findOrFail($id);
         
         // Supprimer les fichiers associés
@@ -206,5 +280,16 @@ class PerteController extends Controller
         $perte->delete();
         
         return redirect()->route('perte.index')->with('success', '✅ Déclaration supprimée avec succès.');
+    }
+
+    /**
+     * Télécharger l'attestation de déclaration (PDF) – à implémenter selon vos besoins.
+     */
+    public function download($id)
+    {
+        $perte = Perte::where('user_id', Auth::id())->findOrFail($id);
+        // Génération du PDF
+        // ...
+        return response()->download(storage_path('app/attestations/declaration_' . $perte->id . '.pdf'));
     }
 }

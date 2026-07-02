@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -12,11 +11,12 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
+    // Constantes de rôle
+    public const ROLE_CITOYEN = 'citoyen';
+    public const ROLE_USER = 'user';
+    public const ROLE_AGENT = 'agent';
+    public const ROLE_ADMIN = 'admin';
+
     protected $fillable = [
         'name',
         'email',
@@ -26,63 +26,84 @@ class User extends Authenticatable
         'address',
         'nationality',
         'gender',
-        'first_name',      // Si utilisé
-        'last_name',       // Si utilisé
-        'phone',   
-         'theme',        // Si utilisé
+        'first_name',
+        'last_name',
+        'phone',
+        'theme',
+        'role',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
     protected $casts = [
         'email_verified_at' => 'datetime',
         'birth_date' => 'date',
         'preferences' => 'array',
-        // 'password' => 'hashed', // ← ENLEVÉ (seulement Laravel 10+)
     ];
 
-    /**
-     * Get all declarations made by this user.
-     */
+    // Relations
     public function pertes()
     {
         return $this->hasMany(Perte::class);
     }
 
-    /**
-     * Get declarations validated by this user (if agent).
-     */
     public function validatedPertes()
     {
         return $this->hasMany(Perte::class, 'validated_by');
     }
 
-    /**
-     * Check if user is an agent.
-     */
-    public function isAgent(): bool
+    public function notifications()
     {
-        // Implement your agent check logic here
-        // Example: return $this->role === 'agent';
-        return false;
+        return $this->morphMany(Notification::class, 'notifiable');
     }
 
-    /**
-     * Get user's full name.
-     */
+    public function sentNotifications()
+    {
+        return $this->hasMany(Notification::class, 'from_user_id');
+    }
+
+    public function receivedNotifications()
+    {
+        return $this->hasMany(Notification::class, 'user_id');
+    }
+
+    // Vérifications de rôle
+    public function hasRole(string $role): bool
+    {
+        return $this->role === $role;
+    }
+
+    public function isCitizen(): bool
+    {
+        return in_array($this->role, [self::ROLE_CITOYEN, self::ROLE_USER]);
+    }
+
+    public function isAgent(): bool
+    {
+        return $this->role === self::ROLE_AGENT;
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === self::ROLE_ADMIN;
+    }
+
+    // Accesseur pour le libellé du rôle (compatible PHP 7.x)
+    public function getRoleLabelAttribute(): string
+    {
+        $labels = [
+            self::ROLE_CITOYEN => 'Citoyen',
+            self::ROLE_USER    => 'Utilisateur',
+            self::ROLE_AGENT   => 'Agent',
+            self::ROLE_ADMIN   => 'Administrateur',
+        ];
+        return $labels[$this->role] ?? 'Inconnu';
+    }
+
+    // Autres accesseurs
     public function getFullNameAttribute(): string
     {
         if ($this->first_name && $this->last_name) {
@@ -91,9 +112,6 @@ class User extends Authenticatable
         return $this->name;
     }
 
-    /**
-     * Get user's initials for avatar.
-     */
     public function getInitialsAttribute(): string
     {
         if ($this->first_name && $this->last_name) {
@@ -102,9 +120,6 @@ class User extends Authenticatable
         return strtoupper(substr($this->name, 0, 1));
     }
 
-    /**
-     * Get user's age from birth date.
-     */
     public function getAgeAttribute(): ?int
     {
         if (!$this->birth_date) {

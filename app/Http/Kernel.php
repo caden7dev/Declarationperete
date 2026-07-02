@@ -28,24 +28,33 @@ class Kernel extends HttpKernel
      *
      * @var array<string, array<int, class-string|string>>
      */
-    protected $middlewareGroups = [
-        'web' => [
-            \App\Http\Middleware\EncryptCookies::class,
-            \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
-            \Illuminate\Session\Middleware\StartSession::class,
-            // \Illuminate\Session\Middleware\AuthenticateSession::class,
-            \Illuminate\View\Middleware\ShareErrorsFromSession::class,
-            \App\Http\Middleware\VerifyCsrfToken::class,
-            \Illuminate\Routing\Middleware\SubstituteBindings::class,
-            
-        ],
+    // ============================================================
+// FICHIER : app/Http/Kernel.php
+// ============================================================
+// Trouve le tableau $middlewareGroups → groupe 'web' → ajoute
+// \App\Http\Middleware\SetLocale::class  APRÈS  StartSession
+// ============================================================
 
-        'api' => [
-            // \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
-            'throttle:api',
-            \Illuminate\Routing\Middleware\SubstituteBindings::class,
-        ],
-    ];
+// EXEMPLE — ton groupe 'web' doit ressembler à ça :
+
+protected $middlewareGroups = [
+    'web' => [
+        \App\Http\Middleware\EncryptCookies::class,
+        \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+        \Illuminate\Session\Middleware\StartSession::class,
+        \App\Http\Middleware\SetLocale::class,           // ← AJOUTER ICI
+        \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+        \App\Http\Middleware\VerifyCsrfToken::class,
+        \Illuminate\Routing\Middleware\SubstituteBindings::class,
+    ],
+
+    'api' => [
+        // ...
+    ],
+];
+
+// ⚠️  IMPORTANT : SetLocale DOIT être APRÈS StartSession
+//    car il a besoin que la session soit démarrée pour lire session('locale')
 
     /**
      * The application's route middleware.
