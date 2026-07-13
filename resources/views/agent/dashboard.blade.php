@@ -8,7 +8,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     
-    <!-- ⚡ ANTI-FLASH BLANC -->
     <script>
         (function() {
             try {
@@ -27,7 +26,7 @@
     </script>
     
     <style>
-        /* ===== TOUS LES STYLES EXISTANTS (inchangés) ===== */
+        /* ===== STYLES COMPLETS (inchangés) ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
             --primary: #f39c12;
@@ -53,6 +52,7 @@
             transition: background 0.2s ease;
         }
         body.dark-mode { background: #0f172a; }
+        
         /* ===== SIDEBAR ===== */
         .sidebar {
             width: 280px;
@@ -198,6 +198,7 @@
         }
         .logout-link svg { width: 16px; height: 16px; }
         .logout-link:hover { opacity: 0.8; transform: translateX(3px); }
+        
         /* ===== MAIN CONTENT ===== */
         .main {
             margin-left: 280px;
@@ -457,48 +458,52 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(243,156,18,0.3);
         }
-        .declaration-card, .document-card {
+        
+        /* ===== TABLEAU ===== */
+        .table-responsive {
+            overflow-x: auto;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
             background: white;
             border-radius: 16px;
-            padding: 1.2rem;
-            margin-bottom: 1rem;
-            border: 1px solid var(--gray-200);
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 1rem;
+            overflow: hidden;
         }
-        body.dark-mode .declaration-card,
-        body.dark-mode .document-card {
+        body.dark-mode .table {
             background: #1e293b;
-            border-color: #334155;
         }
-        .declaration-card:hover, .document-card:hover {
-            border-color: var(--primary);
-            transform: translateX(3px);
+        .table thead {
+            background: #f8fafc;
         }
-        .card-info { flex: 1; min-width: 200px; }
-        .card-title {
+        body.dark-mode .table thead {
+            background: #0f172a;
+        }
+        .table th {
+            padding: 0.8rem 1rem;
+            text-align: left;
+            font-size: 0.7rem;
             font-weight: 700;
-            color: var(--dark);
-            margin-bottom: 0.3rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-        }
-        body.dark-mode .card-title { color: #e5e7eb; }
-        .card-details {
-            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
             color: var(--gray-600);
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            margin-top: 0.3rem;
+            border-bottom: 2px solid var(--gray-200);
         }
-        body.dark-mode .card-details { color: #94a3b8; }
+        body.dark-mode .table th {
+            color: #94a3b8;
+            border-bottom-color: #334155;
+        }
+        .table td {
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid var(--gray-100);
+            color: var(--gray-800);
+        }
+        body.dark-mode .table td {
+            border-bottom-color: #334155;
+            color: #cbd5e1;
+        }
+        .table tr:last-child td { border-bottom: none; }
+        
         .status-badge {
             display: inline-flex;
             align-items: center;
@@ -522,9 +527,32 @@
         body.dark-mode .status-returned { background: #0a3b2a; color: #34d399; }
         body.dark-mode .status-in-progress { background: #1e3a5f; color: #60a5fa; }
         body.dark-mode .status-not-found { background: #1f2937; color: #9ca3af; }
+        
+        .locked-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.2rem 0.7rem;
+            border-radius: 50px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            background: #fef3c7;
+            color: #d97706;
+        }
+        body.dark-mode .locked-badge {
+            background: #422d0b;
+            color: #fbbf24;
+        }
+        .locked-badge .locked-by {
+            font-weight: 400;
+            opacity: 0.8;
+        }
+        
         .card-actions {
             display: flex;
             gap: 0.5rem;
+            flex-wrap: wrap;
+            align-items: center;
         }
         .btn-action {
             padding: 0.5rem 1rem;
@@ -547,22 +575,57 @@
             background: var(--primary-dark);
             transform: translateY(-2px);
         }
-        .btn-success {
-            background: var(--success);
-            color: white;
+        .btn-secondary {
+            background: var(--gray-200);
+            color: var(--gray-600);
         }
-        .btn-success:hover {
-            background: #219653;
-            transform: translateY(-2px);
+        body.dark-mode .btn-secondary {
+            background: #334155;
+            color: #94a3b8;
         }
-        .btn-danger {
-            background: var(--danger);
-            color: white;
+        
+        .document-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.2rem;
+            margin-bottom: 1rem;
+            border: 1px solid var(--gray-200);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
         }
-        .btn-danger:hover {
-            background: #c0392b;
-            transform: translateY(-2px);
+        body.dark-mode .document-card {
+            background: #1e293b;
+            border-color: #334155;
         }
+        .document-card:hover {
+            border-color: var(--primary);
+            transform: translateX(3px);
+        }
+        .card-info { flex: 1; min-width: 200px; }
+        .card-title {
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 0.3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        body.dark-mode .card-title { color: #e5e7eb; }
+        .card-details {
+            font-size: 0.8rem;
+            color: var(--gray-600);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 0.3rem;
+        }
+        body.dark-mode .card-details { color: #94a3b8; }
+        
         .empty-state {
             text-align: center;
             padding: 3rem;
@@ -570,7 +633,7 @@
         }
         body.dark-mode .empty-state { color: #94a3b8; }
         .empty-state-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.3; }
-        /* Pagination styles supprimés car on ne l'affiche plus */
+        
         @media (max-width:1200px) {
             .stats-grid { grid-template-columns: repeat(3,1fr); }
         }
@@ -581,8 +644,8 @@
         }
         @media (max-width:640px) {
             .stats-grid { grid-template-columns: 1fr; }
-            .declaration-card, .document-card { flex-direction: column; text-align: center; }
-            .card-actions { justify-content: center; }
+            .card-actions { flex-direction: column; align-items: stretch; }
+            .document-card { flex-direction: column; text-align: center; }
             .card-details { justify-content: center; }
         }
     </style>
@@ -593,10 +656,11 @@
     use App\Models\Perte;
     use App\Models\DocumentTrouve;
     use App\Models\Notification;
+    use App\Models\User;
     
     $user = auth()->user();
+    $agentId = $user->id;
     
-    // ===== STATISTIQUES COMPLÈTES =====
     $stats = [
         'total' => Perte::count(),
         'en_attente' => Perte::where('statut', 'en_attente')->count(),
@@ -616,12 +680,9 @@
         'restitue' => DocumentTrouve::where('statut', 'restitue')->count(),
     ];
     
-    $totalNotif = $stats['en_attente'] + $statsDocumentsTrouves['en_attente'];
-    
     $derniersTrouves = DocumentTrouve::orderBy('created_at', 'desc')->limit(5)->get();
     $pertes = Perte::orderBy('created_at', 'desc')->paginate(10);
     
-    // Appliquer le filtre si présent
     if(request('statut')) {
         $pertes = Perte::where('statut', request('statut'))->orderBy('created_at', 'desc')->paginate(10);
     }
@@ -652,30 +713,21 @@
 
     <nav class="sidebar-nav">
         <div class="nav-section">PRINCIPAL</div>
-        <a href="{{ route('agent.dashboard') }}" class="{{ request()->routeIs('agent.dashboard') && !request('statut') ? 'active' : '' }}">
+        <a href="{{ route('agent.dashboard') }}" class="active">
             <i class="bi bi-speedometer2"></i> Dashboard
         </a>
-        <a href="{{ route('agent.dashboard', ['statut' => 'en_attente']) }}" class="{{ request('statut') == 'en_attente' ? 'active' : '' }}">
+        <a href="{{ route('agent.dashboard', ['statut' => 'en_attente']) }}">
             <i class="bi bi-hourglass-split"></i> En attente
             @if($stats['en_attente'] > 0)
                 <span class="nav-badge">{{ $stats['en_attente'] }}</span>
             @endif
         </a>
-        <a href="{{ route('agent.dashboard') }}">
-            <i class="bi bi-files"></i> Toutes les pertes
-        </a>
 
         <div class="nav-section">DOCUMENTS</div>
-        <a href="{{ route('agent.documents-trouves.index') }}" class="{{ request()->routeIs('agent.documents-trouves.*') ? 'active' : '' }}">
+        <a href="{{ route('agent.documents-trouves.index') }}">
             <i class="bi bi-search-heart"></i> Documents trouvés
             @if($statsDocumentsTrouves['en_attente'] > 0)
                 <span class="nav-badge orange">{{ $statsDocumentsTrouves['en_attente'] }}</span>
-            @endif
-        </a>
-        <a href="{{ route('agent.documents-trouves.index') }}?statut=matche">
-            <i class="bi bi-link-45deg"></i> Matchs automatiques
-            @if($statsDocumentsTrouves['matche'] > 0)
-                <span class="nav-badge green">{{ $statsDocumentsTrouves['matche'] }}</span>
             @endif
         </a>
 
@@ -683,7 +735,6 @@
         <a href="{{ route('agent.traiter-suivant') }}">
             <i class="bi bi-lightning-charge"></i> Traiter suivant
         </a>
-        <!-- Lien "Validation groupée" supprimé -->
 
         <div class="nav-section">ANALYTIQUES</div>
         <a href="{{ route('agent.statistiques') }}">
@@ -698,7 +749,6 @@
             <i class="bi bi-chat-dots"></i> Messages
             <span class="nav-badge blue">2</span>
         </a>
-        <!-- ✅ Lien modifié pour pointer vers la page des notifications dédiée à l'agent -->
         <a href="{{ route('agent.notifications') }}">
             <i class="bi bi-bell"></i> Notifications
             @php
@@ -717,11 +767,11 @@
 
     <div class="sidebar-footer">
         <form method="POST" action="{{ route('logout') }}" onsubmit="return confirm('Voulez-vous vraiment vous déconnecter ?')">
-    @csrf
-    <button type="submit" class="logout-link">
-        Déconnecter
-    </button>
-</form>
+            @csrf
+            <button type="submit" class="logout-link">
+                Déconnecter
+            </button>
+        </form>
     </div>
 </div>
 
@@ -741,7 +791,6 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
                 </svg>
             </button>
-            <!-- ✅ Lien modifié vers la page des notifications dédiée à l'agent -->
             <div class="icon-btn notification-btn" onclick="window.location.href='{{ route('agent.notifications') }}'" title="Notifications">
                 <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
@@ -772,13 +821,12 @@
         <a href="{{ route('agent.documents-trouves.index') }}?statut=matche" class="quick-action-btn secondary">
             <i class="bi bi-link-45deg"></i> Matchs auto ({{ $statsDocumentsTrouves['matche'] }})
         </a>
-        <!-- Bouton "Validation groupée" supprimé -->
         <a href="{{ route('agent.statistiques') }}" class="quick-action-btn secondary">
             <i class="bi bi-graph-up"></i> Voir stats
         </a>
     </div>
 
-    <!-- Statistiques (avec tous les statuts) -->
+    <!-- Statistiques -->
     <div class="stats-grid">
         <div class="stat-card" onclick="window.location.href='{{ route('agent.dashboard') }}'">
             <div class="stat-icon"><i class="bi bi-files"></i></div>
@@ -827,7 +875,7 @@
         </div>
     </div>
 
-    <!-- Filtres (tous les statuts) -->
+    <!-- Filtres -->
     <div class="filter-tabs">
         <a href="{{ route('agent.dashboard') }}" class="filter-tab {{ !request('statut') ? 'active' : '' }}">
             <i class="bi bi-grid-3x3-gap-fill me-1"></i> Toutes
@@ -862,21 +910,19 @@
         </a>
     </div>
 
-    <!-- Section Déclarations de Perte (sans validation groupée, ni pagination) -->
+    <!-- Section Déclarations de Perte -->
     <div class="section-header">
         <div class="section-title">
             <i class="bi bi-card-list" style="color: var(--primary);"></i>
             Déclarations de Perte
         </div>
-        <!-- Le bouton "Valider la sélection" a été supprimé -->
     </div>
 
     @if($pertes->count() > 0)
         <div class="table-responsive">
-            <table class="table" style="width:100%; background: white; border-radius: 16px;">
+            <table class="table">
                 <thead>
                     <tr>
-                        <!-- Colonne checkbox supprimée -->
                         <th>N°</th>
                         <th>Déclarant</th>
                         <th>Type</th>
@@ -888,7 +934,6 @@
                 <tbody>
                     @foreach($pertes as $perte)
                     @php
-                        // ===== MAPPING COMPLET DES STATUTS =====
                         $statusMap = [
                             'en_attente' => ['class' => 'status-pending', 'icon' => '⏳', 'label' => 'En attente'],
                             'en_cours' => ['class' => 'status-in-progress', 'icon' => '🔍', 'label' => 'En cours'],
@@ -901,7 +946,6 @@
                         $cfg = $statusMap[$perte->statut] ?? ['class' => 'status-pending', 'icon' => '📄', 'label' => ucfirst($perte->statut)];
                     @endphp
                     <tr>
-                        <!-- Cellule checkbox supprimée -->
                         <td><strong>#{{ str_pad($perte->id, 6, '0', STR_PAD_LEFT) }}</strong></td>
                         <td>{{ $perte->first_name }} {{ $perte->last_name }}</td>
                         <td>{{ $perte->type_piece }}</td>
@@ -911,26 +955,18 @@
                                 {{ $cfg['icon'] }} {{ $cfg['label'] }}
                             </span>
                         </td>
-                        <td class="card-actions">
-                            <a href="{{ route('agent.perte.show', $perte->id) }}" class="btn-action btn-primary">
-                                <i class="bi bi-eye"></i> Voir
-                            </a>
-                            @if($perte->statut == 'en_attente')
-                                <button onclick="validatePerte({{ $perte->id }})" class="btn-action btn-success">
-                                    <i class="bi bi-check-lg"></i> Valider
-                                </button>
-                                <button onclick="rejectPerte({{ $perte->id }})" class="btn-action btn-danger">
-                                    <i class="bi bi-x-lg"></i> Rejeter
-                                </button>
-                            @endif
+                        <td>
+                            <div class="card-actions">
+                                <a href="{{ route('agent.perte.show', $perte->id) }}" class="btn-action btn-primary">
+                                    <i class="bi bi-eye"></i> Voir
+                                </a>
+                            </div>
                         </td>
                     </tr>
                     @endforeach
                 </tbody>
             </table>
         </div>
-        
-        <!-- PAGINATION SUPPRIMÉE -->
     @else
         <div class="empty-state">
             <div class="empty-state-icon"><i class="bi bi-inbox"></i></div>
@@ -1001,7 +1037,9 @@
 </div>
 
 <script>
-    // Horloge
+    // ============================================================
+    // HORLOGE
+    // ============================================================
     function updateDateTime() {
         const now = new Date();
         const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' };
@@ -1012,7 +1050,9 @@
     updateDateTime();
     setInterval(updateDateTime, 60000);
 
-    // Mode sombre
+    // ============================================================
+    // MODE SOMBRE
+    // ============================================================
     function applyTheme(isDark) {
         if (isDark) {
             document.body.classList.add('dark-mode');
@@ -1044,35 +1084,6 @@
             body: JSON.stringify({ dark_mode: isDark })
         }).catch(() => console.log('Mode sombre sauvegardé localement'));
     }
-
-    // Validation individuelle
-    function validatePerte(id) {
-        if(confirm('Valider cette déclaration ?')) {
-            fetch(`/agent/perte/${id}/valider`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
-                    'Content-Type': 'application/json'
-                }
-            }).then(() => window.location.reload());
-        }
-    }
-
-    function rejectPerte(id) {
-        const motif = prompt('Motif du rejet :');
-        if(motif) {
-            fetch(`/agent/perte/${id}/rejeter`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ motif: motif })
-            }).then(() => window.location.reload());
-        }
-    }
-
-    // Le code de sélection groupée a été supprimé car il n'y a plus de cases à cocher
 
     document.addEventListener('DOMContentLoaded', function() {
         loadTheme();

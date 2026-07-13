@@ -612,6 +612,22 @@
             color: var(--gray-600);
         }
 
+        /* ===== NOUVEAU : STYLE D'ERREUR DE DATE ===== */
+        .date-error {
+            color: var(--danger);
+            font-size: 0.75rem;
+            margin-top: 0.2rem;
+            display: none;
+        }
+
+        .date-error.show {
+            display: block;
+        }
+
+        .form-control.error {
+            border-color: var(--danger);
+        }
+
         /* Responsive */
         @media (max-width: 1024px) {
             .sidebar {
@@ -774,7 +790,7 @@
         </div>
 
         <!-- Formulaire -->
-        <form action="{{ route('perte.update', $perte->id) }}" method="POST" enctype="multipart/form-data">
+        <form action="{{ route('perte.update', $perte->id) }}" method="POST" enctype="multipart/form-data" id="editForm">
             @csrf
             @method('PUT')
 
@@ -826,8 +842,9 @@
                     </div>
                     <div class="col-md-6 form-group">
                         <label for="date_delivrance" class="form-label">Date de délivrance</label>
-                        <input type="date" class="form-control @error('date_delivrance') is-invalid @enderror" id="date_delivrance" name="date_delivrance" value="{{ old('date_delivrance', $perte->date_delivrance ? $perte->date_delivrance->format('Y-m-d') : '') }}">
-                        @error('date_delivrance')<div class="invalid-feedback">{{ $message }}</div>@enderror                    </div>
+                        <input type="date" class="form-control @error('date_delivrance') is-invalid @enderror" id="date_delivrance" name="date_delivrance" value="{{ old('date_delivrance', $perte->date_delivrance ? $perte->date_delivrance->format('Y-m-d') : '') }}" max="{{ date('Y-m-d') }}">
+                        @error('date_delivrance')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
                     <div class="col-md-6 form-group">
                         <label for="autorite_delivrance" class="form-label">Autorité de délivrance</label>
                         <input type="text" class="form-control @error('autorite_delivrance') is-invalid @enderror" id="autorite_delivrance" name="autorite_delivrance" value="{{ old('autorite_delivrance', $perte->autorite_delivrance) }}">
@@ -842,7 +859,11 @@
                 <div class="row">
                     <div class="col-md-6 form-group">
                         <label for="date_perte" class="form-label required">Date de la perte</label>
-                        <input type="date" class="form-control @error('date_perte') is-invalid @enderror" id="date_perte" name="date_perte" value="{{ old('date_perte', $perte->date_perte->format('Y-m-d')) }}" required>
+                        <input type="date" class="form-control @error('date_perte') is-invalid @enderror" id="date_perte" name="date_perte" value="{{ old('date_perte', $perte->date_perte->format('Y-m-d')) }}" max="{{ date('Y-m-d') }}" required>
+                        <div class="date-error" id="dateError">
+                            <i class="bi bi-exclamation-circle me-1"></i>
+                            La date de perte doit être postérieure ou égale à la date de délivrance.
+                        </div>
                         @error('date_perte')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div class="col-md-6 form-group">
@@ -921,7 +942,7 @@
             <div class="submit-section">
                 <div class="required-note"><i class="bi bi-asterisk text-danger me-1"></i>Les champs marqués d'un astérisque sont obligatoires</div>
                 <div>
-                    <button type="submit" class="btn-submit"><i class="bi bi-check-circle me-2"></i>Mettre à jour la déclaration</button>
+                    <button type="submit" class="btn-submit" id="submitBtn"><i class="bi bi-check-circle me-2"></i>Mettre à jour la déclaration</button>
                     <a href="{{ route('perte.show', $perte->id) }}" class="btn-outline-secondary ms-2"><i class="bi bi-x-lg me-1"></i>Annuler</a>
                 </div>
             </div>
@@ -938,6 +959,63 @@
             preview.innerHTML = `<div><i class="bi bi-check-circle-fill me-2 text-success"></i>${file.name} (${(file.size/1024).toFixed(2)} Ko)</div>`;
         }
     }
+
+    // ============================================================
+    // VALIDATION DES DATES
+    // ============================================================
+    document.addEventListener('DOMContentLoaded', function() {
+        const dateDelivrance = document.getElementById('date_delivrance');
+        const datePerte = document.getElementById('date_perte');
+        const dateError = document.getElementById('dateError');
+        const form = document.getElementById('editForm');
+        const submitBtn = document.getElementById('submitBtn');
+
+        function validateDates() {
+            const delivrance = dateDelivrance.value;
+            const perte = datePerte.value;
+
+            if (delivrance && perte) {
+                if (perte < delivrance) {
+                    dateError.classList.add('show');
+                    datePerte.classList.add('error');
+                    submitBtn.disabled = true;
+                    submitBtn.style.opacity = '0.5';
+                    submitBtn.style.cursor = 'not-allowed';
+                    return false;
+                } else {
+                    dateError.classList.remove('show');
+                    datePerte.classList.remove('error');
+                    submitBtn.disabled = false;
+                    submitBtn.style.opacity = '1';
+                    submitBtn.style.cursor = 'pointer';
+                    return true;
+                }
+            }
+            return true;
+        }
+
+        // Événements pour valider en temps réel
+        dateDelivrance.addEventListener('change', function() {
+            // Mettre à jour le min de la date de perte
+            if (this.value) {
+                datePerte.min = this.value;
+            }
+            validateDates();
+        });
+
+        datePerte.addEventListener('change', validateDates);
+        datePerte.addEventListener('input', validateDates);
+
+        // Validation avant soumission
+        form.addEventListener('submit', function(e) {
+            if (!validateDates()) {
+                e.preventDefault();
+                dateError.classList.add('show');
+                datePerte.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                datePerte.focus();
+            }
+        });
+    });
 
     // Dark mode
     function applyTheme(isDark) {

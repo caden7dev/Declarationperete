@@ -43,133 +43,277 @@ class Perte extends Model
         'date_preparation',
         'date_recuperation',
         'date_passage_non_retrouve',
+        'assigned_to',
+        'assigned_at',
+        'is_locked',
     ];
 
-    // ✅ Définition des valeurs par défaut (correction)
+
     protected $attributes = [
         'statut' => self::STATUT_EN_ATTENTE,
     ];
 
-    // Constantes des statuts
-    const STATUT_EN_ATTENTE            = 'en_attente';
-    const STATUT_EN_COURS              = 'en_cours';
+
+    // ==========================
+    // CONSTANTES STATUTS
+    // ==========================
+
+    const STATUT_EN_ATTENTE = 'en_attente';
+    const STATUT_EN_COURS = 'en_cours';
     const STATUT_CORRESPONDANCE_TROUVEE = 'correspondance_trouvee';
-    const STATUT_RESTITUE              = 'restitue';
-    const STATUT_NON_RETROUVE           = 'non_retrouve';
-    const STATUT_REJETEE               = 'rejetee';
-    const STATUT_VALIDEE               = 'validee';
+    const STATUT_RESTITUE = 'restitue';
+    const STATUT_NON_RETROUVE = 'non_retrouve';
+    const STATUT_REJETEE = 'rejetee';
+    const STATUT_VALIDEE = 'validee';
     const STATUT_RENOUVELLEMENT_EN_COURS = 'renouvellement_en_cours';
     const STATUT_PRET_RECUPERATION = 'pret_recuperation';
 
+
     public static $statuts = [
-        self::STATUT_EN_ATTENTE            => 'En attente',
-        self::STATUT_EN_COURS              => 'En cours de traitement',
+        self::STATUT_EN_ATTENTE => 'En attente',
+        self::STATUT_EN_COURS => 'En cours de traitement',
         self::STATUT_CORRESPONDANCE_TROUVEE => 'Correspondance trouvée',
-        self::STATUT_RESTITUE              => 'Restitué',
-        self::STATUT_NON_RETROUVE           => 'Non retrouvé',
-        self::STATUT_REJETEE               => 'Rejetée',
-        self::STATUT_VALIDEE               => 'Validée',
+        self::STATUT_RESTITUE => 'Restitué',
+        self::STATUT_NON_RETROUVE => 'Non retrouvé',
+        self::STATUT_REJETEE => 'Rejetée',
+        self::STATUT_VALIDEE => 'Validée',
     ];
+
+
+    // ==========================
+    // CASTS
+    // ==========================
 
     protected $casts = [
-        'date_delivrance'   => 'date',
-        'date_perte'        => 'date',
-        'date_declaration'  => 'datetime',
-        'date_traitement'   => 'datetime',
-        'validated_at'      => 'datetime',
-        'date_restitution'  => 'datetime',
-        'created_at'        => 'datetime',
-        'updated_at'        => 'datetime',
+        'date_delivrance' => 'date',
+        'date_perte' => 'date',
+        'date_declaration' => 'datetime',
+        'date_traitement' => 'datetime',
+        'validated_at' => 'datetime',
+        'date_restitution' => 'datetime',
         'date_passage_non_retrouve' => 'datetime',
+        'assigned_at' => 'datetime',
+        'is_locked' => 'boolean',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
-    // Relations...
-    public function user() { return $this->belongsTo(User::class); }
-    public function typePiece() { return $this->belongsTo(TypePiece::class); }
-    public function validator() { return $this->belongsTo(User::class, 'validated_by'); }
-    public function documentTrouve() { return $this->belongsTo(DocumentTrouve::class, 'document_trouve_id'); }
-    public function notifications() { return $this->hasMany(Notification::class); }
 
-    // Scopes
-    public function scopeEnAttente($query) { return $query->where('statut', self::STATUT_EN_ATTENTE); }
-    public function scopeEnCours($query) { return $query->where('statut', self::STATUT_EN_COURS); }
-    public function scopeCorrespondanceTrouvee($query) { return $query->where('statut', self::STATUT_CORRESPONDANCE_TROUVEE); }
-    public function scopeRestituees($query) { return $query->where('statut', self::STATUT_RESTITUE); }
-    public function scopeNonRetrouvees($query) { return $query->where('statut', self::STATUT_NON_RETROUVE); }
-    public function scopeRejetees($query) { return $query->where('statut', self::STATUT_REJETEE); }
+    // ==========================
+    // RELATIONS
+    // ==========================
 
-    // Accesseurs
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+
+    public function typePiece()
+    {
+        return $this->belongsTo(TypePiece::class);
+    }
+
+
+    public function validator()
+    {
+        return $this->belongsTo(User::class, 'validated_by');
+    }
+
+
+    public function assignedAgent()
+    {
+        return $this->belongsTo(User::class, 'assigned_to');
+    }
+
+
+    public function documentTrouve()
+    {
+        return $this->belongsTo(DocumentTrouve::class, 'document_trouve_id');
+    }
+
+
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class);
+    }
+
+
+
+    // ==========================
+    // SCOPES
+    // ==========================
+
+    public function scopeEnAttente($query)
+    {
+        return $query->where('statut', self::STATUT_EN_ATTENTE);
+    }
+
+
+    public function scopeEnCours($query)
+    {
+        return $query->where('statut', self::STATUT_EN_COURS);
+    }
+
+
+    public function scopeCorrespondanceTrouvee($query)
+    {
+        return $query->where('statut', self::STATUT_CORRESPONDANCE_TROUVEE);
+    }
+
+
+    public function scopeRestituees($query)
+    {
+        return $query->where('statut', self::STATUT_RESTITUE);
+    }
+
+
+    public function scopeNonRetrouvees($query)
+    {
+        return $query->where('statut', self::STATUT_NON_RETROUVE);
+    }
+
+
+    public function scopeRejetees($query)
+    {
+        return $query->where('statut', self::STATUT_REJETEE);
+    }
+
+
+
+    // ==========================
+    // ACCESSORS
+    // ==========================
+
     public function getStatutBadgeAttribute()
     {
         $classes = [
-            self::STATUT_EN_ATTENTE            => 'bg-warning',
-            self::STATUT_EN_COURS              => 'bg-info',
+            self::STATUT_EN_ATTENTE => 'bg-warning',
+            self::STATUT_EN_COURS => 'bg-info',
             self::STATUT_CORRESPONDANCE_TROUVEE => 'bg-primary',
-            self::STATUT_RESTITUE              => 'bg-success',
-            self::STATUT_NON_RETROUVE           => 'bg-secondary',
-            self::STATUT_REJETEE               => 'bg-danger',
-            self::STATUT_VALIDEE               => 'bg-success',
+            self::STATUT_RESTITUE => 'bg-success',
+            self::STATUT_NON_RETROUVE => 'bg-secondary',
+            self::STATUT_REJETEE => 'bg-danger',
+            self::STATUT_VALIDEE => 'bg-success',
         ];
+
         $class = $classes[$this->statut] ?? 'bg-secondary';
         $label = self::$statuts[$this->statut] ?? $this->statut;
+
         return "<span class='badge {$class}'>{$label}</span>";
     }
+
 
     public function getStatutTextAttribute()
     {
         return self::$statuts[$this->statut] ?? $this->statut;
     }
 
+
     public function getFullNameAttribute(): string
     {
         return trim($this->first_name . ' ' . $this->last_name);
     }
 
-    public function getTypePieceIconAttribute(): string
+
+
+    // ==========================
+    // GESTION PRISE EN CHARGE
+    // ==========================
+
+    public function isAssigned()
     {
-        $map = [
-            'Carte d\'identité (CNI)' => '🪪',
-            'Passeport'               => '🛂',
-            'Permis de conduire'      => '🚗',
-            'Carte d\'électeur'       => '🗳️',
-            'Acte de naissance'       => '📋',
-            'Certificat de nationalité' => '📜',
-        ];
-        return $map[$this->type_piece] ?? '📄';
+        return !is_null($this->assigned_to);
     }
 
-    // Méthodes utilitaires
-    public function isEnAttente(): bool { return $this->statut === self::STATUT_EN_ATTENTE; }
-    public function isEnCours(): bool { return $this->statut === self::STATUT_EN_COURS; }
-    public function isCorrespondanceTrouvee(): bool { return $this->statut === self::STATUT_CORRESPONDANCE_TROUVEE; }
-    public function isRestitue(): bool { return $this->statut === self::STATUT_RESTITUE; }
-    public function isNonRetrouve(): bool { return $this->statut === self::STATUT_NON_RETROUVE; }
-    public function isRejetee(): bool { return $this->statut === self::STATUT_REJETEE; }
+
+    public function isAssignedToMe()
+    {
+        return $this->assigned_to == auth()->id();
+    }
+
+
+    public function isLocked()
+    {
+        return $this->is_locked;
+    }
+
+
+    public function canBeTaken()
+    {
+        return $this->statut === self::STATUT_EN_ATTENTE
+            && !$this->is_locked;
+    }
+
+
+    public function canBeTakenBy($userId)
+    {
+        return $this->canBeTaken()
+            || ($this->assigned_to == $userId
+            && in_array($this->statut, [
+                self::STATUT_EN_COURS,
+                self::STATUT_CORRESPONDANCE_TROUVEE
+            ]));
+    }
+
+
+
+    // ==========================
+    // GENERATION NUMERO DECLARATION
+    // ==========================
 
     public static function generateNumeroDeclaration()
     {
         $year = now()->year;
+
         $count = self::whereYear('created_at', $year)->count() + 1;
-        return sprintf('DECL-%d-%05d', $year, $count);
+
+        return sprintf(
+            'DECL-%d-%05d',
+            $year,
+            $count
+        );
     }
+
+
+
+    // ==========================
+    // BOOT
+    // ==========================
 
     protected static function boot()
     {
         parent::boot();
 
+
         static::creating(function ($perte) {
-            if (empty($perte->numero_declaration)) {
+
+            if(empty($perte->numero_declaration)){
                 $perte->numero_declaration = self::generateNumeroDeclaration();
             }
-            if (empty($perte->date_declaration)) {
+
+
+            if(empty($perte->date_declaration)){
                 $perte->date_declaration = now();
             }
+
         });
 
-        static::updating(function ($perte) {
-            if ($perte->isDirty('statut') && $perte->statut === self::STATUT_RESTITUE && empty($perte->date_restitution)) {
+
+
+        static::updating(function ($perte){
+
+            if(
+                $perte->isDirty('statut')
+                && $perte->statut === self::STATUT_RESTITUE
+                && empty($perte->date_restitution)
+            ){
+
                 $perte->date_restitution = now();
+
             }
+
         });
+
     }
 }

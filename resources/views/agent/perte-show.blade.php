@@ -698,7 +698,9 @@
             font-size: 0.85rem;
         }
 
-        /* Action Section */
+        /* ============================================================
+        ACTION SECTION AVEC VERROUILLAGE
+        ============================================================ */
         .action-section {
             background: var(--gray-100);
             border-radius: 20px;
@@ -719,6 +721,44 @@
 
         body.dark-mode .action-title {
             color: #e5e7eb;
+        }
+
+        /* Bloc de verrouillage - DOSSIER PRIS PAR UN AUTRE AGENT */
+        .locked-block {
+            background: #FEF2F2;
+            border: 2px solid #D21034;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1.2rem;
+        }
+
+        body.dark-mode .locked-block {
+            background: #3f1e1e;
+            border-color: #ef4444;
+        }
+
+        .locked-block .locked-title {
+            color: #D21034;
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        body.dark-mode .locked-block .locked-title {
+            color: #f87171;
+        }
+
+        .locked-block .locked-text {
+            color: #7F1D1D;
+            font-size: 0.85rem;
+            margin-top: 0.3rem;
+        }
+
+        body.dark-mode .locked-block .locked-text {
+            color: #fca5a5;
         }
 
         .btn {
@@ -798,6 +838,19 @@
         .btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 16px rgba(243,156,18,0.4);
+        }
+
+        .btn-disabled {
+            background: #e5e7eb;
+            color: #6b7280;
+            cursor: not-allowed;
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        body.dark-mode .btn-disabled {
+            background: #374151;
+            color: #6b7280;
         }
 
         /* Rejection box */
@@ -1093,8 +1146,23 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        
     </style>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+    <script>
+        // Force rechargement si on revient avec le bouton "Retour"
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted) {
+                window.location.reload();
+            }
+        });
+    </script>
 </head>
+
 <body>
 
 @php
@@ -1117,6 +1185,15 @@
     $docIcons = ['Passeport'=>'🛂',"Carte d'identité (CNI)"=>'🪪','Permis de conduire'=>'🚗',"Carte d'électeur"=>'🗳️','Acte de naissance'=>'📋','Certificat de nationalité'=>'📜'];
     $docIcon = $docIcons[$perte->type_piece] ?? '📄';
     $ref = $perte->numero_declaration ?? 'DL-'.str_pad($perte->id, 5, '0', STR_PAD_LEFT);
+    
+    // Variables pour le verrouillage
+    $isLocked = $perte->is_locked ?? false;
+    $assignedTo = $perte->assigned_to ?? null;
+    $isAssignedToMe = $assignedTo == auth()->id();
+    $assignedAgentName = $assignedTo ? ($perte->assignedAgent->name ?? 'un autre agent') : null;
+    
+    // Vérifier si le bouton "Prendre en charge" doit être affiché
+    $showTakeButton = ($perte->statut === 'en_attente' && !$isLocked);
 @endphp
 
 <!-- Sidebar -->
@@ -1170,11 +1247,11 @@
 
     <div class="sidebar-footer">
        <form method="POST" action="{{ route('logout') }}" onsubmit="return confirm('Voulez-vous vraiment vous déconnecter ?')">
-    @csrf
-    <button type="submit" class="logout-link">
-        Déconnecter
-    </button>
-</form>
+            @csrf
+            <button type="submit" class="logout-link">
+                Déconnecter
+            </button>
+        </form>
     </div>
 </div>
 
@@ -1475,19 +1552,47 @@
                 </div>
             </div>
 
-            <!-- Actions selon le statut -->
+            <!-- ============================================================
+            ACTIONS AVEC VERROUILLAGE
+            ============================================================ -->
             <div class="action-section">
                 <div class="action-title"><i class="bi bi-lightning-charge"></i> Actions disponibles</div>
 
-                @if($perte->statut === 'en_attente')
-                    <a href="{{ route('agent.perte.prendre', $perte->id) }}" class="btn btn-primary">
-                        <i class="bi bi-play-circle"></i> Prendre en charge
-                    </a>
-                    <button class="btn btn-reject" onclick="openRejectModal()">
-                        <i class="bi bi-x-lg"></i> Rejeter la déclaration
-                    </button>
+                <!-- ============================================================
+                ⛔ BLOC DE VERROUILLAGE - DOSSIER PRIS PAR UN AUTRE AGENT
+                ============================================================ -->
+                @if($isLocked && !$isAssignedToMe)
+                    <div class="locked-block">
+                        <p class="locked-title">
+                            <i class="bi bi-lock-fill"></i> Dossier verrouillé
+                        </p>
+                        <p class="locked-text">
+                            Ce dossier est en cours de traitement par 
+                            <strong>{{ $assignedAgentName ?? 'un autre agent' }}</strong>.
+                            Vous ne pouvez pas le modifier.
+                        </p>
+                    </div>
+                @endif
 
-                @elseif($perte->statut === 'en_cours')
+                <!-- ============================================================
+                BOUTON PRENDRE EN CHARGE (conditionné par $showTakeButton)
+                ============================================================ -->
+                @if($showTakeButton)
+                    <form method="POST" 
+                          action="{{ route('agent.perte.prendre', $perte->id) }}"
+                          style="display:inline; width:100%;"
+                          onsubmit="return confirm('Prendre en charge cette déclaration ?')">
+                        @csrf
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-play-circle"></i> Prendre en charge
+                        </button>
+                    </form>
+                @endif
+
+                <!-- ============================================================
+                AUTRES BOUTONS (selon statut)
+                ============================================================ -->
+                @if($perte->statut === 'en_cours' && $isAssignedToMe)
                     <a href="{{ route('agent.perte.recherche', $perte->id) }}" class="btn btn-primary">
                         <i class="bi bi-search-heart"></i> Rechercher des correspondances
                     </a>
@@ -1510,8 +1615,8 @@
                         <i class="bi bi-exclamation-triangle"></i> "Rejeter" est réservé aux déclarations frauduleuses, incomplètes ou invalides. Un motif est obligatoire.
                     </div>
 
-                @elseif($perte->statut === 'correspondance_trouvee')
-                    <form method="POST" action="{{ route('agent.perte.restitution', $perte->id) }}" class="d-inline" style="width:100%;">
+                @elseif($perte->statut === 'correspondance_trouvee' && $isAssignedToMe)
+                    <form method="POST" action="{{ route('agent.perte.restitution', $perte->id) }}" style="width:100%;">
                         @csrf
                         <button type="submit" class="btn btn-approve" onclick="return confirm('Confirmer la restitution physique du document ?')">
                             <i class="bi bi-check2-circle"></i> Marquer comme restitué
@@ -1536,7 +1641,7 @@
                         <i class="bi bi-exclamation-triangle"></i> "Rejeter" est réservé aux déclarations frauduleuses, incomplètes ou invalides. Un motif est obligatoire.
                     </div>
 
-                @elseif($perte->statut === 'pret_recuperation')
+                @elseif($perte->statut === 'pret_recuperation' && $isAssignedToMe)
                     <!-- ✅ BOUTON RESTITUER POUR PRET_RECUPERATION -->
                     <form method="POST" action="{{ route('agent.perte.restitution', $perte->id) }}" style="width:100%;">
                         @csrf

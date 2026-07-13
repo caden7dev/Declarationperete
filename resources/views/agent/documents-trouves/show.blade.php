@@ -231,7 +231,7 @@
             gap: 0.6rem;
             text-decoration: none;
             color: var(--danger);
-            font-weight: 95O;
+            font-weight: 950;
             background: none;
             border: none;
             width: 100%;
@@ -396,6 +396,178 @@
 
         .alert-success { border-left-color: var(--success); }
         .alert-error { border-left-color: var(--danger); }
+
+        /* ============================================================
+        📬 BOUTON "MARQUER COMME TRAITÉ" - PRISE EN CHARGE
+        ============================================================ */
+        .action-banner {
+            background: #F0F7F3;
+            border: 1px solid #006A36;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        body.dark-mode .action-banner {
+            background: #0a3b2a;
+            border-color: #059669;
+        }
+
+        .action-banner .ab-title {
+            color: #006A36;
+            font-weight: 700;
+            margin: 0;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        body.dark-mode .action-banner .ab-title {
+            color: #86efac;
+        }
+
+        .action-banner .ab-text {
+            color: #5A6478;
+            font-size: 0.85rem;
+            margin-top: 3px;
+        }
+
+        body.dark-mode .action-banner .ab-text {
+            color: #94a3b8;
+        }
+
+        .btn-accept {
+            background: #006A36;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.65rem 1.4rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-accept:hover {
+            background: #004d27;
+        }
+
+        body.dark-mode .btn-accept {
+            background: #059669;
+        }
+
+        body.dark-mode .btn-accept:hover {
+            background: #047857;
+        }
+
+        .btn-restituer-banner {
+            background: #D21034;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.65rem 1.4rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-restituer-banner:hover {
+            background: #b00d2a;
+        }
+
+        body.dark-mode .btn-restituer-banner {
+            background: #dc2626;
+        }
+
+        body.dark-mode .btn-restituer-banner:hover {
+            background: #b91c1c;
+        }
+
+        /* ============================================================
+        📬 NOTIFICATION - MARQUER COMME LU (existant)
+        ============================================================ */
+        .notification-banner {
+            background: #F0F7F3;
+            border: 1px solid #006A36;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        body.dark-mode .notification-banner {
+            background: #0a3b2a;
+            border-color: #059669;
+        }
+
+        .notification-banner .nb-title {
+            color: #006A36;
+            font-weight: 700;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        body.dark-mode .notification-banner .nb-title {
+            color: #86efac;
+        }
+
+        .notification-banner .nb-text {
+            color: #5A6478;
+            font-size: 0.85rem;
+            margin-top: 3px;
+        }
+
+        body.dark-mode .notification-banner .nb-text {
+            color: #94a3b8;
+        }
+
+        .btn-mark-read {
+            background: #006A36;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.6rem 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+
+        .btn-mark-read:hover {
+            background: #004d27;
+        }
+
+        body.dark-mode .btn-mark-read {
+            background: #059669;
+        }
+
+        body.dark-mode .btn-mark-read:hover {
+            background: #047857;
+        }
 
         /* Page Header */
         .page-header {
@@ -925,7 +1097,18 @@
 
 @php
     use App\Models\Perte;
-    $pendingCount = Perte::where('statut','en_attente')->count();
+    use App\Models\DocumentTrouve;
+    use App\Models\Notification;
+    
+    // ✅ Compter les documents trouvés en attente (pour la sidebar)
+    $pendingCount = DocumentTrouve::where('statut', 'en_attente')->count();
+    
+    // ✅ Compter les notifications non lues pour les documents trouvés (pour le badge)
+    $unreadNotificationsCount = Notification::where('user_id', auth()->id())
+        ->where('is_read', false)
+        ->where('type', 'document_trouve')
+        ->count();
+    
     $statut = $documentTrouve->statut ?? 'en_attente';
     $sMap = [
         'en_attente' => ['label'=>'En attente',          'class'=>'sp-attente',  'icon'=>'⏳', 'pulse'=>true],
@@ -978,6 +1161,9 @@
         <div class="nav-section">DOCUMENTS</div>
         <a href="{{ route('agent.documents-trouves.index') }}" class="active">
             <i class="bi bi-search-heart"></i> Documents trouvés
+            @if($unreadNotificationsCount > 0)
+                <span class="nav-badge" id="documentsTrouvesBadge">{{ $unreadNotificationsCount }}</span>
+            @endif
         </a>
 
         <div class="nav-section">PARAMÈTRES</div>
@@ -987,12 +1173,12 @@
     </nav>
 
     <div class="sidebar-footer">
-        <<form method="POST" action="{{ route('logout') }}" onsubmit="return confirm('Voulez-vous vraiment vous déconnecter ?')">
-    @csrf
-    <button type="submit" class="logout-link">
-        Déconnecter
-    </button>
-</form>
+        <form method="POST" action="{{ route('logout') }}" onsubmit="return confirm('Voulez-vous vraiment vous déconnecter ?')">
+            @csrf
+            <button type="submit" class="logout-link">
+                Déconnecter
+            </button>
+        </form>
     </div>
 </div>
 
@@ -1030,6 +1216,77 @@
     @endif
     @if(session('error'))
         <div class="alert alert-error"><i class="bi bi-exclamation-triangle-fill"></i> {{ session('error') }}</div>
+    @endif
+
+    <!-- ============================================================
+    ✅ BOUTON "MARQUER COMME TRAITÉ" - PRISE EN CHARGE
+    ============================================================ -->
+    <div class="action-banner">
+        <div>
+            <p class="ab-title">
+                <i class="bi bi-check2-circle" style="color: #006A36;"></i>
+                📬 Document trouvé — Prise en charge
+            </p>
+            <p class="ab-text">
+                Cliquez sur "Accepter" pour confirmer que vous avez pris connaissance de ce document et faire disparaître la notification.
+            </p>
+        </div>
+        <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+
+            {{-- ✅ Bouton Accepter / Marquer comme lu --}}
+            @if(isset($notification) && $notification && !$notification->is_read)
+                <form method="POST"
+                      action="{{ route('notifications.read', $notification->id) }}"
+                      style="display:inline;"
+                      onsubmit="return confirm('Confirmer la prise en charge de ce document trouvé ?')">
+                    @csrf
+                    <button type="submit" class="btn-accept" onclick="setTimeout(window.updateNotificationBadge, 500)">
+                        <i class="bi bi-check2-circle"></i> Accepter & Marquer comme lu
+                    </button>
+                </form>
+            @else
+                <button class="btn-accept" style="opacity:0.5;cursor:not-allowed;" disabled>
+                    <i class="bi bi-check2-circle"></i> Aucune notification non lue
+                </button>
+            @endif
+
+            {{-- Bouton Restituer si déjà matché --}}
+            @if($documentTrouve->statut === 'matche' || $documentTrouve->statut === 'en_attente_restitution')
+            <form method="POST"
+                  action="{{ route('agent.documents-trouves.restituer', $documentTrouve->id) }}"
+                  style="display:inline;"
+                  onsubmit="return confirm('Confirmer la restitution du document au propriétaire ?')">
+                @csrf
+                <button type="submit" class="btn-restituer-banner">
+                    <i class="bi bi-gift"></i> 🎉 Confirmer la restitution
+                </button>
+            </form>
+            @endif
+
+        </div>
+    </div>
+
+    <!-- ============================================================
+    📬 NOTIFICATION - MARQUER COMME LU (EXISTANT)
+    ============================================================ -->
+    @if(isset($notification) && $notification && !$notification->is_read)
+    <div class="notification-banner">
+        <div>
+            <p class="nb-title">
+                <i class="bi bi-bell-fill" style="color: #006A36;"></i>
+                📬 Vous avez une notification non lue pour ce document
+            </p>
+            <p class="nb-text">
+                Marquez-la comme lue une fois que vous avez pris connaissance.
+            </p>
+        </div>
+        <form method="POST" action="{{ route('notifications.read', $notification->id) }}" style="flex-shrink: 0;">
+            @csrf
+            <button type="submit" class="btn-mark-read" onclick="setTimeout(window.updateNotificationBadge, 500)">
+                <i class="bi bi-check2-circle"></i> Marquer comme lu
+            </button>
+        </form>
+    </div>
     @endif
 
     <!-- Banner matché -->
@@ -1473,6 +1730,34 @@
         const themeBtn = document.getElementById('themeToggleBtn');
         if (themeBtn) themeBtn.addEventListener('click', toggleGlobalDarkMode);
     });
+
+    // ============================================================
+    // ✅ MISE À JOUR DU BADGE DES NOTIFICATIONS
+    // ============================================================
+    function updateNotificationBadge() {
+        fetch('{{ route("notifications.unread-count") }}', {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const badge = document.getElementById('documentsTrouvesBadge');
+            if (badge) {
+                if (data.count > 0) {
+                    badge.textContent = data.count;
+                    badge.style.display = 'flex';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+        })
+        .catch(() => {});
+    }
+
+    // Exposer la fonction globalement
+    window.updateNotificationBadge = updateNotificationBadge;
 
     // Modal
     function openMatchModal() { document.getElementById('matchModal').classList.add('open'); document.body.style.overflow = 'hidden'; }

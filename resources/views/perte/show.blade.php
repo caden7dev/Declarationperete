@@ -18,7 +18,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
-        /* ... vos styles existants (inchangés) ... */
+        /* ===== STYLES COMPLETS ===== */
         * {
             margin: 0;
             padding: 0;
@@ -653,6 +653,65 @@
             filter: brightness(0.95);
         }
 
+        /* ===== NOUVEAU : BOUTON DE CONFIRMATION DE RÉCUPÉRATION ===== */
+        .recovery-confirm-card {
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            border: 2px solid #10b981;
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        body.dark-mode .recovery-confirm-card {
+            background: linear-gradient(135deg, #0a3b2a, #065f46);
+            border-color: #34d399;
+        }
+
+        .recovery-confirm-card h5 {
+            color: #065f46;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        body.dark-mode .recovery-confirm-card h5 {
+            color: #a7f3d0;
+        }
+
+        .recovery-confirm-card p {
+            color: #047857;
+            margin-bottom: 1rem;
+        }
+
+        body.dark-mode .recovery-confirm-card p {
+            color: #86efac;
+        }
+
+        .btn-confirm-recovery {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 0.8rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-confirm-recovery:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-confirm-recovery:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         /* Banner non retrouvé */
         .non-retrouve-banner {
             background: linear-gradient(135deg, #e5e7eb, #d1d5db);
@@ -718,7 +777,7 @@
     $user = auth()->user();
 
     // ============================================================
-    // ⚠️ COMPTEUR CORRIGÉ : Exclusion des messages (agent_message)
+    // COMPTEUR CORRIGÉ : Exclusion des messages (agent_message)
     // et des notifications expirées
     // ============================================================
     $unreadNotificationsCount = \App\Models\Notification::where('user_id', $user->id)
@@ -739,6 +798,9 @@
     ];
     $statut = $perte->statut;
     $currentStatus = $statusConfig[$statut] ?? ['label' => ucfirst($statut), 'class' => 'bg-secondary', 'icon' => 'bi-question-circle'];
+
+    // Vérifier si le propriétaire peut confirmer la récupération
+    $canConfirmRecovery = ($perte->statut === 'correspondance_trouvee' && !$perte->date_restitution && $perte->document_trouve_id);
 @endphp
 
 <!-- Sidebar -->
@@ -860,6 +922,31 @@
             <div class="motif-rejet">
                 <i class="bi bi-exclamation-triangle-fill me-2"></i>
                 <strong>Motif du rejet :</strong> {{ $perte->motif_rejet }}
+            </div>
+        @endif
+
+        <!-- ===== NOUVEAU : CARTE DE CONFIRMATION DE RÉCUPÉRATION ===== -->
+        @if($canConfirmRecovery)
+            <div class="recovery-confirm-card">
+                <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🎉</div>
+                <h5>Votre document a été trouvé !</h5>
+                <p>
+                    Vous avez récupéré votre document chez la personne qui l'a trouvé ?<br>
+                    <small style="color: #047857; font-weight: 600;">
+                        📞 Contactez le trouveur pour organiser la récupération.
+                    </small>
+                </p>
+                <form method="POST" action="{{ route('perte.confirm-recuperation', $perte->id) }}">
+                    @csrf
+                    <button type="submit" class="btn-confirm-recovery">
+                        ✅ Oui, j'ai récupéré mon document
+                    </button>
+                </form>
+                <div style="margin-top: 0.8rem; font-size: 0.75rem; color: #047857;">
+                    <i class="bi bi-info-circle"></i>
+                    En cliquant, vous confirmez avoir récupéré votre document physique.
+                    Le trouveur sera remercié et l'agent sera informé.
+                </div>
             </div>
         @endif
 

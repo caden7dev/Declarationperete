@@ -448,7 +448,58 @@
     </div>
 
     <nav class="sidebar-nav">
-        @yield('sidebar-nav')
+        {{-- ============================================================
+        SECTION PRINCIPALE
+        ============================================================ --}}
+        <div class="nav-section">PRINCIPAL</div>
+        
+        {{-- Dashboard --}}
+        <a href="{{ route('agent.dashboard') }}" class="{{ request()->routeIs('agent.dashboard') && !request('statut') ? 'active' : '' }}">
+            <i class="bi bi-speedometer2"></i> Dashboard
+        </a>
+        
+        {{-- En attente --}}
+        <a href="{{ route('agent.dashboard', ['statut' => 'en_attente']) }}" class="{{ request('statut') == 'en_attente' ? 'active' : '' }}">
+            <i class="bi bi-hourglass-split"></i> En attente
+            @php
+                $pendingCount = \App\Models\Perte::where('statut','en_attente')->count();
+            @endphp
+            @if($pendingCount > 0)
+                <span class="nav-badge">{{ $pendingCount }}</span>
+            @endif
+        </a>
+        
+        {{-- Toutes les pertes --}}
+        <a href="{{ route('agent.dashboard') }}">
+            <i class="bi bi-files"></i> Toutes les pertes
+        </a>
+
+        {{-- ============================================================
+        SECTION DOCUMENTS
+        ============================================================ --}}
+        <div class="nav-section">DOCUMENTS</div>
+        
+        {{-- Documents trouvés --}}
+        <a href="{{ route('agent.documents-trouves.index') }}" class="{{ request()->routeIs('agent.documents-trouves.*') ? 'active' : '' }}">
+            <i class="bi bi-search-heart"></i> Documents trouvés
+            @php
+                $unreadNotificationsCount = \App\Models\Notification::where('user_id', auth()->id())
+                    ->where('is_read', false)
+                    ->where('type', 'document_trouve')
+                    ->count();
+            @endphp
+            @if($unreadNotificationsCount > 0)
+                <span class="nav-badge" id="documentsTrouvesBadge">{{ $unreadNotificationsCount }}</span>
+            @endif
+        </a>
+
+        {{-- ============================================================
+        SECTION PARAMÈTRES
+        ============================================================ --}}
+        <div class="nav-section">PARAMÈTRES</div>
+        <a href="{{ route('agent.profile') }}">
+            <i class="bi bi-person-gear"></i> Paramètres
+        </a>
     </nav>
 
     <div class="sidebar-footer">
@@ -544,10 +595,45 @@
         }).catch(() => console.log('Mode sombre sauvegardé localement'));
     }
 
+    // ============================================================
+    // ✅ MISE À JOUR DU BADGE DES NOTIFICATIONS
+    // ============================================================
+    function updateNotificationBadge() {
+        fetch('{{ route("notifications.unread-count") }}', {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Mettre à jour le badge "Documents trouvés"
+            const badge = document.getElementById('documentsTrouvesBadge');
+            if (badge) {
+                if (data.count > 0) {
+                    badge.textContent = data.count;
+                    badge.style.display = 'flex';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+        })
+        .catch(() => {});
+    }
+
+    // Exposer la fonction globalement pour qu'elle soit appelée après "Marquer comme lu"
+    window.updateNotificationBadge = updateNotificationBadge;
+
+    // Mettre à jour toutes les 30 secondes
+    setInterval(updateNotificationBadge, 30000);
+
     document.addEventListener('DOMContentLoaded', function() {
         loadTheme();
         const themeBtn = document.getElementById('themeToggleBtn');
         if (themeBtn) themeBtn.addEventListener('click', toggleGlobalDarkMode);
+        
+        // Mettre à jour le badge au chargement
+        setTimeout(updateNotificationBadge, 500);
     });
 
     // Auto-hide alerts

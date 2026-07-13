@@ -20,16 +20,19 @@ class AgentDashboardController extends Controller
 {
     /**
      * Afficher le tableau de bord agent
+     * ✅ CORRECTION 1 : Filtrer par défaut sur "en_attente"
      */
     public function index(Request $request)
     {
         $agent = Auth::user();
-        $statut = $request->get('statut', 'all');
+        // ✅ Par défaut, afficher les déclarations en attente
+        $statut = $request->get('statut', 'en_attente');
         $search = $request->get('search', '');
         
         $query = Perte::with(['user', 'typePiece']);
         
-        if ($statut && $statut != 'all') {
+        // ✅ Filtrer par statut (sauf si 'tous' ou 'all')
+        if ($statut && $statut != 'tous' && $statut != 'all') {
             $query->where('statut', $statut);
         }
         
@@ -69,42 +72,211 @@ class AgentDashboardController extends Controller
 
         $derniersTrouves = DocumentTrouve::with('perteMatchee')->orderBy('created_at', 'desc')->take(5)->get();
         
-        return view('agent.dashboard', compact('pertes', 'stats', 'statut', 'search', 'statsDocumentsTrouves', 'derniersTrouves'));
+        return view('agent.dashboard', compact(
+            'pertes', 
+            'stats', 
+            'statut', 
+            'search', 
+            'statsDocumentsTrouves', 
+            'derniersTrouves'
+        ));
     }
 
     /**
      * Prendre en charge une déclaration (passage en en_cours)
+     * ✅ CORRECTION 2 : Vérification du verrouillage renforcée
+     * ✅ Version avec redirection (AJAX compatible)
      */
     public function prendreEnCharge($id)
     {
-        $perte = Perte::with('user')->findOrFail($id);
-        $agent = Auth::user();
+        // Vérifier si la requête attend du JSON (AJAX)
+        $isAjax = request()->ajax() || request()->wantsJson();
         
-        if ($perte->statut !== Perte::STATUT_EN_ATTENTE) {
-            return redirect()->back()->with('error', 'Cette déclaration ne peut pas être prise en charge (statut actuel : ' . $perte->statut_text . ').');
+        try {
+            $perte = Perte::with('assignedAgent')->findOrFail($id);
+            
+            // ============================================================
+            // ✅ VÉRIFICATION DU VERROUILLAGE - RENFORCÉE
+            // ============================================================
+            
+            // Vérifier si déjà pris par UN AUTRE agent
+            if ($perte->is_locked && $perte->assigned_to != auth()->id()) {
+                $agentNom = $perte->assignedAgent 
+                    ? $perte->assignedAgent->name 
+                    : 'un autre agent';
+                
+                $message = "⛔ Ce dossier est déjà verrouillé et traité par {$agentNom}. Vous ne pouvez pas intervenir sur ce dossier.";
+                
+                if ($isAjax) {
+                    return response()->json(['success' => false, 'message' => $message], 403);
+                }
+                return redirect()->back()->with('error', $message);
+            }
+            
+            // Si déjà pris par MOI, permettre de continuer
+            if ($perte->is_locked && $perte->assigned_to == auth()->id()) {
+                if ($isAjax) {
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Vous avez déjà pris ce dossier en charge.',
+                        'redirect' => route('agent.perte.recherche', $perte->id)
+                    ]);
+                }
+                return redirect()->route('agent.perte.recherche', $perte->id)
+                    ->with('info', 'Vous avez déjà pris ce dossier en charge.');
+            }
+            
+            // Vérifier si en attente
+            if ($perte->statut !== Perte::STATUT_EN_ATTENTE) {
+                $message = 'Cette déclaration ne peut pas être prise en charge (statut actuel : ' . $perte->statut_text . ').';
+                
+                if ($isAjax) {
+                    return response()->json(['success' => false, 'message' => $message], 403);
+                }
+                return redirect()->back()->with('error', $message);
+            }
+            
+            // 🔒 Verrouiller le dossier
+            $perte->assigned_to = auth()->id();
+            $perte->assigned_at = now();
+            $perte->is_locked = true;
+            $perte->statut = Perte::STATUT_EN_COURS;
+            $perte->validated_by = auth()->id();
+            $perte->save();
+            
+            // Notification au citoyen (si utilisateur existe)
+            if ($perte->user) {
+                Notification::createSystemNotification(
+                    $perte->user,
+                    'Prise en charge de votre déclaration',
+                    "Votre déclaration de perte ({$perte->type_piece}) a été prise en charge par l'agent " . auth()->user()->name,
+                    route('perte.suivi', $perte->id),
+                    $perte,
+                    '📌',
+                    'info'
+                );
+            }
+            
+            if ($isAjax) {
+                return response()->json([
+                    'success' => true,
+                    'message' => '✅ Déclaration prise en charge avec succès.',
+                    'redirect' => route('agent.perte.recherche', $perte->id)
+                ]);
+            }
+            
+            return redirect()->route('agent.perte.recherche', $perte->id)
+                ->with('success', '✅ Déclaration prise en charge avec succès.');
+            
+        } catch (\Exception $e) {
+            $message = 'Erreur : ' . $e->getMessage();
+            
+            if ($isAjax) {
+                return response()->json(['success' => false, 'message' => $message], 500);
+            }
+            return redirect()->back()->with('error', $message);
         }
-        
-        $perte->statut = Perte::STATUT_EN_COURS;
-        $perte->validated_by = $agent->id;
-        $perte->save();
-        
-        // Notification uniquement si le propriétaire existe
-        if ($perte->user) {
+    }
+
+    /**
+     * Léguer un dossier à un autre agent
+     * ✅ Version JSON pour AJAX
+     */
+    public function leguer(Request $request, $id)
+    {
+        try {
+            $perte = Perte::findOrFail($id);
+            
+            // Vérifier que l'agent actuel est le titulaire
+            if ($perte->assigned_to !== auth()->id()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Vous n\'êtes pas autorisé à léguer ce dossier.'
+                ], 403);
+            }
+            
+            $request->validate([
+                'agent_id' => 'required|exists:users,id|different:assigned_to'
+            ]);
+            
+            $nouvelAgent = User::findOrFail($request->agent_id);
+            $ancienAgent = auth()->user();
+            
+            // Transfert
+            $perte->assigned_to = $nouvelAgent->id;
+            $perte->assigned_at = now();
+            $perte->save();
+            
+            // Notification à l'ancien agent
             Notification::createSystemNotification(
-                $perte->user,
-                'Prise en charge de votre déclaration',
-                "Votre déclaration de perte ({$perte->type_piece}) a été prise en charge par un agent. Nous allons procéder aux vérifications.",
-                route('perte.suivi', $perte->id),
+                $ancienAgent,
+                '📤 Dossier légué',
+                "Vous avez légué la déclaration #{$perte->id} à {$nouvelAgent->name}.",
+                route('agent.perte.show', $perte->id),
                 $perte,
-                '📌',
+                '📤',
                 'info'
             );
-        } else {
-            Log::warning('Notification non envoyée : pas de propriétaire pour la déclaration', ['perte_id' => $perte->id]);
+            
+            // Notification au nouvel agent
+            Notification::createSystemNotification(
+                $nouvelAgent,
+                '📥 Nouveau dossier légué',
+                "L'agent {$ancienAgent->name} vous a légué la déclaration #{$perte->id}.",
+                route('agent.perte.show', $perte->id),
+                $perte,
+                '📥',
+                'info'
+            );
+            
+            return response()->json([
+                'success' => true,
+                'message' => '✅ Dossier légué avec succès à ' . $nouvelAgent->name
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur : ' . $e->getMessage()
+            ], 500);
         }
-        
-        return redirect()->route('agent.perte.recherche', ['id' => $perte->id])
-            ->with('success', 'Déclaration prise en charge. Vous pouvez maintenant rechercher des correspondances.');
+    }
+
+    /**
+     * Libérer un dossier (remettre en attente)
+     * ✅ Version JSON pour AJAX
+     */
+    public function liberer($id)
+    {
+        try {
+            $perte = Perte::findOrFail($id);
+            
+            // Vérifier que l'agent actuel est le titulaire
+            if ($perte->assigned_to !== auth()->id()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Vous n\'êtes pas autorisé à libérer ce dossier.'
+                ], 403);
+            }
+            
+            // Libérer le dossier
+            $perte->assigned_to = null;
+            $perte->assigned_at = null;
+            $perte->is_locked = false;
+            $perte->statut = Perte::STATUT_EN_ATTENTE;
+            $perte->save();
+            
+            return response()->json([
+                'success' => true,
+                'message' => '✅ Dossier libéré avec succès. Il est à nouveau disponible.'
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur : ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -441,7 +613,7 @@ class AgentDashboardController extends Controller
      */
     public function show($id)
     {
-        $perte = Perte::with(['user', 'typePiece', 'validator', 'documentTrouve'])->findOrFail($id);
+        $perte = Perte::with(['user', 'typePiece', 'validator', 'documentTrouve', 'assignedAgent'])->findOrFail($id);
         return view('agent.perte-show', compact('perte'));
     }
 
@@ -538,6 +710,10 @@ class AgentDashboardController extends Controller
         return view('agent.documents-trouves.index', compact('documentsTrouves', 'stats', 'statut', 'search'));
     }
 
+    /**
+     * Afficher les détails d'un document trouvé
+     * ✅ CORRECTION : Utilise 'action_url' au lieu de 'link'
+     */
     public function showDocumentTrouve($id)
     {
         $documentTrouve = DocumentTrouve::with('perteMatchee')->findOrFail($id);
@@ -545,7 +721,52 @@ class AgentDashboardController extends Controller
             ->where('type_piece', $documentTrouve->type_document)
             ->orderBy('created_at', 'desc')
             ->get();
-        return view('agent.documents-trouves.show', compact('documentTrouve', 'pertesPotentielles'));
+        
+        // ✅ Récupérer la notification non lue liée à ce document
+        // Utilise 'action_url' au lieu de 'link' (colonne inexistante)
+        $notification = Notification::where('user_id', auth()->id())
+            ->where('is_read', false)
+            ->where(function($q) use ($id) {
+                $q->where('document_trouve_id', $id)
+                  ->orWhere('content', 'LIKE', "%document #{$id}%")
+                  ->orWhere('action_url', 'LIKE', "%{$id}%");
+            })
+            ->first();
+        
+        return view('agent.documents-trouves.show', compact('documentTrouve', 'pertesPotentielles', 'notification'));
+    }
+
+    /**
+     * Marquer la notification d'un document trouvé comme lue
+     * ✅ Action simple : marque la notification comme lue
+     */
+    public function marquerLuDocumentTrouve($id)
+    {
+        try {
+            // Récupérer la notification non lue liée à ce document
+            $notification = Notification::where('user_id', auth()->id())
+                ->where('is_read', false)
+                ->where(function($q) use ($id) {
+                    $q->where('document_trouve_id', $id)
+                      ->orWhere('action_url', 'LIKE', "%documents-trouves/{$id}%")
+                      ->orWhere('action_url', 'LIKE', "%documents-trouves%{$id}%");
+                })
+                ->first();
+            
+            if ($notification) {
+                $notification->update([
+                    'is_read' => true,
+                    'read_at' => now()
+                ]);
+                
+                return redirect()->back()->with('success', '✅ Notification marquée comme lue !');
+            }
+            
+            return redirect()->back()->with('info', 'Aucune notification non lue pour ce document.');
+            
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Erreur : ' . $e->getMessage());
+        }
     }
 
     public function matcherDocumentTrouve(Request $request, $id)
@@ -587,6 +808,14 @@ class AgentDashboardController extends Controller
             if ($documentTrouve->user_id) {
                 Notification::createMatchNotificationForFinder($documentTrouve, $agent);
             }
+            // Marquer la notification liée comme lue
+            Notification::where('user_id', auth()->id())
+                ->where('is_read', false)
+                ->where(function($q) use ($id) {
+                    $q->where('action_url', 'like', "%documents-trouves/{$id}%")
+                      ->orWhere('perte_id', $documentTrouve->perte_id ?? null);
+                })
+                ->update(['is_read' => true, 'read_at' => now()]);
             
             DB::commit();
             return redirect()->route('agent.documents-trouves.index')

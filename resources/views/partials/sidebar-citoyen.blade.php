@@ -10,6 +10,11 @@
               ->orWhere('expires_at', '>', now());
         })
         ->count();
+    
+    // ===== COMPTEUR DES DÉCLARATIONS EN COURS =====
+    $suiviCount = \App\Models\Perte::where('user_id', auth()->id())
+        ->whereIn('statut', ['en_attente', 'en_cours', 'correspondance_trouvee', 'pret_recuperation'])
+        ->count();
 @endphp
 
 <div class="sidebar">
@@ -28,11 +33,22 @@
             Tableau de bord
         </a>
         
-        <a href="{{ route('perte.index') }}" class="{{ request()->routeIs('perte.*') && !request()->routeIs('perte.create') ? 'active' : '' }}">
+        <a href="{{ route('perte.index') }}" class="{{ request()->routeIs('perte.index') ? 'active' : '' }}">
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
             </svg>
             Mes Déclarations
+        </a>
+
+        {{-- ✅ NOUVEAU : Suivi des déclarations --}}
+        <a href="{{ route('perte.suivi') }}" class="{{ request()->routeIs('perte.suivi') ? 'active' : '' }}">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Suivi
+            @if($suiviCount > 0)
+                <span class="badge-notification" style="background: #3b82f6;">{{ $suiviCount }}</span>
+            @endif
         </a>
 
         <a href="{{ route('perte.create') }}" class="{{ request()->routeIs('perte.create') ? 'active' : '' }}">

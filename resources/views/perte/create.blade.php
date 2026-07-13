@@ -608,6 +608,18 @@
             color: #991b1b;
         }
 
+        /* ===== NOUVEAU : STYLE D'ERREUR DE DATE ===== */
+        .date-error {
+            color: var(--danger);
+            font-size: 0.75rem;
+            margin-top: 0.2rem;
+            display: none;
+        }
+
+        .date-error.show {
+            display: block;
+        }
+
         /* Responsive */
         @media (max-width: 1024px) {
             .sidebar {
@@ -775,7 +787,7 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ route('perte.store') }}" enctype="multipart/form-data">
+        <form method="POST" action="{{ route('perte.store') }}" enctype="multipart/form-data" id="declarationForm">
             @csrf
 
             <!-- Section 1 : Informations du déclarant (auto-remplies) -->
@@ -803,7 +815,7 @@
                 </div>
             </div>
 
-            <!-- Section 2 : Informations sur la pièce perdue (pré‑remplie depuis $oldPerte si dispo) -->
+            <!-- Section 2 : Informations sur la pièce perdue -->
             <div class="section">
                 <div class="section-title">
                     <span class="section-number">2</span> Informations sur la pièce perdue
@@ -811,7 +823,7 @@
                 <div class="grid">
                     <div class="form-group">
                         <label>Type de pièce <span class="required">*</span></label>
-                        <select name="type_piece" required class="@error('type_piece') is-invalid @enderror">
+                        <select name="type_piece" required class="@error('type_piece') is-invalid @enderror" id="type_piece">
                             <option value="">-- Sélectionner le type de pièce --</option>
                             @foreach($typesPieces ?? [] as $type)
                                 @php
@@ -829,7 +841,9 @@
                     </div>
                     <div class="form-group">
                         <label>Date de délivrance</label>
-                        <input type="date" name="date_delivrance" value="{{ old('date_delivrance', $oldPerte->date_delivrance ?? '') }}">
+                        <input type="date" name="date_delivrance" id="date_delivrance" 
+                               value="{{ old('date_delivrance', $oldPerte->date_delivrance ?? '') }}" 
+                               max="{{ date('Y-m-d') }}">
                         @error('date_delivrance') <div class="text-danger">{{ $message }}</div> @enderror
                     </div>
                     <div class="form-group">
@@ -840,7 +854,7 @@
                 </div>
             </div>
 
-            <!-- Section 3 : Détails de la perte (pré‑remplis depuis $oldPerte) -->
+            <!-- Section 3 : Détails de la perte -->
             <div class="section">
                 <div class="section-title">
                     <span class="section-number">3</span> Détails de la perte
@@ -848,7 +862,13 @@
                 <div class="grid">
                     <div class="form-group">
                         <label>Date de la perte <span class="required">*</span></label>
-                        <input type="date" name="date_perte" value="{{ old('date_perte', $oldPerte ? $oldPerte->date_perte->format('Y-m-d') : '') }}" max="{{ date('Y-m-d') }}" required>
+                        <input type="date" name="date_perte" id="date_perte" 
+                               value="{{ old('date_perte', $oldPerte ? $oldPerte->date_perte->format('Y-m-d') : '') }}" 
+                               max="{{ date('Y-m-d') }}" required>
+                        <div class="date-error" id="dateError">
+                            <i class="bi bi-exclamation-circle me-1"></i>
+                            La date de perte doit être postérieure ou égale à la date de délivrance.
+                        </div>
                         @error('date_perte') <div class="text-danger">{{ $message }}</div> @enderror
                     </div>
                     <div class="form-group">
@@ -864,7 +884,7 @@
                 </div>
             </div>
 
-            <!-- Section 4 : Justificatifs (optionnels) – on ne copie pas les fichiers -->
+            <!-- Section 4 : Justificatifs (optionnels) -->
             <div class="section">
                 <div class="section-title">
                     <span class="section-number">4</span> Justificatifs (optionnels)
@@ -900,7 +920,7 @@
             </div>
 
             <div style="text-align: center;">
-                <button type="submit" class="submit-btn">
+                <button type="submit" class="submit-btn" id="submitBtn">
                     <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:20px;height:20px;">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
@@ -912,6 +932,66 @@
 </div>
 
 <script>
+    // ============================================================
+    // VALIDATION DES DATES
+    // ============================================================
+    document.addEventListener('DOMContentLoaded', function() {
+        const dateDelivrance = document.getElementById('date_delivrance');
+        const datePerte = document.getElementById('date_perte');
+        const dateError = document.getElementById('dateError');
+        const form = document.getElementById('declarationForm');
+        const submitBtn = document.getElementById('submitBtn');
+
+        function validateDates() {
+            const delivrance = dateDelivrance.value;
+            const perte = datePerte.value;
+
+            if (delivrance && perte) {
+                if (perte < delivrance) {
+                    dateError.classList.add('show');
+                    datePerte.style.borderColor = '#ef4444';
+                    submitBtn.disabled = true;
+                    submitBtn.style.opacity = '0.5';
+                    submitBtn.style.cursor = 'not-allowed';
+                    return false;
+                } else {
+                    dateError.classList.remove('show');
+                    datePerte.style.borderColor = '';
+                    submitBtn.disabled = false;
+                    submitBtn.style.opacity = '1';
+                    submitBtn.style.cursor = 'pointer';
+                    return true;
+                }
+            }
+            return true;
+        }
+
+        // Événements pour valider en temps réel
+        dateDelivrance.addEventListener('change', function() {
+            // Mettre à jour le min de la date de perte
+            if (this.value) {
+                datePerte.min = this.value;
+            }
+            validateDates();
+        });
+
+        datePerte.addEventListener('change', validateDates);
+        datePerte.addEventListener('input', validateDates);
+
+        // Validation avant soumission
+        form.addEventListener('submit', function(e) {
+            if (!validateDates()) {
+                e.preventDefault();
+                dateError.classList.add('show');
+                datePerte.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                datePerte.focus();
+            }
+        });
+    });
+
+    // ============================================================
+    // THÈME
+    // ============================================================
     function applyTheme(isDark) {
         if (isDark) {
             document.body.classList.add('dark-mode');
@@ -952,15 +1032,6 @@
         loadTheme();
         const themeBtn = document.getElementById('themeToggleBtn');
         if (themeBtn) themeBtn.addEventListener('click', toggleGlobalDarkMode);
-
-        const form = document.querySelector('form');
-        if (form) {
-            form.addEventListener('submit', function(e) {
-                if (!confirm('Êtes-vous sûr de vouloir soumettre cette déclaration ?')) {
-                    e.preventDefault();
-                }
-            });
-        }
     });
 </script>
 </body>

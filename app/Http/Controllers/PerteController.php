@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class PerteController extends Controller
 {
@@ -148,7 +149,74 @@ class PerteController extends Controller
     }
 
     /**
+     * ✅ NOUVEAU : Le propriétaire confirme avoir récupéré son document
+     * (Après avoir contacté le trouveur et récupéré le document)
+     */
+    public function confirmRecuperation($id)
+    {
+        $perte = Perte::with('documentTrouve')->where('user_id', auth()->id())->findOrFail($id);
+        
+        // Vérifier le statut
+        if ($perte->statut !== Perte::STATUT_CORRESPONDANCE_TROUVEE) {
+            return back()->with('error', 'Cette déclaration ne peut pas être marquée comme restituée (statut actuel : ' . $perte->statut_text . ').');
+        }
+        
+        // Vérifier que la restitution n'a pas déjà été faite
+        if ($perte->date_restitution) {
+            return back()->with('error', 'Ce document a déjà été restitué.');
+        }
+
+        // Vérifier qu'un document trouvé est bien associé
+        if (!$perte->document_trouve_id) {
+            return back()->with('error', 'Aucun document trouvé associé à cette déclaration.');
+        }
+        
+        // 🔥 Mettre à jour la déclaration
+        $perte->statut = Perte::STATUT_RESTITUE;
+        $perte->date_restitution = now();
+        $perte->save();
+        
+        // 🔥 Mettre à jour le document trouvé
+        $document = $perte->documentTrouve;
+        if ($document) {
+            $document->statut = 'restitue';
+            $document->date_restitution = now();
+            $document->save();
+        }
+        
+        // 🔔 Notification au trouveur (pour le remercier)
+        if ($document && $document->user_id) {
+            Notification::create([
+                'user_id' => $document->user_id,
+                'type' => 'restitution_confirmee',
+                'title' => '✅ Le propriétaire a récupéré son document !',
+                'content' => "Le propriétaire du document que vous avez trouvé a confirmé l'avoir récupéré. Merci pour votre geste citoyen ! 🙏",
+                'icon' => '🎉',
+                'is_read' => false,
+            ]);
+        }
+        
+        // 🔔 Notification à tous les agents
+        $agents = User::where('role', 'agent')->get();
+        foreach ($agents as $agent) {
+            Notification::create([
+                'user_id' => $agent->id,
+                'type' => 'restitution_agent',
+                'title' => '✅ Restitution confirmée par le propriétaire',
+                'content' => "Le propriétaire {$perte->first_name} {$perte->last_name} a confirmé avoir récupéré son document ({$perte->type_piece}).",
+                'action_url' => route('agent.perte.show', $perte->id),
+                'icon' => '✅',
+                'is_read' => false,
+            ]);
+        }
+        
+        return redirect()->route('perte.show', $perte->id)
+            ->with('success', '✅ Félicitations ! Vous avez récupéré votre document. Merci d\'avoir utilisé e-Déclaration TG ! 🇹🇬');
+    }
+
+    /**
      * Enregistrer une nouvelle déclaration.
+     * ✅ VALIDATION DES DATES AJOUTÉE
      */
     public function store(Request $request)
     {
@@ -159,9 +227,19 @@ class PerteController extends Controller
             'email'          => 'required|email|max:255',
             'type_piece'     => 'required|string|max:100',
             'numero_piece'   => 'nullable|string|max:100',
-            'date_delivrance'=> 'nullable|date',
+            'date_delivrance'=> 'nullable|date|before_or_equal:today',
             'autorite_delivrance' => 'nullable|string|max:255',
-            'date_perte'     => 'required|date|before_or_equal:today',
+            'date_perte'     => [
+                'required',
+                'date',
+                'before_or_equal:today',
+                function ($attribute, $value, $fail) use ($request) {
+                    $dateDelivrance = $request->input('date_delivrance');
+                    if ($dateDelivrance && $value < $dateDelivrance) {
+                        $fail('La date de perte doit être postérieure ou égale à la date de délivrance.');
+                    }
+                },
+            ],
             'lieu_perte'     => 'required|string|max:255',
             'circonstances'  => 'nullable|string',
             'copie_piece'    => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
@@ -177,6 +255,7 @@ class PerteController extends Controller
             'date_perte.required' => 'La date de perte est obligatoire.',
             'date_perte.before_or_equal' => 'La date de perte ne peut pas être dans le futur.',
             'lieu_perte.required' => 'Le lieu de perte est obligatoire.',
+            'date_delivrance.before_or_equal' => 'La date de délivrance ne peut pas être dans le futur.',
         ]);
         
         $validated['user_id'] = Auth::id();
@@ -198,11 +277,11 @@ class PerteController extends Controller
     /**
      * Afficher les détails d'une déclaration (pour le citoyen).
      * Enrichi avec les informations de correspondance si un document trouvé est associé.
+     * ✅ AFFICHE LE BOUTON DE CONFIRMATION DE RÉCUPÉRATION
      */
     public function show($id)
     {
-        $perte = Perte::where('user_id', Auth::id())->findOrFail($id);
-        $perte->load('documentTrouve');
+        $perte = Perte::with(['documentTrouve', 'user'])->where('user_id', Auth::id())->findOrFail($id);
         return view('perte.show', compact('perte'));
     }
 
@@ -222,6 +301,7 @@ class PerteController extends Controller
 
     /**
      * Mettre à jour une déclaration (uniquement si 'en_attente').
+     * ✅ VALIDATION DES DATES AJOUTÉE
      */
     public function update(Request $request, $id)
     {
@@ -236,14 +316,35 @@ class PerteController extends Controller
             'email'          => 'required|email|max:255',
             'type_piece'     => 'required|string|max:100',
             'numero_piece'   => 'nullable|string|max:100',
-            'date_delivrance'=> 'nullable|date',
+            'date_delivrance'=> 'nullable|date|before_or_equal:today',
             'autorite_delivrance' => 'nullable|string|max:255',
-            'date_perte'     => 'required|date|before_or_equal:today',
+            'date_perte'     => [
+                'required',
+                'date',
+                'before_or_equal:today',
+                function ($attribute, $value, $fail) use ($request) {
+                    $dateDelivrance = $request->input('date_delivrance');
+                    if ($dateDelivrance && $value < $dateDelivrance) {
+                        $fail('La date de perte doit être postérieure ou égale à la date de délivrance.');
+                    }
+                },
+            ],
             'lieu_perte'     => 'required|string|max:255',
             'circonstances'  => 'nullable|string',
             'copie_piece'    => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
             'declaration_vol'=> 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
             'document_complementaire' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+        ], [
+            'last_name.required' => 'Le nom est obligatoire.',
+            'first_name.required' => 'Le prénom est obligatoire.',
+            'contact.required' => 'Le numéro de téléphone est obligatoire.',
+            'email.required' => 'L\'adresse email est obligatoire.',
+            'email.email' => 'L\'adresse email n\'est pas valide.',
+            'type_piece.required' => 'Le type de pièce est obligatoire.',
+            'date_perte.required' => 'La date de perte est obligatoire.',
+            'date_perte.before_or_equal' => 'La date de perte ne peut pas être dans le futur.',
+            'lieu_perte.required' => 'Le lieu de perte est obligatoire.',
+            'date_delivrance.before_or_equal' => 'La date de délivrance ne peut pas être dans le futur.',
         ]);
         
         // Gestion des fichiers (remplacement)
@@ -260,6 +361,28 @@ class PerteController extends Controller
         
         return redirect()->route('perte.index')->with('success', '✅ Déclaration mise à jour avec succès.');
     }
+
+    public function prendreEnCharge($id)
+{
+    $perte = Perte::findOrFail($id);
+
+    // Vérifier si le dossier est déjà pris
+    if ($perte->is_locked) {
+        return back()->with('error', 'Cette déclaration est déjà prise en charge par un autre agent.');
+    }
+
+    // Verrouiller le dossier pour cet agent
+    $perte->update([
+        'assigned_to' => auth()->id(),
+        'is_locked' => true,
+        'assigned_at' => now(),
+        'statut' => 'en_cours'
+    ]);
+
+    return redirect()
+        ->route('agent.perte.show', $perte->id)
+        ->with('success', '✅ Déclaration prise en charge avec succès.');
+}
 
     /**
      * Supprimer une déclaration (uniquement si 'en_attente').
@@ -283,13 +406,13 @@ class PerteController extends Controller
     }
 
     /**
-     * Télécharger l'attestation de déclaration (PDF) – à implémenter selon vos besoins.
+     * Télécharger l'attestation de déclaration (PDF)
      */
     public function download($id)
     {
         $perte = Perte::where('user_id', Auth::id())->findOrFail($id);
-        // Génération du PDF
-        // ...
-        return response()->download(storage_path('app/attestations/declaration_' . $perte->id . '.pdf'));
+        
+        $pdf = Pdf::loadView('perte.attestation', compact('perte'));
+        return $pdf->download('attestation_declaration_' . $perte->id . '.pdf');
     }
 }

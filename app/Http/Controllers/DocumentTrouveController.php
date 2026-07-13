@@ -23,6 +23,7 @@ class DocumentTrouveController extends Controller
 
     /**
      * Enregistrer une nouvelle déclaration
+     * ✅ REDIRECTION VERS LE DASHBOARD CITOYEN
      */
     public function store(Request $request)
     {
@@ -70,34 +71,39 @@ class DocumentTrouveController extends Controller
             $validated['photo_document'] = $request->file('photo_document')->store('documents-trouves/photos', 'public');
         }
 
+        // Générer un numéro de déclaration unique
+        $validated['numero_declaration'] = 'DT-' . date('Y') . '-' . str_pad(rand(1000, 9999), 4, '0', STR_PAD_LEFT);
+
         // Créer la déclaration
         $documentTrouve = DocumentTrouve::create($validated);
 
-        // 🔥 NOUVEAU : Chercher IMMÉDIATEMENT des correspondances et notifier
+        // 🔥 Chercher des correspondances et notifier AUTOMATIQUEMENT
         $correspondances = $this->chercherEtNotifierCorrespondances($documentTrouve);
 
-        // Message de succès selon le nombre de correspondances
-        $message = '✅ Déclaration enregistrée ! Numéro : ' . $documentTrouve->numero_declaration;
+        // 🔔 Notification à TOUS les agents
+        $this->notifierAgents($documentTrouve);
+
+        // Message de succès
+        $message = '✅ Merci ! Votre signalement a bien été enregistré. Un agent va vérifier et contactera le propriétaire si le document correspond à une déclaration de perte.';
+        
         if ($correspondances->count() > 0) {
-            $message .= ' 🎉 ' . $correspondances->count() . ' propriétaire(s) potentiel(s) trouvé(s) et notifié(s) !';
+            $message .= ' 🎉 ' . $correspondances->count() . ' propriétaire(s) potentiel(s) ont été notifié(s) !';
         }
 
-        // Redirection selon connexion
+        // ✅ REDIRECTION VERS LE DASHBOARD CITOYEN
         if (Auth::check()) {
-            return redirect()->route('documents-trouves.show', $documentTrouve->id)
-                ->with('success', $message);
+            return redirect()->route('dashboard')->with('success', $message);
         } else {
-            return redirect()->route('home')
-                ->with('success', $message . ' Merci pour votre geste citoyen ! 🙏');
+            return redirect()->route('home')->with('success', $message . ' Merci pour votre geste citoyen ! 🙏');
         }
     }
 
     /**
-     * 🔥 NOUVEAU : Chercher correspondances et envoyer notifications AUTOMATIQUEMENT
+     * 🔥 Chercher correspondances et envoyer notifications AUTOMATIQUEMENT
      */
     private function chercherEtNotifierCorrespondances($documentTrouve)
     {
-        // Chercher les déclarations de perte validées correspondantes
+        // Chercher les déclarations de perte correspondantes
         $query = Perte::where('statut', 'validee')
             ->where('type_piece', $documentTrouve->type_document);
 
@@ -134,37 +140,50 @@ class DocumentTrouveController extends Controller
                 'user_id' => $perte->user_id,
                 'type' => 'document_trouve',
                 'title' => '🎉 Votre document a peut-être été trouvé !',
-                'message' => "Un {$documentTrouve->type_document} correspondant à votre déclaration a été trouvé le " . 
+                'content' => "Un {$documentTrouve->type_document} correspondant à votre déclaration a été trouvé le " . 
                              \Carbon\Carbon::parse($documentTrouve->date_decouverte)->format('d/m/Y') . 
                              " à {$documentTrouve->lieu_decouverte}. " . 
                              ($documentTrouve->numero_document ? "Numéro : {$documentTrouve->numero_document}. " : "") .
                              "Un agent va vérifier et vous contactera si c'est bien votre document.",
                 'perte_id' => $perte->id,
-                'is_read' => false
+                'is_read' => false,
+                'icon' => '🎉',
+                'action_url' => route('perte.show', $perte->id)
             ]);
-
-            // TODO: Envoyer email en plus de la notification
-            // Mail::to($perte->user->email)->send(new DocumentTrouveNotificationMail($perte, $documentTrouve));
         }
 
         return $correspondances;
     }
 
     /**
-     * Afficher un document trouvé
+     * 🔔 Notifier TOUS les agents d'un nouveau document trouvé
      */
-    public function show($id)
+    private function notifierAgents($documentTrouve)
     {
-        $documentTrouve = DocumentTrouve::with('perteMatchee')->findOrFail($id);
+        $agents = User::where('role', 'agent')->get();
         
-        // Chercher les correspondances possibles
-        $correspondances = $this->chercherCorrespondances($documentTrouve);
-
-        return view('documents-trouves.show', compact('documentTrouve', 'correspondances'));
+        foreach ($agents as $agent) {
+            Notification::create([
+                'user_id' => $agent->id,
+                'type' => 'system',
+                'title' => '📦 Nouveau document trouvé signalé',
+                'content' => "Un document ({$documentTrouve->type_document}) a été signalé par {$documentTrouve->nom_declarant} {$documentTrouve->prenom_declarant}.",
+                'action_url' => route('agent.documents-trouves.show', $documentTrouve->id),
+                'icon' => '📦',
+                'is_read' => false,
+                'color' => 'info'
+            ]);
+        }
     }
 
     /**
-     * Chercher correspondances (sans notification)
+     * ⚠️ SUPPRIMÉE : La page show pour les citoyens n'est plus nécessaire
+     * Les agents utilisent agent.documents-trouves.show
+     * Les citoyens sont redirigés vers le dashboard
+     */
+
+    /**
+     * Chercher correspondances (sans notification) - utilisée par l'agent
      */
     private function chercherCorrespondances($documentTrouve)
     {
@@ -219,25 +238,24 @@ class DocumentTrouveController extends Controller
             'user_id' => $perte->user_id,
             'type' => 'document_retrouve_confirme',
             'title' => '🎉 Votre document a été officiellement retrouvé !',
-            'message' => "Excellente nouvelle ! Votre {$perte->type_piece} a été confirmé retrouvé.\n\n" .
+            'content' => "Excellente nouvelle ! Votre {$perte->type_piece} a été confirmé retrouvé.\n\n" .
                          "📞 Contact du trouveur :\n" .
                          "Nom : {$documentTrouve->nom_declarant} {$documentTrouve->prenom_declarant}\n" .
                          "Email : {$documentTrouve->email_declarant}\n" .
                          "Téléphone : {$documentTrouve->telephone_declarant}\n\n" .
                          "Vous pouvez le contacter directement pour récupérer votre document.",
             'perte_id' => $perte->id,
-            'is_read' => false
+            'is_read' => false,
+            'icon' => '🎉',
+            'action_url' => route('perte.show', $perte->id)
         ]);
-
-        // TODO: Email au trouveur avec coordonnées du propriétaire
-        // TODO: Email au propriétaire avec coordonnées du trouveur
 
         return redirect()->route('agent.documents-trouves.show', $id)
             ->with('success', '✅ Document matché avec succès ! Le propriétaire a été notifié avec vos coordonnées.');
     }
 
     /**
-     * Marquer comme restitué
+     * Marquer comme restitué (côté agent)
      */
     public function marquerRestitue($id)
     {
@@ -259,13 +277,47 @@ class DocumentTrouveController extends Controller
                 'user_id' => $perte->user_id,
                 'type' => 'restitution',
                 'title' => '✅ Document officiellement restitué',
-                'message' => "Votre {$perte->type_piece} a été officiellement marqué comme restitué. Merci d'avoir utilisé e-Déclaration TG ! 🇹🇬",
+                'content' => "Votre {$perte->type_piece} a été officiellement marqué comme restitué. Merci d'avoir utilisé e-Déclaration TG ! 🇹🇬",
                 'perte_id' => $perte->id,
-                'is_read' => false
+                'is_read' => false,
+                'icon' => '✅',
+                'action_url' => route('perte.show', $perte->id)
             ]);
         }
 
         return back()->with('success', '✅ Document marqué comme restitué !');
+    }
+
+    /**
+     * ✅ Marquer la notification d'un document trouvé comme lue
+     */
+    public function marquerLu($id)
+    {
+        try {
+            // Récupérer la notification non lue liée à ce document
+            $notification = Notification::where('user_id', auth()->id())
+                ->where('is_read', false)
+                ->where(function($q) use ($id) {
+                    $q->where('document_trouve_id', $id)
+                      ->orWhere('action_url', 'LIKE', "%documents-trouves/{$id}%")
+                      ->orWhere('action_url', 'LIKE', "%documents-trouves%{$id}%");
+                })
+                ->first();
+            
+            if ($notification) {
+                $notification->update([
+                    'is_read' => true,
+                    'read_at' => now()
+                ]);
+                
+                return redirect()->back()->with('success', '✅ Notification marquée comme lue !');
+            }
+            
+            return redirect()->back()->with('info', 'Aucune notification non lue pour ce document.');
+            
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Erreur : ' . $e->getMessage());
+        }
     }
 
     /**

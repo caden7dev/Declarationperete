@@ -101,16 +101,18 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/perte/{id}/edit', [PerteController::class, 'edit'])->name('perte.edit');
     Route::put('/perte/{id}', [PerteController::class, 'update'])->name('perte.update');
     Route::delete('/perte/{id}', [PerteController::class, 'destroy'])->name('perte.destroy');
-    Route::get('/perte/{id}/download', [App\Http\Controllers\PerteController::class, 'download'])->name('perte.download');
+    Route::get('/perte/{id}/download', [PerteController::class, 'download'])->name('perte.download');
     
-    // ✅ NOUVELLES ROUTES (déplacées ici hors du groupe citoyen)
+    // Nouvelles routes
     Route::get('/perte/{id}/download-recu', [PerteController::class, 'downloadRecu'])->name('perte.download-recu');
-    Route::get('/suivi/{id}', [PerteController::class, 'suivi'])->name('perte.suivi');
+    Route::get('/suivi/{id}', [PerteController::class, 'showSuivi'])->name('perte.suivi-detail');
     Route::get('/perte/{id}/aperçu-html', [PerteController::class, 'viewRecuHtml'])->name('perte.recu.html');
     
     // Route alternative
     Route::get('/pertes', [PerteController::class, 'index'])->name('pertes.index');
     
+    // ✅ NOUVELLE ROUTE : Suivi des déclarations (liste)
+    Route::get('/suivi', [PerteController::class, 'suivi'])->name('perte.suivi');
     
     // ===== ROUTES PROFIL/PARAMÈTRES =====
     Route::prefix('profile')->name('profile.')->group(function () {
@@ -147,6 +149,10 @@ Route::middleware(['auth'])->group(function () {
         ->name('documents-trouves.show');
 });
 
+Route::post('/perte/{id}/confirm-recuperation', [PerteController::class, 'confirmRecuperation'])
+    ->name('perte.confirm-recuperation');
+
+
 /*
 |--------------------------------------------------------------------------
 | Routes Citoyen
@@ -159,8 +165,8 @@ Route::prefix('citoyen')->name('citoyen.')->middleware(['auth'])->group(function
     Route::post('/messages/envoyer', [CitizenMessageController::class, 'sendMessageAjax'])->name('messages.envoyer');
     Route::get('/messages/unread-count', [CitizenMessageController::class, 'unreadCount'])->name('messages.unread-count');
     Route::post('/recuperation/{perteId}', [PerteController::class, 'signalerRecuperation'])->name('signaler-recuperation');
-    // Les routes perte.download-recu et perte.suivi sont déjà dans le groupe auth ci-dessus
 });
+
 
 /*
 |--------------------------------------------------------------------------
@@ -179,11 +185,20 @@ Route::prefix('agent')->name('agent.')->middleware(['auth', 'agent'])->group(fun
     
     Route::post('/perte/{id}/pret-recuperation', [AgentDashboardController::class, 'marquerPretRecuperation'])->name('perte.pret-recuperation');
     
-    // Processus complet de traitement des pertes
-    Route::get('/perte/{id}/prendre-en-charge', [AgentDashboardController::class, 'prendreEnCharge'])->name('perte.prendre');
-   // Dans le groupe agent
-Route::get('/perte/{id}/recherche', [AgentDashboardController::class, 'rechercheCorrespondances'])
-    ->name('perte.recherche');
+    // ============================================================
+    // 🚀 ROUTES DE PRISE EN CHARGE
+    // ============================================================
+    Route::post('/perte/{id}/prendre', [AgentDashboardController::class, 'prendreEnCharge'])
+        ->name('perte.prendre');
+    
+    // Route pour la recherche de correspondances
+    Route::get('/perte/{id}/recherche', [AgentDashboardController::class, 'rechercheCorrespondances'])
+        ->name('perte.recherche');
+    
+    // Autres routes de traitement
+    Route::post('/perte/{id}/leguer', [AgentDashboardController::class, 'leguer'])->name('perte.leguer');
+    Route::post('/perte/{id}/liberer', [AgentDashboardController::class, 'liberer'])->name('perte.liberer');
+    
     Route::post('/perte/{id}/associer', [AgentDashboardController::class, 'associerDocument'])->name('perte.associer');
     Route::post('/perte/{id}/non-retrouve', [AgentDashboardController::class, 'declarerNonRetrouve'])->name('perte.non-retrouve');
     
@@ -193,11 +208,16 @@ Route::get('/perte/{id}/recherche', [AgentDashboardController::class, 'recherche
     Route::get('/documents-trouves', [AgentDashboardController::class, 'documentsTrouves'])->name('documents-trouves.index');
     Route::get('/documents-trouves/{id}', [AgentDashboardController::class, 'showDocumentTrouve'])->name('documents-trouves.show');
     Route::post('/documents-trouves/{id}/matcher', [AgentDashboardController::class, 'matcherDocumentTrouve'])->name('documents-trouves.matcher');
+    
+    // ✅ Route pour marquer la notification comme lue (sans matcher)
+    Route::post('/documents-trouves/{id}/marquer-lu', [AgentDashboardController::class, 'marquerLuDocumentTrouve'])
+        ->name('documents-trouves.marquer-lu');
+    
     Route::post('/documents-trouves/{id}/restituer', [AgentDashboardController::class, 'marquerRestitue'])->name('documents-trouves.restituer');
     Route::delete('/documents-trouves/{id}', [AgentDashboardController::class, 'supprimerDocumentTrouve'])->name('documents-trouves.destroy');
     Route::get('/documents-trouves/exporter/stats', [AgentDashboardController::class, 'exporterStatsDocumentsTrouves'])->name('documents-trouves.exporter-stats');
     
-    // ✅ Route AJAX pour l'aperçu rapide d'un document trouvé (utilisée dans le modal)
+    // Route AJAX pour l'aperçu rapide d'un document trouvé
     Route::get('/documents-trouves/{document}/preview', [AgentDashboardController::class, 'previewDocumentTrouve'])->name('documents-trouves.preview');
 
     // Profil Agent
@@ -213,17 +233,22 @@ Route::get('/perte/{id}/recherche', [AgentDashboardController::class, 'recherche
     Route::get('/rapport-pdf', [AgentDashboardController::class, 'rapportPDF'])->name('rapport-pdf');
     Route::get('/rapports', [AgentDashboardController::class, 'rapports'])->name('rapports');
 
-    // ========== MESSAGERIE AGENT ==========
+    // Messagerie Agent
     Route::get('/messages', [AgentDashboardController::class, 'messages'])->name('messages');
     Route::post('/messages/envoyer', [AgentDashboardController::class, 'envoyerMessage'])->name('messages.envoyer');
     Route::get('/messages/{userId}/history', [AgentDashboardController::class, 'messageHistory'])->name('messages.history');
     Route::get('/citizens/list', [AgentDashboardController::class, 'getCitizensList'])->name('citizens.list');
     Route::get('/messages/unread-count', [AgentDashboardController::class, 'unreadCount'])->name('messages.unread-count');
     
-    // Notifications (redirection)
+    // Notifications
     Route::get('/notifications', [AgentDashboardController::class, 'notifications'])->name('notifications');
+    /* En cas de conflit de nommage avec la méthode restituer de documents trouvés */
     Route::post('/perte/{id}/restitution', [AgentDashboardController::class, 'restituer'])->name('perte.restitution');
+    
+    // Confirmation de récupération
+    Route::post('/perte/{id}/confirmer-recuperation', [AgentDashboardController::class, 'confirmerRecuperation'])->name('perte.confirmer-recuperation');
 });
+
 
 /*
 |--------------------------------------------------------------------------
@@ -234,23 +259,17 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     // Dashboard admin
     Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
     
-    // Gestion des utilisateurs - COMPLÈTE
+    // Gestion des utilisateurs - Route resource (gère TOUTES les routes CRUD)
+    // ✅ CORRECTION : Une seule route resource suffit, pas besoin des routes individuelles
     Route::resource('users', UserController::class);
-    Route::get('/users', [UserController::class, 'index'])->name('users.index');
-    Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
-    Route::post('/users', [UserController::class, 'store'])->name('users.store');
-    Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
-    Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
-    Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
     
     // Profil Admin
     Route::get('/profile', [App\Http\Controllers\Admin\ProfileController::class, 'index'])->name('profile');
     Route::put('/profile', [App\Http\Controllers\Admin\ProfileController::class, 'update'])->name('profile.update');
     
-    // Types de pièces
+    // Types de pièces - Route resource
     Route::resource('types-pieces', TypePieceController::class);
-    Route::get('/types-pieces', [TypePieceController::class, 'index'])->name('types-pieces.index');
-
+    
     // Statistiques
     Route::get('/statistiques', [StatisticsController::class, 'index'])->name('stats.index');
     
@@ -259,7 +278,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::put('/roles/{user}/update', [App\Http\Controllers\Admin\RoleController::class, 'update'])->name('roles.update');
 });
 
-// Route pour changer la langue (globale)
+// ============================================================
+// ROUTES GLOBALES
+// ============================================================
+
+// Route pour changer la langue
 Route::get('/set-lang/{locale}', function($locale, Request $request) {
     session(['locale' => $locale]);
     App::setLocale($locale);
@@ -285,10 +308,10 @@ Route::get('/lang/{locale}', function ($locale) {
     return redirect()->back();
 })->name('lang');
 
-
+// Route de test pour les rôles
 Route::get('/test-role', function () {
     return auth()->user()->role ?? 'Non connecté';
 });
 
-// Routes d'authentification (login, register, logout)
+// Routes d'authentification
 require __DIR__.'/auth.php';
