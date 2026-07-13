@@ -7,6 +7,7 @@
     <title>e-Déclaration TG — Plateforme Nationale · République Togolaise</title>
     <meta name="description" content="Plateforme officielle de déclaration de perte de documents de la République Togolaise.">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
         * { 
             box-sizing: border-box; 
@@ -130,6 +131,196 @@
             margin-top: 2px;
         }
 
+        /* ===== SUIVI RAPIDE EN TÊTE ===== */
+        .suivi-rapide {
+            position: relative;
+            display: inline-block;
+        }
+
+        .suivi-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 50px;
+            padding: 0.5rem 1.2rem;
+            color: white;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            backdrop-filter: blur(4px);
+        }
+
+        .suivi-toggle:hover {
+            background: rgba(255,255,255,0.2);
+            border-color: rgba(255,255,255,0.4);
+            transform: translateY(-2px);
+        }
+
+        .suivi-toggle i {
+            font-size: 1rem;
+        }
+
+        .suivi-dropdown {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            width: 340px;
+            background: white;
+            border-radius: 16px;
+            padding: 1.2rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            border: 1px solid var(--gray-200);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        body.dark-mode .suivi-dropdown {
+            background: #1e293b;
+            border-color: #334155;
+        }
+
+        .suivi-dropdown.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .suivi-dropdown-header {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 2px solid var(--gray-200);
+            margin-bottom: 1rem;
+            font-weight: 700;
+            color: var(--dark);
+            font-size: 0.95rem;
+        }
+
+        body.dark-mode .suivi-dropdown-header {
+            color: #f1f5f9;
+            border-bottom-color: #334155;
+        }
+
+        .suivi-dropdown-header i {
+            color: var(--primary);
+            font-size: 1.2rem;
+        }
+
+        .suivi-rapide-form .form-group {
+            margin-bottom: 0.8rem;
+        }
+
+        .suivi-rapide-form label {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--gray-600);
+            margin-bottom: 0.2rem;
+        }
+
+        body.dark-mode .suivi-rapide-form label {
+            color: #94a3b8;
+        }
+
+        .suivi-rapide-form input {
+            width: 100%;
+            padding: 0.5rem 0.8rem;
+            border: 2px solid var(--gray-200);
+            border-radius: 10px;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            background: white;
+            color: var(--dark);
+        }
+
+        body.dark-mode .suivi-rapide-form input {
+            background: #334155;
+            border-color: #4b5563;
+            color: #e5e7eb;
+        }
+
+        .suivi-rapide-form input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+
+        .suivi-rapide-form input::placeholder {
+            color: var(--gray-400);
+            font-size: 0.75rem;
+        }
+
+        .btn-suivi-rapide {
+            width: 100%;
+            padding: 0.6rem;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+        }
+
+        .btn-suivi-rapide:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .suivi-dropdown-footer {
+            margin-top: 0.8rem;
+            padding-top: 0.8rem;
+            border-top: 1px solid var(--gray-200);
+            text-align: center;
+        }
+
+        body.dark-mode .suivi-dropdown-footer {
+            border-top-color: #334155;
+        }
+
+        .suivi-dropdown-footer a {
+            font-size: 0.75rem;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .suivi-dropdown-footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* ===== ALERTE DANS LE DROPDOWN ===== */
+        .alert-dropdown {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 0.5rem 0.8rem;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        body.dark-mode .alert-dropdown {
+            background: #3f1e1e;
+            color: #fca5a5;
+        }
+
+        /* ===== NAV ===== */
         nav { 
             display: flex; 
             align-items: center; 
@@ -1188,6 +1379,16 @@
             .custom-illustration { max-width: 100%; }
             .action-btn { width: 32px; height: 32px; }
             .lang-btn { font-size: 0.7rem; padding: 0.2rem 0.6rem; }
+            .suivi-dropdown {
+                width: 280px;
+                right: -20px;
+            }
+            .suivi-toggle span {
+                display: none;
+            }
+            .suivi-toggle {
+                padding: 0.5rem 0.8rem;
+            }
         }
     </style>
 </head>
@@ -1216,6 +1417,57 @@
                 <span class="republic-devise">Travail-Liberté-Patrie</span>
             </div>
         </a>
+
+        <!-- ===== SUIVI RAPIDE EN TÊTE ===== -->
+        <div class="suivi-rapide">
+            <button class="suivi-toggle" id="suiviToggle" title="Suivi rapide">
+                <i class="bi bi-search"></i> 
+                <span>Suivi</span>
+            </button>
+            <div class="suivi-dropdown" id="suiviDropdown">
+                <div class="suivi-dropdown-header">
+                    <i class="bi bi-search-heart"></i>
+                    <span>Suivi de votre document</span>
+                </div>
+
+                @if(session('error'))
+                    <div class="alert-dropdown">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        {{ session('error') }}
+                    </div>
+                @endif
+
+                <form method="POST" action="{{ route('suivi.rechercher') }}" class="suivi-rapide-form">
+                    @csrf
+                    <div class="form-group">
+                        <label for="numero_declaration_rapide">📋 N° déclaration</label>
+                        <input type="text" 
+                               id="numero_declaration_rapide" 
+                               name="numero_declaration" 
+                               placeholder="Ex: DECL-2026-00028" 
+                               value="{{ old('numero_declaration') }}" 
+                               required>
+                    </div>
+                    <div class="form-group">
+                        <label for="code_suivi_rapide">🔑 Code de suivi</label>
+                        <input type="text" 
+                               id="code_suivi_rapide" 
+                               name="code_suivi" 
+                               placeholder="6 caractères" 
+                               value="{{ old('code_suivi') }}" 
+                               maxlength="6" 
+                               required>
+                    </div>
+                    <button type="submit" class="btn-suivi-rapide">
+                        <i class="bi bi-search"></i> Suivre
+                    </button>
+                </form>
+                <div class="suivi-dropdown-footer">
+                    <a href="#suivi">🔍 Accéder au formulaire complet</a>
+                </div>
+            </div>
+        </div>
+
         <nav>
             <a href="#accueil">Accueil</a>
             <a href="#services">Services</a>
@@ -1225,14 +1477,14 @@
             <!-- ===== BOUTON CONNEXION ===== -->
             <a href="{{ route('login') }}" class="btn-connect">Se connecter</a>
 
-            <!-- ===== BOUTON THÈME (après connexion) ===== -->
+            <!-- ===== BOUTON THÈME ===== -->
             <button class="action-btn" id="themeToggleBtn" title="Changer le thème">
                 <svg id="themeIcon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
                 </svg>
             </button>
 
-            <!-- ===== BOUTON LANGUE UNIQUE (après thème) ===== -->
+            <!-- ===== BOUTON LANGUE ===== -->
             @php
                 $currentLocale = app()->getLocale();
                 $nextLocale = $currentLocale === 'fr' ? 'en' : 'fr';
@@ -1634,6 +1886,39 @@
             const faqItem = question.parentElement;
             faqItem.classList.toggle('active');
         });
+    });
+
+    // ===== SUIVI RAPIDE - TOGGLE DROPDOWN =====
+    document.addEventListener('DOMContentLoaded', function() {
+        const suiviToggle = document.getElementById('suiviToggle');
+        const suiviDropdown = document.getElementById('suiviDropdown');
+        
+        if (suiviToggle && suiviDropdown) {
+            // Ouvrir/fermer au clic
+            suiviToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                suiviDropdown.classList.toggle('active');
+            });
+            
+            // Fermer en cliquant ailleurs
+            document.addEventListener('click', function(e) {
+                if (!suiviToggle.contains(e.target) && !suiviDropdown.contains(e.target)) {
+                    suiviDropdown.classList.remove('active');
+                }
+            });
+            
+            // Fermer avec la touche Echap
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    suiviDropdown.classList.remove('active');
+                }
+            });
+            
+            // Si le formulaire a une erreur, garder le dropdown ouvert
+            @if($errors->any() || session('error'))
+                suiviDropdown.classList.add('active');
+            @endif
+        }
     });
 
     // ===== GESTION DU THÈME =====

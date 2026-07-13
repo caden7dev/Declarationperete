@@ -22,6 +22,7 @@ use App\Http\Controllers\AgentProfileController;
 use App\Http\Controllers\CitizenMessageController;
 use App\Http\Controllers\Admin\DocumentOfficielController;
 use App\Http\Controllers\Admin\ImportController;
+use App\Http\Controllers\SuiviController;
 
 /*
 |--------------------------------------------------------------------------
@@ -29,10 +30,18 @@ use App\Http\Controllers\Admin\ImportController;
 |--------------------------------------------------------------------------
 */
 
+// ============================================================
+// ROUTES PUBLIQUES (sans authentification)
+// ============================================================
+
 // Page d'accueil
 Route::get('/', function () {
     return view('welcome');
 })->name('home');
+
+// ✅ Route publique de suivi (POST)
+Route::post('/suivi', [SuiviController::class, 'rechercher'])->name('suivi.rechercher');
+Route::post('/suivi', [App\Http\Controllers\SuiviController::class, 'rechercher'])->name('suivi.rechercher');
 
 // Page d'aide publique
 Route::get('/aide', function () {
@@ -274,7 +283,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
     
     // Gestion des utilisateurs - Route resource (gère TOUTES les routes CRUD)
-    // ✅ CORRECTION : Une seule route resource suffit, pas besoin des routes individuelles
     Route::resource('users', UserController::class);
     
     // Profil Admin
@@ -292,11 +300,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::put('/roles/{user}/update', [App\Http\Controllers\Admin\RoleController::class, 'update'])->name('roles.update');
     
     // ============================================================
-    // ✅ NOUVELLES ROUTES : Gestion des documents officiels
+    // Gestion des documents officiels
     // ============================================================
     Route::resource('documents-officiels', DocumentOfficielController::class);
     
-    // Routes supplémentaires pour les documents officiels
     Route::post('/documents-officiels/verifier', [DocumentOfficielController::class, 'verifier'])->name('documents-officiels.verifier');
     Route::post('/documents-officiels/{id}/marquer-vole', [DocumentOfficielController::class, 'marquerVole'])->name('documents-officiels.marquer-vole');
     Route::post('/documents-officiels/{id}/marquer-perdu', [DocumentOfficielController::class, 'marquerPerdu'])->name('documents-officiels.marquer-perdu');
@@ -304,11 +311,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::get('/documents-officiels/statistiques', [DocumentOfficielController::class, 'statistiques'])->name('documents-officiels.statistiques');
     
     // ============================================================
-    // ✅ IMPORT CSV (Sans package Excel)
+    // IMPORT CSV
     // ============================================================
     Route::post('/import/csv', [ImportController::class, 'importerCSV'])->name('admin.import.csv');
     Route::get('/import/template', [ImportController::class, 'telechargerModele'])->name('admin.import.template');
 });
+
 
 // ============================================================
 // ROUTES GLOBALES
