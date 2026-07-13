@@ -419,6 +419,67 @@
             color: #e5e7eb;
         }
 
+        /* ✅ Information sur la date d'expiration optionnelle */
+        .expiration-info {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.8rem;
+        }
+
+        body.dark-mode .expiration-info {
+            background: #332d1a;
+            border-color: #a16207;
+        }
+
+        .expiration-info .icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .expiration-info .content {
+            flex: 1;
+        }
+
+        .expiration-info .title {
+            font-weight: 700;
+            color: #92400e;
+            font-size: 0.95rem;
+        }
+
+        body.dark-mode .expiration-info .title {
+            color: #fbbf24;
+        }
+
+        .expiration-info .text {
+            color: #78350f;
+            font-size: 0.85rem;
+            margin-top: 0.2rem;
+        }
+
+        body.dark-mode .expiration-info .text {
+            color: #fcd34d;
+        }
+
+        .expiration-info .badge-manual {
+            display: inline-block;
+            margin-top: 0.3rem;
+            background: #fef3c7;
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: #92400e;
+        }
+
+        body.dark-mode .expiration-info .badge-manual {
+            background: #4a3000;
+            color: #fcd34d;
+        }
+
         .section {
             background: var(--gray-100);
             border-radius: 16px;
@@ -440,6 +501,10 @@
             display: flex;
             align-items: center;
             gap: 0.6rem;
+        }
+
+        body.dark-mode .section-title {
+            color: #e5e7eb;
         }
 
         .section-number {
@@ -477,8 +542,18 @@
             color: var(--gray-800);
         }
 
+        body.dark-mode label {
+            color: #cbd5e1;
+        }
+
         label .required {
             color: var(--danger);
+        }
+
+        label .optional {
+            color: var(--gray-600);
+            font-weight: 400;
+            font-size: 0.75rem;
         }
 
         label .auto-filled {
@@ -510,6 +585,11 @@
             color: #e5e7eb;
         }
 
+        body.dark-mode input::placeholder,
+        body.dark-mode textarea::placeholder {
+            color: #9ca3af;
+        }
+
         input:focus, select:focus, textarea:focus {
             outline: none;
             border-color: var(--primary);
@@ -522,20 +602,36 @@
             cursor: not-allowed;
         }
 
+        body.dark-mode input[readonly] {
+            background: #374151;
+            color: #9ca3af;
+        }
+
         textarea {
             resize: vertical;
             min-height: 100px;
         }
 
         .helper-text {
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             color: var(--gray-600);
             margin-top: 0.2rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.3rem;
+        }
+
+        body.dark-mode .helper-text {
+            color: #94a3b8;
+        }
+
+        .helper-text i {
+            margin-top: 0.1rem;
         }
 
         .checkbox-group {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 0.8rem;
             background: #fffbeb;
             border: 1px solid #fde68a;
@@ -552,8 +648,9 @@
         .checkbox-group input {
             width: 18px;
             height: 18px;
-            margin: 0;
+            margin-top: 0.1rem;
             cursor: pointer;
+            flex-shrink: 0;
         }
 
         .checkbox-group label {
@@ -561,6 +658,7 @@
             cursor: pointer;
             font-size: 0.85rem;
             color: #b45309;
+            font-weight: 500;
         }
 
         body.dark-mode .checkbox-group label {
@@ -583,14 +681,19 @@
             box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
         }
 
-        .submit-btn:hover {
+        .submit-btn:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
         }
 
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         .text-danger {
             color: var(--danger);
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             margin-top: 0.2rem;
         }
 
@@ -602,13 +705,20 @@
             margin-bottom: 1.5rem;
         }
 
+        body.dark-mode .error-box {
+            background: #3f1e1e;
+        }
+
         .error-box ul {
             margin: 0;
             padding-left: 1.2rem;
             color: #991b1b;
         }
 
-        /* ===== NOUVEAU : STYLE D'ERREUR DE DATE ===== */
+        body.dark-mode .error-box ul {
+            color: #fca5a5;
+        }
+
         .date-error {
             color: var(--danger);
             font-size: 0.75rem;
@@ -618,6 +728,59 @@
 
         .date-error.show {
             display: block;
+        }
+
+        /* ✅ Badge de statut de vérification */
+        .verification-badge {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 0.3rem;
+        }
+
+        .verification-badge.auto {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .verification-badge.manual {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        body.dark-mode .verification-badge.auto {
+            background: #065f46;
+            color: #d1fae5;
+        }
+
+        body.dark-mode .verification-badge.manual {
+            background: #92400e;
+            color: #fef3c7;
+        }
+
+        /* ✅ Indicateur de vérification */
+        .verification-indicator {
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 12px;
+            padding: 0.8rem 1rem;
+            margin-top: 0.5rem;
+        }
+
+        body.dark-mode .verification-indicator {
+            background: #1e3a5f;
+            border-color: #0c4a6e;
+        }
+
+        .verification-indicator .label {
+            font-size: 0.8rem;
+            color: var(--gray-600);
+        }
+
+        body.dark-mode .verification-indicator .label {
+            color: #94a3b8;
         }
 
         /* Responsive */
@@ -650,10 +813,6 @@
     use App\Models\Notification;
     $user = auth()->user();
 
-    // ============================================================
-    // ⚠️ COMPTEUR CORRIGÉ : Exclusion des messages (agent_message)
-    // et des notifications expirées
-    // ============================================================
     $unreadNotificationsCount = Notification::where('user_id', $user->id)
         ->where('type', '!=', 'agent_message')
         ->notExpired()
@@ -766,7 +925,6 @@
             <p>Veuillez remplir tous les champs requis avec attention</p>
         </div>
 
-        {{-- Message d'information en cas de copie depuis une déclaration non retrouvée --}}
         @if(isset($oldPerte) && $oldPerte)
             <div class="copy-info">
                 <i class="bi bi-info-circle-fill fs-4"></i>
@@ -776,6 +934,20 @@
                 </div>
             </div>
         @endif
+
+        <!-- ✅ Information sur la date d'expiration optionnelle -->
+        <div class="expiration-info">
+            <div class="icon">ℹ️</div>
+            <div class="content">
+                <div class="title">Date d'expiration : optionnelle</div>
+                <div class="text">
+                    Si vous connaissez la date d'expiration de votre document, veuillez la renseigner. 
+                    <strong>Si vous ne la connaissez pas, laissez le champ vide.</strong> 
+                    Un agent vérifiera manuellement votre déclaration. 
+                    <span class="badge-manual">⏳ Vérification manuelle requise si champ vide</span>
+                </div>
+            </div>
+        </div>
 
         @if ($errors->any())
             <div class="error-box">
@@ -846,10 +1018,41 @@
                                max="{{ date('Y-m-d') }}">
                         @error('date_delivrance') <div class="text-danger">{{ $message }}</div> @enderror
                     </div>
+                    <!-- ✅ Date d'expiration : OPTIONNELLE -->
                     <div class="form-group">
+                        <label>
+                            Date d'expiration 
+                            <span class="optional">(optionnel)</span>
+                        </label>
+                        <input type="date" name="date_expiration" id="date_expiration" 
+                               value="{{ old('date_expiration', $oldPerte->date_expiration ?? '') }}" 
+                               min="{{ date('Y-m-d') }}">
+                        <div class="helper-text">
+                            <i class="bi bi-info-circle"></i> 
+                            <strong>Si vous ne connaissez pas la date exacte, laissez vide.</strong>
+                            <br>Un agent vérifiera manuellement lors du traitement.
+                        </div>
+                        @error('date_expiration') <div class="text-danger">{{ $message }}</div> @enderror
+                    </div>
+                    <div class="form-group full">
                         <label>Autorité de délivrance</label>
                         <input type="text" name="autorite_delivrance" value="{{ old('autorite_delivrance', $oldPerte->autorite_delivrance ?? '') }}" placeholder="Ex: Préfecture de Lomé">
                         @error('autorite_delivrance') <div class="text-danger">{{ $message }}</div> @enderror
+                    </div>
+                    <!-- ✅ Indicateur de mode de vérification -->
+                    <div class="form-group full">
+                        <div class="verification-indicator">
+                            <span class="label">
+                                <i class="bi bi-shield-check"></i> 
+                                Mode de vérification : 
+                            </span>
+                            <span id="verificationMode" class="verification-badge auto">
+                                ✅ Automatique (date fournie)
+                            </span>
+                            <span style="font-size: 0.75rem; color: var(--gray-600); margin-left: 0.5rem;" id="verificationHelp">
+                                (Une date d'expiration est requise pour la vérification automatique)
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -891,21 +1094,19 @@
                 </div>
                 <div class="grid">
                     <div class="form-group">
-                        <label>Copie de la pièce (si existante)</label>
+                        <label>Copie de la pièce (recto-verso) <span class="optional">(recommandé)</span></label>
                         <input type="file" name="copie_piece" accept=".pdf,.jpg,.jpeg,.png">
-                        <div class="helper-text">PDF, JPG ou PNG • Max 2 Mo</div>
+                        <div class="helper-text">
+                            <i class="bi bi-info-circle"></i> 
+                            <strong>Veuillez fournir une copie claire recto-verso</strong> du document (si disponible). 
+                            <br>PDF, JPG ou PNG • Max 2 Mo
+                        </div>
                         @error('copie_piece') <div class="text-danger">{{ $message }}</div> @enderror
-                    </div>
-                    <div class="form-group">
-                        <label>Déclaration de vol (police)</label>
-                        <input type="file" name="declaration_vol" accept=".pdf,.jpg,.jpeg,.png">
-                        <div class="helper-text">Si vol, joindre le PV de police</div>
-                        @error('declaration_vol') <div class="text-danger">{{ $message }}</div> @enderror
                     </div>
                     <div class="form-group full">
                         <label>Document complémentaire</label>
                         <input type="file" name="document_complementaire" accept=".pdf,.jpg,.jpeg,.png">
-                        <div class="helper-text">Tout autre document utile</div>
+                        <div class="helper-text">Tout autre document utile (attestation, témoignage, etc.)</div>
                         @error('document_complementaire') <div class="text-danger">{{ $message }}</div> @enderror
                     </div>
                 </div>
@@ -933,19 +1134,39 @@
 
 <script>
     // ============================================================
-    // VALIDATION DES DATES
+    // VALIDATION DES DATES + MODE DE VÉRIFICATION
     // ============================================================
     document.addEventListener('DOMContentLoaded', function() {
         const dateDelivrance = document.getElementById('date_delivrance');
         const datePerte = document.getElementById('date_perte');
+        const dateExpiration = document.getElementById('date_expiration');
         const dateError = document.getElementById('dateError');
+        const verificationMode = document.getElementById('verificationMode');
+        const verificationHelp = document.getElementById('verificationHelp');
         const form = document.getElementById('declarationForm');
         const submitBtn = document.getElementById('submitBtn');
+
+        function updateVerificationMode() {
+            const expiration = dateExpiration.value;
+            
+            if (expiration && expiration.trim() !== '') {
+                verificationMode.textContent = '✅ Automatique (date fournie)';
+                verificationMode.className = 'verification-badge auto';
+                verificationHelp.textContent = '(Vérification automatique possible)';
+                dateExpiration.style.borderColor = '';
+            } else {
+                verificationMode.textContent = '🔍 Manuelle (date manquante)';
+                verificationMode.className = 'verification-badge manual';
+                verificationHelp.textContent = '(Un agent vérifiera manuellement votre déclaration)';
+            }
+        }
 
         function validateDates() {
             const delivrance = dateDelivrance.value;
             const perte = datePerte.value;
+            const expiration = dateExpiration.value;
 
+            // Validation date de perte >= date de délivrance
             if (delivrance && perte) {
                 if (perte < delivrance) {
                     dateError.classList.add('show');
@@ -957,34 +1178,100 @@
                 } else {
                     dateError.classList.remove('show');
                     datePerte.style.borderColor = '';
-                    submitBtn.disabled = false;
-                    submitBtn.style.opacity = '1';
-                    submitBtn.style.cursor = 'pointer';
-                    return true;
                 }
             }
+
+            // Validation date d'expiration >= date de délivrance (seulement si remplie)
+            if (delivrance && expiration) {
+                if (expiration < delivrance) {
+                    dateExpiration.style.borderColor = '#ef4444';
+                    submitBtn.disabled = true;
+                    submitBtn.style.opacity = '0.5';
+                    submitBtn.style.cursor = 'not-allowed';
+                    return false;
+                } else {
+                    dateExpiration.style.borderColor = '';
+                }
+            }
+
+            // Validation date d'expiration dans le futur (seulement si remplie)
+            const today = new Date().toISOString().split('T')[0];
+            if (expiration && expiration < today) {
+                dateExpiration.style.borderColor = '#ef4444';
+                submitBtn.disabled = true;
+                submitBtn.style.opacity = '0.5';
+                submitBtn.style.cursor = 'not-allowed';
+                return false;
+            } else if (expiration) {
+                dateExpiration.style.borderColor = '';
+            }
+
+            submitBtn.disabled = false;
+            submitBtn.style.opacity = '1';
+            submitBtn.style.cursor = 'pointer';
             return true;
         }
 
         // Événements pour valider en temps réel
         dateDelivrance.addEventListener('change', function() {
-            // Mettre à jour le min de la date de perte
             if (this.value) {
                 datePerte.min = this.value;
+                if (dateExpiration.value) {
+                    dateExpiration.min = this.value;
+                }
             }
             validateDates();
+            updateVerificationMode();
         });
 
         datePerte.addEventListener('change', validateDates);
         datePerte.addEventListener('input', validateDates);
+        
+        dateExpiration.addEventListener('change', function() {
+            validateDates();
+            updateVerificationMode();
+        });
+        dateExpiration.addEventListener('input', function() {
+            validateDates();
+            updateVerificationMode();
+        });
+
+        // Initialisation
+        updateVerificationMode();
+        validateDates();
 
         // Validation avant soumission
         form.addEventListener('submit', function(e) {
-            if (!validateDates()) {
+            // Vérifier que la date de perte est valide
+            const delivrance = dateDelivrance.value;
+            const perte = datePerte.value;
+            
+            if (delivrance && perte && perte < delivrance) {
                 e.preventDefault();
                 dateError.classList.add('show');
                 datePerte.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 datePerte.focus();
+                return false;
+            }
+
+            // Vérifier que la date d'expiration est valide (si remplie)
+            const expiration = dateExpiration.value;
+            if (expiration) {
+                const today = new Date().toISOString().split('T')[0];
+                if (expiration < today) {
+                    e.preventDefault();
+                    dateExpiration.style.borderColor = '#ef4444';
+                    dateExpiration.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    dateExpiration.focus();
+                    return false;
+                }
+                if (delivrance && expiration < delivrance) {
+                    e.preventDefault();
+                    dateExpiration.style.borderColor = '#ef4444';
+                    dateExpiration.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    dateExpiration.focus();
+                    return false;
+                }
             }
         });
     });

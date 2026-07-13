@@ -27,7 +27,7 @@
     </script>
     
     <style>
-        /* ===== CONSERVER TOUS LES STYLES EXISTANTS (inchangés) ===== */
+        /* ===== TOUS LES STYLES EXISTANTS ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
@@ -406,6 +406,8 @@
 
         .alert-success { border-left-color: var(--success); }
         .alert-error { border-left-color: var(--danger); }
+        .alert-warning { border-left-color: var(--warning); }
+        .alert-info { border-left-color: var(--info); }
 
         /* Page Header */
         .page-header {
@@ -482,6 +484,12 @@
             border-color: #f59e0b;
         }
 
+        .status-banner.pending-verification {
+            background: linear-gradient(135deg, #fef3c7, #fbbf24);
+            color: #78350f;
+            border-color: #d97706;
+        }
+
         .status-banner.in-progress {
             background: linear-gradient(135deg, #dbeafe, #bfdbfe);
             color: #1e3a8a;
@@ -522,6 +530,10 @@
             background: #422d0b;
             color: #fbbf24;
         }
+        body.dark-mode .status-banner.pending-verification {
+            background: #4a3000;
+            color: #fcd34d;
+        }
         body.dark-mode .status-banner.in-progress {
             background: #1e3a5f;
             color: #60a5fa;
@@ -546,6 +558,50 @@
 
         .status-icon {
             font-size: 2rem;
+        }
+
+        /* ✅ NOUVEAU : Alertes de vérification */
+        .verification-alert {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        body.dark-mode .verification-alert {
+            background: #422d0b;
+        }
+
+        .verification-alert .icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .verification-alert .content {
+            flex: 1;
+        }
+
+        .verification-alert .title {
+            font-weight: 700;
+            color: #92400e;
+            margin-bottom: 0.3rem;
+        }
+
+        body.dark-mode .verification-alert .title {
+            color: #fbbf24;
+        }
+
+        .verification-alert .text {
+            color: #78350f;
+            font-size: 0.9rem;
+        }
+
+        body.dark-mode .verification-alert .text {
+            color: #fcd34d;
         }
 
         /* Content Grid */
@@ -644,6 +700,19 @@
         body.dark-mode .info-value {
             color: #e5e7eb;
         }
+
+        .info-value .badge {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .badge-success { background: #d1fae5; color: #065f46; }
+        .badge-warning { background: #fef3c7; color: #92400e; }
+        .badge-danger { background: #fee2e2; color: #991b1b; }
+        .badge-info { background: #dbeafe; color: #1e3a8a; }
 
         /* Citizen Card */
         .citizen-card {
@@ -811,6 +880,17 @@
             box-shadow: 0 6px 16px rgba(245,158,11,0.4);
         }
 
+        .btn-verify {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            box-shadow: 0 4px 12px rgba(59,130,246,0.3);
+        }
+
+        .btn-verify:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(59,130,246,0.4);
+        }
+
         .btn-secondary {
             background: white;
             color: var(--gray-600);
@@ -959,6 +1039,58 @@
             transform: translateY(-2px);
         }
 
+        /* ✅ NOUVEAU : Formulaire date d'expiration */
+        .expiration-form {
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        body.dark-mode .expiration-form {
+            background: #1e3a5f;
+            border-color: #0c4a6e;
+        }
+
+        .expiration-form label {
+            font-weight: 600;
+            color: var(--dark);
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        body.dark-mode .expiration-form label {
+            color: #e5e7eb;
+        }
+
+        .expiration-form input[type="date"] {
+            width: 100%;
+            padding: 0.7rem 1rem;
+            border: 2px solid var(--gray-200);
+            border-radius: 10px;
+            font-size: 0.9rem;
+            background: white;
+            color: var(--dark);
+            transition: border-color 0.2s;
+        }
+
+        body.dark-mode .expiration-form input[type="date"] {
+            background: #334155;
+            border-color: #4b5563;
+            color: #e5e7eb;
+        }
+
+        .expiration-form input[type="date"]:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .expiration-form .btn {
+            margin-top: 0.5rem;
+            margin-bottom: 0;
+        }
+
         /* Modal */
         .modal {
             display: none;
@@ -1095,6 +1227,11 @@
             color: white;
         }
 
+        .btn-modal-success {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+        }
+
         .btn-modal-secondary {
             background: var(--gray-100);
             color: var(--gray-600);
@@ -1147,7 +1284,28 @@
             }
         }
 
-        
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 0;
+                overflow: hidden;
+            }
+            .main {
+                margin-left: 0;
+                padding: 1rem;
+            }
+            .top-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .top-bar-right {
+                flex-wrap: wrap;
+            }
+            .page-header {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+        }
     </style>
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -1168,11 +1326,13 @@
 @php
     use App\Models\Perte;
     $pendingCount = Perte::where('statut','en_attente')->count();
+    $pendingVerifCount = Perte::where('statut','en_attente_verification')->count();
     $statut = $perte->statut;
     
     // Mapping des statuts pour l'affichage
     $statusMap = [
         'en_attente'             => ['label'=>'En attente', 'class'=>'pending', 'icon'=>'⏳'],
+        'en_attente_verification' => ['label'=>'En attente de vérification', 'class'=>'pending-verification', 'icon'=>'🔍'],
         'en_cours'               => ['label'=>'En cours', 'class'=>'in-progress', 'icon'=>'🔍'],
         'correspondance_trouvee' => ['label'=>'Correspondance trouvée', 'class'=>'matched', 'icon'=>'🔗'],
         'restitue'               => ['label'=>'Restitué', 'class'=>'returned', 'icon'=>'✅'],
@@ -1193,7 +1353,11 @@
     $assignedAgentName = $assignedTo ? ($perte->assignedAgent->name ?? 'un autre agent') : null;
     
     // Vérifier si le bouton "Prendre en charge" doit être affiché
-    $showTakeButton = ($perte->statut === 'en_attente' && !$isLocked);
+    $showTakeButton = in_array($perte->statut, ['en_attente', 'en_attente_verification']) && !$isLocked;
+    
+    // ✅ NOUVEAU : Vérifier si la date d'expiration est manquante
+    $hasExpiration = !is_null($perte->date_expiration);
+    $needsManualVerification = $perte->statut === 'en_attente_verification' || $perte->statut_verification === 'manuelle';
 @endphp
 
 <!-- Sidebar -->
@@ -1228,6 +1392,12 @@
             <i class="bi bi-hourglass-split"></i> En attente
             @if($pendingCount > 0)
                 <span class="nav-badge">{{ $pendingCount }}</span>
+            @endif
+        </a>
+        <a href="{{ route('agent.dashboard', ['statut' => 'en_attente_verification']) }}" class="{{ request('statut') == 'en_attente_verification' ? 'active' : '' }}">
+            <i class="bi bi-search"></i> À vérifier
+            @if($pendingVerifCount > 0)
+                <span class="nav-badge" style="background: #f59e0b;">{{ $pendingVerifCount }}</span>
             @endif
         </a>
         <a href="{{ route('agent.dashboard') }}">
@@ -1276,8 +1446,9 @@
                 <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                 </svg>
-                @if($pendingCount > 0)
-                    <span class="notification-badge">{{ $pendingCount > 9 ? '9+' : $pendingCount }}</span>
+                @php $totalPending = $pendingCount + $pendingVerifCount; @endphp
+                @if($totalPending > 0)
+                    <span class="notification-badge">{{ $totalPending > 9 ? '9+' : $totalPending }}</span>
                 @endif
             </div>
         </div>
@@ -1294,6 +1465,12 @@
         <div class="alert alert-error">
             <i class="bi bi-exclamation-triangle-fill"></i>
             <span>{{ session('error') }}</span>
+        </div>
+    @endif
+    @if(session('info'))
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle-fill"></i>
+            <span>{{ session('info') }}</span>
         </div>
     @endif
 
@@ -1313,8 +1490,31 @@
             @if($perte->numero_declaration)
                 <div style="font-size: 0.85rem; opacity: 0.8;">N° {{ $perte->numero_declaration }}</div>
             @endif
+            @if(!$hasExpiration)
+                <div style="font-size: 0.8rem; opacity: 0.7; margin-top: 0.3rem;">
+                    ⚠️ Date d'expiration non renseignée
+                </div>
+            @endif
         </div>
     </div>
+
+    <!-- ✅ NOUVEAU : Alerte de vérification manuelle -->
+    @if($needsManualVerification && $statut !== 'rejetee')
+        <div class="verification-alert">
+            <div class="icon">🔍</div>
+            <div class="content">
+                <div class="title">Vérification manuelle requise</div>
+                <div class="text">
+                    Le citoyen n'a pas fourni de date d'expiration. 
+                    @if($isAssignedToMe || $showTakeButton)
+                        Veuillez vérifier manuellement le document ou ajouter la date d'expiration.
+                    @else
+                        Un agent doit prendre en charge ce dossier pour procéder à la vérification.
+                    @endif
+                </div>
+            </div>
+        </div>
+    @endif
 
     <!-- Info supplémentaire pour non_retrouve (message pour l'agent) -->
     @if($perte->statut === 'non_retrouve')
@@ -1388,12 +1588,52 @@
                         <div class="info-value">{{ \Carbon\Carbon::parse($perte->date_delivrance)->format('d/m/Y') }}</div>
                     </div>
                     @endif
+                    <!-- ✅ NOUVEAU : Date d'expiration -->
+                    <div class="info-item">
+                        <div class="info-label">Date d'expiration</div>
+                        <div class="info-value">
+                            @if($hasExpiration)
+                                {{ \Carbon\Carbon::parse($perte->date_expiration)->format('d/m/Y') }}
+                                @if($perte->isExpired())
+                                    <span class="badge badge-danger">Expiré</span>
+                                @else
+                                    <span class="badge badge-success">Valide</span>
+                                @endif
+                            @else
+                                <span style="color: #f59e0b;">
+                                    <i class="bi bi-exclamation-triangle"></i> Non renseignée
+                                </span>
+                                <span class="badge badge-warning">Vérification requise</span>
+                            @endif
+                        </div>
+                    </div>
                     @if($perte->autorite_delivrance)
                     <div class="info-item">
                         <div class="info-label">Autorité de délivrance</div>
                         <div class="info-value">{{ $perte->autorite_delivrance }}</div>
                     </div>
                     @endif
+                    <!-- ✅ NOUVEAU : Statut de vérification -->
+                    <div class="info-item full-width">
+                        <div class="info-label">Mode de vérification</div>
+                        <div class="info-value">
+                            @if($perte->statut_verification === 'auto')
+                                <span class="badge badge-success">✅ Automatique</span>
+                                <span style="font-size: 0.8rem; color: var(--gray-600); margin-left: 0.5rem;">
+                                    (Date d'expiration fournie)
+                                </span>
+                            @else
+                                <span class="badge badge-warning">🔍 Manuelle</span>
+                                <span style="font-size: 0.8rem; color: var(--gray-600); margin-left: 0.5rem;">
+                                    @if($perte->verified_at)
+                                        (Vérifiée le {{ $perte->verified_at->format('d/m/Y') }})
+                                    @else
+                                        (En attente de vérification)
+                                    @endif
+                                </span>
+                            @endif
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -1452,7 +1692,7 @@
                 </div>
             @endif
 
-            <!-- Timeline enrichie (avec toutes les étapes) -->
+            <!-- Timeline enrichie -->
             <div class="card">
                 <div class="card-header">
                     <div class="card-icon"><i class="bi bi-clock-history"></i></div>
@@ -1465,7 +1705,30 @@
                         <div class="timeline-text">Déclaration soumise par le citoyen</div>
                     </div>
 
-                    <!-- Étape 2 : Prise en charge (si statut >= en_cours) -->
+                    <!-- ✅ Étape 1.5 : Vérification manuelle (si applicable) -->
+                    @if($needsManualVerification)
+                    <div class="timeline-item">
+                        <div class="timeline-date">
+                            @if($perte->verified_at)
+                                {{ $perte->verified_at->format('d/m/Y H:i') }}
+                            @else
+                                En attente
+                            @endif
+                        </div>
+                        <div class="timeline-text">
+                            @if($perte->verified_at)
+                                ✅ Vérification manuelle effectuée
+                                @if($perte->verifier)
+                                    par {{ $perte->verifier->name }}
+                                @endif
+                            @else
+                                ⏳ En attente de vérification manuelle (date d'expiration manquante)
+                            @endif
+                        </div>
+                    </div>
+                    @endif
+
+                    <!-- Étape 2 : Prise en charge -->
                     @php
                         $taken = in_array($perte->statut, ['en_cours', 'correspondance_trouvee', 'restitue', 'non_retrouve', 'validee', 'rejetee']);
                     @endphp
@@ -1485,7 +1748,7 @@
                         </div>
                     </div>
 
-                    <!-- Étape 3 : Correspondance trouvée (si correspondance_trouvee ou restitue) -->
+                    <!-- Étape 3 : Correspondance trouvée -->
                     @php
                         $found = in_array($perte->statut, ['correspondance_trouvee', 'restitue']);
                     @endphp
@@ -1506,22 +1769,24 @@
                         </div>
                     </div>
 
-                    <!-- Étape 4 : Restitution (si restitue) -->
+                    <!-- Étape 4 : Restitution / Non retrouvé -->
                     <div class="timeline-item">
                         <div class="timeline-date">
                             @if($perte->statut === 'restitue' && $perte->date_restitution)
                                 {{ $perte->date_restitution->format('d/m/Y H:i') }}
+                            @elseif($perte->statut === 'non_retrouve' && $perte->date_passage_non_retrouve)
+                                {{ $perte->date_passage_non_retrouve->format('d/m/Y H:i') }}
                             @else
                                 —
                             @endif
                         </div>
                         <div class="timeline-text">
                             @if($perte->statut === 'restitue')
-                                Document restitué
+                                ✅ Document restitué
                             @elseif($perte->statut === 'non_retrouve')
-                                Document non retrouvé – dossier clos
+                                ❌ Document non retrouvé – dossier clos
                             @else
-                                En attente de restitution
+                                En attente de finalisation
                             @endif
                         </div>
                     </div>
@@ -1575,9 +1840,67 @@
                 @endif
 
                 <!-- ============================================================
+                ✅ NOUVEAU : FORMULAIRE AJOUT DATE D'EXPIRATION
+                (pour les dossiers en attente de vérification)
+                ============================================================ -->
+                @if(($perte->statut === 'en_attente_verification' && $isAssignedToMe) || 
+                    ($perte->statut === 'en_attente_verification' && $showTakeButton))
+                    <div class="expiration-form">
+                        <label for="date_expiration">
+                            <i class="bi bi-calendar3"></i> Ajouter la date d'expiration
+                        </label>
+                        <form method="POST" action="{{ route('agent.perte.update-date-expiration', $perte->id) }}">
+                            @csrf
+                            <input type="date" name="date_expiration" id="date_expiration" 
+                                   min="{{ date('Y-m-d') }}" required
+                                   @if($perte->date_delivrance)
+                                   min="{{ \Carbon\Carbon::parse($perte->date_delivrance)->addDay()->format('Y-m-d') }}"
+                                   @endif
+                                   >
+                            <button type="submit" class="btn btn-primary" style="margin-top: 0.5rem;">
+                                <i class="bi bi-check2-circle"></i> Valider la date d'expiration
+                            </button>
+                            <div class="action-help" style="margin-top: 0.5rem;">
+                                <i class="bi bi-info-circle"></i> 
+                                @if($perte->date_delivrance)
+                                    La date doit être postérieure au {{ \Carbon\Carbon::parse($perte->date_delivrance)->format('d/m/Y') }}
+                                @else
+                                    La date doit être dans le futur
+                                @endif
+                            </div>
+                        </form>
+                        
+                        <hr style="margin: 0.8rem 0; border-color: var(--gray-200);">
+                        
+                        <!-- Ou valider sans date -->
+                        <form method="POST" action="{{ route('agent.perte.valider-verification-manuelle', $perte->id) }}" 
+                              onsubmit="return confirm('✅ Valider cette déclaration sans date d\'expiration ?\n\nLe citoyen a été vérifié manuellement et le document est valide.\n\nConfirmez-vous ?')">
+                            @csrf
+                            <button type="submit" class="btn btn-verify">
+                                <i class="bi bi-check2-circle"></i> Valider sans date d'expiration
+                            </button>
+                            <div class="action-help">
+                                <i class="bi bi-info-circle"></i> 
+                                Utilisez cette option si vous avez vérifié manuellement que le document est valide, 
+                                même sans date d'expiration.
+                            </div>
+                        </form>
+
+                        <!-- Ou rejeter -->
+                        <button class="btn btn-reject" onclick="openRejectModal()" style="margin-top: 0.5rem;">
+                            <i class="bi bi-x-lg"></i> Rejeter la déclaration
+                        </button>
+                        <div class="action-help">
+                            <i class="bi bi-exclamation-triangle"></i> 
+                            "Rejeter" si la déclaration est frauduleuse, incomplète ou invalide.
+                        </div>
+                    </div>
+                @endif
+
+                <!-- ============================================================
                 BOUTON PRENDRE EN CHARGE (conditionné par $showTakeButton)
                 ============================================================ -->
-                @if($showTakeButton)
+                @if($showTakeButton && $perte->statut !== 'en_attente_verification')
                     <form method="POST" 
                           action="{{ route('agent.perte.prendre', $perte->id) }}"
                           style="display:inline; width:100%;"

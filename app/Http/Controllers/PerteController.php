@@ -11,6 +11,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class PerteController extends Controller
 {
@@ -44,18 +46,20 @@ class PerteController extends Controller
         
         // Statistiques enrichies
         $totalDeclarations = Perte::where('user_id', $user->id)->count();
-        $enAttenteCount = Perte::where('user_id', $user->id)->where('statut', 'en_attente')->count();
-        $enCoursCount = Perte::where('user_id', $user->id)->where('statut', 'en_cours')->count();
-        $correspondanceCount = Perte::where('user_id', $user->id)->where('statut', 'correspondance_trouvee')->count();
-        $restitueCount = Perte::where('user_id', $user->id)->where('statut', 'restitue')->count();
-        $nonRetrouveCount = Perte::where('user_id', $user->id)->where('statut', 'non_retrouve')->count();
-        $valideeCount = Perte::where('user_id', $user->id)->where('statut', 'validee')->count();
-        $rejeteeCount = Perte::where('user_id', $user->id)->where('statut', 'rejetee')->count();
+        $enAttenteCount = Perte::where('user_id', $user->id)->where('statut', Perte::STATUT_EN_ATTENTE)->count();
+        $enAttenteVerificationCount = Perte::where('user_id', $user->id)->where('statut', Perte::STATUT_EN_ATTENTE_VERIFICATION)->count();
+        $enCoursCount = Perte::where('user_id', $user->id)->where('statut', Perte::STATUT_EN_COURS)->count();
+        $correspondanceCount = Perte::where('user_id', $user->id)->where('statut', Perte::STATUT_CORRESPONDANCE_TROUVEE)->count();
+        $restitueCount = Perte::where('user_id', $user->id)->where('statut', Perte::STATUT_RESTITUE)->count();
+        $nonRetrouveCount = Perte::where('user_id', $user->id)->where('statut', Perte::STATUT_NON_RETROUVE)->count();
+        $valideeCount = Perte::where('user_id', $user->id)->where('statut', Perte::STATUT_VALIDEE)->count();
+        $rejeteeCount = Perte::where('user_id', $user->id)->where('statut', Perte::STATUT_REJETEE)->count();
         
         return view('perte.index', compact(
             'pertes',
             'totalDeclarations',
             'enAttenteCount',
+            'enAttenteVerificationCount',
             'enCoursCount',
             'correspondanceCount',
             'restitueCount',
@@ -78,7 +82,7 @@ class PerteController extends Controller
         
         if ($request->has('copy_from')) {
             $oldPerte = Perte::where('user_id', $user->id)
-                             ->where('statut', 'non_retrouve')
+                             ->where('statut', Perte::STATUT_NON_RETROUVE)
                              ->find($request->copy_from);
         }
         
@@ -120,6 +124,23 @@ class PerteController extends Controller
     }
 
     /**
+     * Afficher la liste de suivi des déclarations du citoyen.
+     */
+    public function showSuivi(Request $request)
+    {
+        $user = Auth::user();
+        $query = Perte::where('user_id', $user->id);
+        
+        if ($request->has('statut') && $request->statut != '') {
+            $query->where('statut', $request->statut);
+        }
+        
+        $pertes = $query->orderBy('created_at', 'desc')->paginate(10);
+        
+        return view('citizen.suivi-list', compact('pertes'));
+    }
+
+    /**
      * Le citoyen signale qu'il a récupéré son document (pour la démo).
      * Envoie une notification à tous les agents.
      */
@@ -145,11 +166,11 @@ class PerteController extends Controller
             );
         }
 
-        return back()->with('success', '✅ Vous avez signalé la récupération. L’agent en a été informé.');
+        return back()->with('success', '✅ Vous avez signalé la récupération. L\'agent en a été informé.');
     }
 
     /**
-     * ✅ NOUVEAU : Le propriétaire confirme avoir récupéré son document
+     * ✅ Le propriétaire confirme avoir récupéré son document
      * (Après avoir contacté le trouveur et récupéré le document)
      */
     public function confirmRecuperation($id)
@@ -171,52 +192,64 @@ class PerteController extends Controller
             return back()->with('error', 'Aucun document trouvé associé à cette déclaration.');
         }
         
-        // 🔥 Mettre à jour la déclaration
-        $perte->statut = Perte::STATUT_RESTITUE;
-        $perte->date_restitution = now();
-        $perte->save();
-        
-        // 🔥 Mettre à jour le document trouvé
-        $document = $perte->documentTrouve;
-        if ($document) {
-            $document->statut = 'restitue';
-            $document->date_restitution = now();
-            $document->save();
+        DB::beginTransaction();
+        try {
+            // Mettre à jour la déclaration
+            $perte->statut = Perte::STATUT_RESTITUE;
+            $perte->date_restitution = now();
+            $perte->save();
+            
+            // Mettre à jour le document trouvé
+            $document = $perte->documentTrouve;
+            if ($document) {
+                $document->statut = 'restitue';
+                $document->date_restitution = now();
+                $document->save();
+            }
+            
+            // Notification au trouveur (pour le remercier)
+            if ($document && $document->user_id) {
+                Notification::create([
+                    'user_id' => $document->user_id,
+                    'type' => 'restitution_confirmee',
+                    'title' => '✅ Le propriétaire a récupéré son document !',
+                    'content' => "Le propriétaire du document que vous avez trouvé a confirmé l'avoir récupéré. Merci pour votre geste citoyen ! 🙏",
+                    'icon' => '🎉',
+                    'is_read' => false,
+                ]);
+            }
+            
+            // Notification à tous les agents
+            $agents = User::where('role', 'agent')->get();
+            foreach ($agents as $agent) {
+                Notification::create([
+                    'user_id' => $agent->id,
+                    'type' => 'restitution_agent',
+                    'title' => '✅ Restitution confirmée par le propriétaire',
+                    'content' => "Le propriétaire {$perte->first_name} {$perte->last_name} a confirmé avoir récupéré son document ({$perte->type_piece}).",
+                    'action_url' => route('agent.perte.show', $perte->id),
+                    'icon' => '✅',
+                    'is_read' => false,
+                    'perte_id' => $perte->id,
+                ]);
+            }
+            
+            DB::commit();
+            
+            return redirect()->route('perte.index')
+                ->with('success', '✅ Félicitations ! Vous avez récupéré votre document. Merci d\'avoir utilisé e-Déclaration TG ! 🇹🇬');
+                
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Une erreur est survenue : ' . $e->getMessage());
         }
-        
-        // 🔔 Notification au trouveur (pour le remercier)
-        if ($document && $document->user_id) {
-            Notification::create([
-                'user_id' => $document->user_id,
-                'type' => 'restitution_confirmee',
-                'title' => '✅ Le propriétaire a récupéré son document !',
-                'content' => "Le propriétaire du document que vous avez trouvé a confirmé l'avoir récupéré. Merci pour votre geste citoyen ! 🙏",
-                'icon' => '🎉',
-                'is_read' => false,
-            ]);
-        }
-        
-        // 🔔 Notification à tous les agents
-        $agents = User::where('role', 'agent')->get();
-        foreach ($agents as $agent) {
-            Notification::create([
-                'user_id' => $agent->id,
-                'type' => 'restitution_agent',
-                'title' => '✅ Restitution confirmée par le propriétaire',
-                'content' => "Le propriétaire {$perte->first_name} {$perte->last_name} a confirmé avoir récupéré son document ({$perte->type_piece}).",
-                'action_url' => route('agent.perte.show', $perte->id),
-                'icon' => '✅',
-                'is_read' => false,
-            ]);
-        }
-        
-        return redirect()->route('perte.show', $perte->id)
-            ->with('success', '✅ Félicitations ! Vous avez récupéré votre document. Merci d\'avoir utilisé e-Déclaration TG ! 🇹🇬');
     }
 
     /**
      * Enregistrer une nouvelle déclaration.
-     * ✅ VALIDATION DES DATES AJOUTÉE
+     * ✅ La date d'expiration est OPTIONNELLE
+     * ✅ TOUJOURS en attente (pas de notification spéciale)
+     * ✅ Redirection vers la liste des déclarations
      */
     public function store(Request $request)
     {
@@ -228,6 +261,25 @@ class PerteController extends Controller
             'type_piece'     => 'required|string|max:100',
             'numero_piece'   => 'nullable|string|max:100',
             'date_delivrance'=> 'nullable|date|before_or_equal:today',
+            'date_expiration'=> [
+                'nullable',
+                'date',
+                function ($attribute, $value, $fail) use ($request) {
+                    if ($value) {
+                        $dateDelivrance = $request->input('date_delivrance');
+                        $today = Carbon::today();
+                        $dateExpiration = Carbon::parse($value);
+                        
+                        if ($dateExpiration->lt($today)) {
+                            $fail('La date d\'expiration doit être dans le futur.');
+                        }
+                        
+                        if ($dateDelivrance && $dateExpiration->lte(Carbon::parse($dateDelivrance))) {
+                            $fail('La date d\'expiration doit être postérieure à la date de délivrance.');
+                        }
+                    }
+                },
+            ],
             'autorite_delivrance' => 'nullable|string|max:255',
             'date_perte'     => [
                 'required',
@@ -258,9 +310,20 @@ class PerteController extends Controller
             'date_delivrance.before_or_equal' => 'La date de délivrance ne peut pas être dans le futur.',
         ]);
         
+        // Ajout des champs par défaut
         $validated['user_id'] = Auth::id();
-        $validated['statut'] = Perte::STATUT_EN_ATTENTE;
         $validated['date_declaration'] = now();
+        
+        // ✅ TOUJOURS en attente, PEU IMPORTE la date d'expiration
+        // Le statut_verification indique si c'est auto ou manuelle
+        $validated['statut'] = Perte::STATUT_EN_ATTENTE;
+        
+        // ✅ On garde juste la trace du mode de vérification
+        if (!empty($validated['date_expiration'])) {
+            $validated['statut_verification'] = Perte::STATUT_VERIFICATION_AUTO;
+        } else {
+            $validated['statut_verification'] = Perte::STATUT_VERIFICATION_MANUELLE;
+        }
         
         // Upload des fichiers
         foreach (['copie_piece', 'declaration_vol', 'document_complementaire'] as $field) {
@@ -269,19 +332,35 @@ class PerteController extends Controller
             }
         }
         
-        $perte = Perte::create($validated);
-        
-        return redirect()->route('perte.index')->with('success', '✅ Déclaration soumise avec succès ! Votre numéro de déclaration est : ' . $perte->numero_declaration);
+        DB::beginTransaction();
+        try {
+            $perte = Perte::create($validated);
+            
+            DB::commit();
+            
+            // ✅ Redirection vers la liste des déclarations
+            return redirect()->route('perte.index')
+                ->with('success', '✅ Déclaration soumise avec succès ! Votre numéro de déclaration est : ' . $perte->numero_declaration);
+                
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Une erreur est survenue lors de l\'enregistrement : ' . $e->getMessage());
+        }
     }
 
     /**
      * Afficher les détails d'une déclaration (pour le citoyen).
      * Enrichi avec les informations de correspondance si un document trouvé est associé.
-     * ✅ AFFICHE LE BOUTON DE CONFIRMATION DE RÉCUPÉRATION
      */
     public function show($id)
     {
-        $perte = Perte::with(['documentTrouve', 'user'])->where('user_id', Auth::id())->findOrFail($id);
+        $perte = Perte::with(['documentTrouve', 'user', 'verifier'])
+            ->where('user_id', Auth::id())
+            ->findOrFail($id);
+        
         return view('perte.show', compact('perte'));
     }
 
@@ -301,7 +380,7 @@ class PerteController extends Controller
 
     /**
      * Mettre à jour une déclaration (uniquement si 'en_attente').
-     * ✅ VALIDATION DES DATES AJOUTÉE
+     * ✅ Gestion de la date d'expiration
      */
     public function update(Request $request, $id)
     {
@@ -317,6 +396,25 @@ class PerteController extends Controller
             'type_piece'     => 'required|string|max:100',
             'numero_piece'   => 'nullable|string|max:100',
             'date_delivrance'=> 'nullable|date|before_or_equal:today',
+            'date_expiration'=> [
+                'nullable',
+                'date',
+                function ($attribute, $value, $fail) use ($request) {
+                    if ($value) {
+                        $dateDelivrance = $request->input('date_delivrance');
+                        $today = Carbon::today();
+                        $dateExpiration = Carbon::parse($value);
+                        
+                        if ($dateExpiration->lt($today)) {
+                            $fail('La date d\'expiration doit être dans le futur.');
+                        }
+                        
+                        if ($dateDelivrance && $dateExpiration->lte(Carbon::parse($dateDelivrance))) {
+                            $fail('La date d\'expiration doit être postérieure à la date de délivrance.');
+                        }
+                    }
+                },
+            ],
             'autorite_delivrance' => 'nullable|string|max:255',
             'date_perte'     => [
                 'required',
@@ -357,32 +455,17 @@ class PerteController extends Controller
             }
         }
         
+        // ✅ Mise à jour du statut_verification en fonction de la date d'expiration
+        if (!empty($validated['date_expiration'])) {
+            $validated['statut_verification'] = Perte::STATUT_VERIFICATION_AUTO;
+        } else {
+            $validated['statut_verification'] = Perte::STATUT_VERIFICATION_MANUELLE;
+        }
+        
         $perte->update($validated);
         
         return redirect()->route('perte.index')->with('success', '✅ Déclaration mise à jour avec succès.');
     }
-
-    public function prendreEnCharge($id)
-{
-    $perte = Perte::findOrFail($id);
-
-    // Vérifier si le dossier est déjà pris
-    if ($perte->is_locked) {
-        return back()->with('error', 'Cette déclaration est déjà prise en charge par un autre agent.');
-    }
-
-    // Verrouiller le dossier pour cet agent
-    $perte->update([
-        'assigned_to' => auth()->id(),
-        'is_locked' => true,
-        'assigned_at' => now(),
-        'statut' => 'en_cours'
-    ]);
-
-    return redirect()
-        ->route('agent.perte.show', $perte->id)
-        ->with('success', '✅ Déclaration prise en charge avec succès.');
-}
 
     /**
      * Supprimer une déclaration (uniquement si 'en_attente').
@@ -414,5 +497,14 @@ class PerteController extends Controller
         
         $pdf = Pdf::loadView('perte.attestation', compact('perte'));
         return $pdf->download('attestation_declaration_' . $perte->id . '.pdf');
+    }
+
+    /**
+     * Afficher le récépissé HTML (pour aperçu)
+     */
+    public function viewRecuHtml($id)
+    {
+        $perte = Perte::where('user_id', Auth::id())->findOrFail($id);
+        return view('perte.recu_html', compact('perte'));
     }
 }

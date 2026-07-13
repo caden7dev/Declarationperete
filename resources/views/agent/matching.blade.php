@@ -352,31 +352,86 @@
         background: #d97706;
         transform: translateY(-2px);
     }
-    @media (max-width: 768px) {
-        .matching-header {
-            padding: 1.2rem 1.2rem;
-        }
-        .citizen-summary {
-            flex-direction: column;
-            align-items: flex-start;
-        }
-        .action-footer {
-            flex-direction: column;
-            align-items: stretch;
-        }
-        .filter-bar {
-            flex-direction: column;
-        }
-        .filter-bar .filter-group {
-            width: 100%;
-        }
-        .document-card .doc-actions {
-            flex-direction: column;
-            align-items: stretch;
-        }
-        .document-card .doc-actions .btn-associer {
-            justify-content: center;
-        }
+
+    /* ============================================================
+    CARTE DE VÉRIFICATION OFFICIELLE
+    ============================================================ */
+    .verification-card {
+        border-radius: 16px;
+        padding: 1.2rem 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 2px solid #e2e8f0;
+        transition: all 0.3s;
+    }
+    .verification-card.valid {
+        border-color: #10b981;
+        background: #f0fdf4;
+    }
+    .verification-card.invalid {
+        border-color: #ef4444;
+        background: #fef2f2;
+    }
+    .verification-card.pending {
+        border-color: #f59e0b;
+        background: #fffbeb;
+    }
+    body.dark-mode .verification-card.valid {
+        background: #0a3b2a;
+        border-color: #059669;
+    }
+    body.dark-mode .verification-card.invalid {
+        background: #3f1e1e;
+        border-color: #dc2626;
+    }
+    body.dark-mode .verification-card.pending {
+        background: #422d0b;
+        border-color: #d97706;
+    }
+    .verification-card .vc-icon {
+        font-size: 2rem;
+        flex-shrink: 0;
+    }
+    .verification-card .vc-title {
+        font-weight: 700;
+        font-size: 1rem;
+    }
+    .verification-card .vc-detail {
+        font-size: 0.85rem;
+        color: #6c819a;
+        margin-top: 0.2rem;
+    }
+    body.dark-mode .verification-card .vc-detail {
+        color: #94a3b8;
+    }
+    .verification-card .vc-source {
+        font-size: 0.7rem;
+        color: #94a3b8;
+        margin-top: 0.3rem;
+    }
+    .btn-verifier {
+        background: #667eea;
+        color: white;
+        border: none;
+        padding: 0.5rem 1.5rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.2s;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .btn-verifier:hover {
+        background: #5a6fd6;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102,126,234,0.3);
+    }
+    body.dark-mode .btn-verifier {
+        background: #4f46e5;
+    }
+    body.dark-mode .btn-verifier:hover {
+        background: #4338ca;
     }
 
     /* 🌙 Mode sombre */
@@ -445,6 +500,37 @@
     body.dark-mode .modal-confirm .modal-box .actions .btn-cancel:hover {
         background: #475569;
     }
+
+    @media (max-width: 768px) {
+        .matching-header {
+            padding: 1.2rem 1.2rem;
+        }
+        .citizen-summary {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .action-footer {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .filter-bar {
+            flex-direction: column;
+        }
+        .filter-bar .filter-group {
+            width: 100%;
+        }
+        .document-card .doc-actions {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .document-card .doc-actions .btn-associer {
+            justify-content: center;
+        }
+        .verification-card {
+            flex-direction: column;
+            align-items: flex-start !important;
+        }
+    }
 </style>
 
 <div class="container-fluid py-4">
@@ -489,6 +575,86 @@
                 </div>
                 <div>
                     <span class="stat-badge"><i class="bi bi-clock-history"></i> En cours depuis {{ $perte->created_at->diffForHumans() }}</span>
+                </div>
+            </div>
+
+            <!-- ============================================================
+            ✅ VÉRIFICATION OFFICIELLE DU DOCUMENT
+            ============================================================ -->
+            @php
+                $hasVerification = isset($verification) && !empty($verification);
+                $isValid = $hasVerification && ($verification['valide'] ?? false);
+                $isPending = !$hasVerification;
+            @endphp
+
+            <div class="verification-card {{ $isValid ? 'valid' : ($isPending ? 'pending' : 'invalid') }}">
+                <div class="d-flex align-items-start gap-3 flex-wrap">
+                    <div class="vc-icon">
+                        @if($isValid)
+                            ✅
+                        @elseif($isPending)
+                            ⏳
+                        @else
+                            ❌
+                        @endif
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="vc-title">
+                            @if($isValid)
+                                Document VALIDE dans la base officielle
+                            @elseif($isPending)
+                                Vérification en attente
+                            @else
+                                Document NON VALIDE
+                            @endif
+                        </div>
+                        <div class="vc-detail">
+                            @if($isValid)
+                                Ce document est enregistré dans la base officielle.
+                                @if(isset($verification['nom']))
+                                    <br><strong>Nom :</strong> {{ $verification['nom'] }}
+                                @endif
+                                @if(isset($verification['date_expiration']))
+                                    <br><strong>Expiration :</strong> {{ \Carbon\Carbon::parse($verification['date_expiration'])->format('d/m/Y') }}
+                                @endif
+                                @if(isset($verification['autorite']))
+                                    <br><strong>Autorité :</strong> {{ $verification['autorite'] }}
+                                @endif
+                            @elseif($isPending)
+                                Cliquez sur "Vérifier" pour contrôler ce document dans la base officielle.
+                            @else
+                                @if(isset($verification['message']))
+                                    {{ $verification['message'] }}
+                                @else
+                                    Ce document n'est pas enregistré dans la base officielle.
+                                    <br>Vérifiez le numéro ou contactez le service compétent.
+                                @endif
+                            @endif
+                        </div>
+                        @if($hasVerification && isset($verification['source']))
+                            <div class="vc-source">
+                                <i class="bi bi-database"></i> Source : {{ $verification['source'] }}
+                                @if(isset($verification['date_verification']))
+                                    - Vérifié le {{ \Carbon\Carbon::parse($verification['date_verification'])->format('d/m/Y H:i') }}
+                                @endif
+                            </div>
+                        @endif
+                    </div>
+                    <div>
+                        @if($isPending)
+                            <a href="{{ route('agent.perte.recherche', ['id' => $perte->id, 'verifier' => 1]) }}" class="btn-verifier">
+                                <i class="bi bi-search"></i> Vérifier le document
+                            </a>
+                        @elseif($isValid)
+                            <span class="badge bg-success" style="font-size:0.85rem; padding:0.4rem 1rem;">
+                                <i class="bi bi-check-circle-fill"></i> VALIDE
+                            </span>
+                        @else
+                            <span class="badge bg-danger" style="font-size:0.85rem; padding:0.4rem 1rem;">
+                                <i class="bi bi-x-circle-fill"></i> NON VALIDE
+                            </span>
+                        @endif
+                    </div>
                 </div>
             </div>
 

@@ -20,6 +20,8 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\DocumentTrouveController;
 use App\Http\Controllers\AgentProfileController;
 use App\Http\Controllers\CitizenMessageController;
+use App\Http\Controllers\Admin\DocumentOfficielController;
+use App\Http\Controllers\Admin\ImportController;
 
 /*
 |--------------------------------------------------------------------------
@@ -204,6 +206,18 @@ Route::prefix('agent')->name('agent.')->middleware(['auth', 'agent'])->group(fun
     
     Route::post('/perte/{id}/simuler-pret', [AgentDashboardController::class, 'simulerPretRecuperation'])->name('perte.simuler-pret');
 
+    // ============================================================
+    // ✅ NOUVELLES ROUTES : Gestion de la date d'expiration et vérification manuelle
+    // ============================================================
+    Route::post('/perte/{id}/update-date-expiration', [AgentDashboardController::class, 'updateDateExpiration'])
+        ->name('perte.update-date-expiration');
+    
+    Route::post('/perte/{id}/valider-verification-manuelle', [AgentDashboardController::class, 'validerVerificationManuelle'])
+        ->name('perte.valider-verification-manuelle');
+    
+    Route::post('/perte/{id}/rejeter-verification-manuelle', [AgentDashboardController::class, 'rejeterVerificationManuelle'])
+        ->name('perte.rejeter-verification-manuelle');
+
     // Gestion des documents trouvés (agent)
     Route::get('/documents-trouves', [AgentDashboardController::class, 'documentsTrouves'])->name('documents-trouves.index');
     Route::get('/documents-trouves/{id}', [AgentDashboardController::class, 'showDocumentTrouve'])->name('documents-trouves.show');
@@ -276,6 +290,24 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     // Rôles
     Route::get('/roles', [App\Http\Controllers\Admin\RoleController::class, 'index'])->name('roles.index');
     Route::put('/roles/{user}/update', [App\Http\Controllers\Admin\RoleController::class, 'update'])->name('roles.update');
+    
+    // ============================================================
+    // ✅ NOUVELLES ROUTES : Gestion des documents officiels
+    // ============================================================
+    Route::resource('documents-officiels', DocumentOfficielController::class);
+    
+    // Routes supplémentaires pour les documents officiels
+    Route::post('/documents-officiels/verifier', [DocumentOfficielController::class, 'verifier'])->name('documents-officiels.verifier');
+    Route::post('/documents-officiels/{id}/marquer-vole', [DocumentOfficielController::class, 'marquerVole'])->name('documents-officiels.marquer-vole');
+    Route::post('/documents-officiels/{id}/marquer-perdu', [DocumentOfficielController::class, 'marquerPerdu'])->name('documents-officiels.marquer-perdu');
+    Route::post('/documents-officiels/{id}/marquer-retrouve', [DocumentOfficielController::class, 'marquerRetrouve'])->name('documents-officiels.marquer-retrouve');
+    Route::get('/documents-officiels/statistiques', [DocumentOfficielController::class, 'statistiques'])->name('documents-officiels.statistiques');
+    
+    // ============================================================
+    // ✅ IMPORT CSV (Sans package Excel)
+    // ============================================================
+    Route::post('/import/csv', [ImportController::class, 'importerCSV'])->name('admin.import.csv');
+    Route::get('/import/template', [ImportController::class, 'telechargerModele'])->name('admin.import.template');
 });
 
 // ============================================================
