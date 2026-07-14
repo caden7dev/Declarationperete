@@ -1260,7 +1260,7 @@
                 <span class="dot"></span>
                 Service officiel de la République Togolaise
             </div>
-            <h1>Plateforme Nationale de<br>Déclaration de <span>Documents Perdus</span></h1>
+            <h1>Plateforme Nationale de Déclaration de <span>Documents Perdus</span></h1>
             <p>Déclarez la perte de vos documents administratifs en quelques minutes, suivez votre dossier en temps réel et téléchargez votre attestation numérique certifiée — sans vous déplacer.</p>
             <div class="hero-buttons">
                 <div class="btn-wrapper">
