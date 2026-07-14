@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\URL; // Importation requise pour forcer le HTTPS
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -28,6 +29,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        // 1. Force le HTTPS si l'application est consultée via ngrok
+        if (str_contains(request()->headers->get('X-Original-Host') ?? '', 'ngrok-free.dev') || 
+            str_contains(request()->headers->get('Host') ?? '', 'ngrok-free.dev')) {
+            URL::forceScheme('https');
+        }
+
         // Réduit la longueur par défaut pour les indexes (nécessaire pour MySQL)
         Schema::defaultStringLength(191);
         
@@ -60,9 +67,9 @@ class AppServiceProvider extends ServiceProvider
                 $view->with('userTheme', 'light');
 
                 if (Session::has('locale')) {
-        App::setLocale(Session::get('locale'));
-    }
+                    App::setLocale(Session::get('locale'));
+                }
             }
         });
-    }
+     }
 }
